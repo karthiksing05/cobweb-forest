@@ -1,0 +1,47 @@
+{
+ "N": 1000,
+ "seed": 1,
+ "xy": {
+  "predicted": {
+   "funnel": 1.0,
+   "label": 0.0,
+   "single": 0.0
+  },
+  "measured": {
+   "funnel": {
+    "ratio": 0.9999459344619649,
+    "kappa": 0.7,
+    "val": 0.33473796505021963
+   },
+   "single": {
+    "ratio": 0.057734774906570134,
+    "kappa": 0.35,
+    "val": 0.05513125196997323
+   },
+   "label": {
+    "ratio": 0.2973902745923488,
+    "depth": 3,
+    "kappa": 0.35,
+    "val": 0.11083356387672058
+   }
+  }
+ },
+ "multiview": {
+  "predicted_ratio": 0.6955745934614391,
+  "measured_ratio": 0.7826043181580268,
+  "kappa": 0.7,
+  "val": 0.4305286330526071
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "fe769eb7e085",
+  "cobweb_forest/cues.py": "3ce152125459",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "5f1e17c3f8a4",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "1b93f5c",
+  "host": "asimo.cc.gatech.edu"
+ }
+}

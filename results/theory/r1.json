@@ -1,0 +1,100 @@
+{
+ "1": {
+  "rows": [
+   {
+    "G": 8,
+    "sup_err": 0.3906238952016316
+   },
+   {
+    "G": 16,
+    "sup_err": 0.19981232074255567
+   },
+   {
+    "G": 32,
+    "sup_err": 0.0997215786313496
+   },
+   {
+    "G": 64,
+    "sup_err": 0.04907414850945095
+   },
+   {
+    "G": 128,
+    "sup_err": 0.02367816095406632
+   },
+   {
+    "G": 256,
+    "sup_err": 0.010979342955895467
+   },
+   {
+    "G": 512,
+    "sup_err": 0.004649488005586666
+   }
+  ],
+  "predicted_slope": -1.0,
+  "measured_slope": -1.057985933394292
+ },
+ "2": {
+  "rows": [
+   {
+    "G": 16,
+    "sup_err": 0.5953082589225528
+   },
+   {
+    "G": 64,
+    "sup_err": 0.33666504898831817
+   },
+   {
+    "G": 256,
+    "sup_err": 0.15518039444253418
+   },
+   {
+    "G": 1024,
+    "sup_err": 0.0749311699986732
+   },
+   {
+    "G": 4096,
+    "sup_err": 0.03650229344966769
+   }
+  ],
+  "predicted_slope": -0.5,
+  "measured_slope": -0.511141592839811
+ },
+ "3": {
+  "rows": [
+   {
+    "G": 27,
+    "sup_err": 0.8163337464687217
+   },
+   {
+    "G": 125,
+    "sup_err": 0.5290931604856158
+   },
+   {
+    "G": 512,
+    "sup_err": 0.36241121888696204
+   },
+   {
+    "G": 1728,
+    "sup_err": 0.24353525341092597
+   },
+   {
+    "G": 4096,
+    "sup_err": 0.1805706203037406
+   }
+  ],
+  "predicted_slope": -0.3333333333333333,
+  "measured_slope": -0.29795313227123976
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "fe769eb7e085",
+  "cobweb_forest/cues.py": "3ce152125459",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "5f1e17c3f8a4",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "1b93f5c",
+  "host": "asimo.cc.gatech.edu"
+ }
+}

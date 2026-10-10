@@ -338,7 +338,7 @@ def fig_synergy():
     for d in task_results("synergy"):
         Sy[(d["result"]["target"], d["args"]["N"])].append(np.array(d["result"]["deficit_over_var"], dtype=float))
     panels = [(("nested4", 16000), "4-D nested, N=16000", ["x1", "x2", "x3", "x4"]),
-              (("housing", 4000), "housing, N=4000", ["lon", "lat", "age", "rooms", "bedr.", "occ.", "hh", "inc."])]
+              ]                                   # mathematical targets only (paper v8)
     panels = [p for p in panels if Sy.get(p[0])]
     if not panels:
         return
@@ -432,6 +432,8 @@ def tab_induce():
     lines = [r"\begin{tabular}{@{}lrlrrrrr@{}}\toprule",
              r"target & $N$ & induced groups ($\tau=0.05$) & one tree & balanced & selected & best & seeds\\\midrule"]
     for (t, N) in sorted(by):
+        if t == "housing":                     # mathematical targets only (paper v8)
+            continue
         rs = by[(t, N)]
         grp = collections.Counter(str(r["groups"].get("0.05")) for r in rs).most_common(1)[0][0]
         names = NAMES.get(t) or FN.names(t)

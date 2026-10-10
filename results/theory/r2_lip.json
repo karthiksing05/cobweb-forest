@@ -1,0 +1,194 @@
+{
+ "2": {
+  "forest": [
+   {
+    "G_per_tree": 16,
+    "trees": 1,
+    "G_total": 16,
+    "sup_err": 0.15776861007849408
+   },
+   {
+    "G_per_tree": 64,
+    "trees": 1,
+    "G_total": 64,
+    "sup_err": 0.08537171240513375
+   },
+   {
+    "G_per_tree": 256,
+    "trees": 1,
+    "G_total": 256,
+    "sup_err": 0.03665969725315621
+   },
+   {
+    "G_per_tree": 1024,
+    "trees": 1,
+    "G_total": 1024,
+    "sup_err": 0.01797581012884808
+   },
+   {
+    "G_per_tree": 4096,
+    "trees": 1,
+    "G_total": 4096,
+    "sup_err": 0.005251827794711117
+   }
+  ],
+  "single": [
+   {
+    "G_total": 16,
+    "sup_err": 0.20630648681350816
+   },
+   {
+    "G_total": 64,
+    "sup_err": 0.10845074006744493
+   },
+   {
+    "G_total": 256,
+    "sup_err": 0.053168564526520856
+   },
+   {
+    "G_total": 1024,
+    "sup_err": 0.02456915327736009
+   },
+   {
+    "G_total": 4096,
+    "sup_err": 0.010204225270234235
+   }
+  ],
+  "predicted_slope_forest": -0.5,
+  "predicted_slope_single": -0.5,
+  "measured_slope_forest": -0.6032697434074188,
+  "measured_slope_single": -0.5408610552166925
+ },
+ "4": {
+  "forest": [
+   {
+    "G_per_tree": 16,
+    "trees": 3,
+    "G_total": 48,
+    "sup_err": 0.19555548342987739
+   },
+   {
+    "G_per_tree": 64,
+    "trees": 3,
+    "G_total": 192,
+    "sup_err": 0.15641624168897172
+   },
+   {
+    "G_per_tree": 256,
+    "trees": 3,
+    "G_total": 768,
+    "sup_err": 0.09457785324597856
+   },
+   {
+    "G_per_tree": 1024,
+    "trees": 3,
+    "G_total": 3072,
+    "sup_err": 0.04482952269837104
+   },
+   {
+    "G_per_tree": 4096,
+    "trees": 3,
+    "G_total": 12288,
+    "sup_err": 0.022852723164801803
+   }
+  ],
+  "single": [
+   {
+    "G_total": 81,
+    "sup_err": 0.34654362999809973
+   },
+   {
+    "G_total": 256,
+    "sup_err": 0.25742330157173865
+   },
+   {
+    "G_total": 1296,
+    "sup_err": 0.1935266299679329
+   },
+   {
+    "G_total": 4096,
+    "sup_err": 0.14076075467392646
+   },
+   {
+    "G_total": 10000,
+    "sup_err": 0.1190989962510749
+   },
+   {
+    "G_total": 20736,
+    "sup_err": 0.09318307551666938
+   }
+  ],
+  "predicted_slope_forest": -0.5,
+  "predicted_slope_single": -0.25,
+  "measured_slope_forest": -0.3998574636075679,
+  "measured_slope_single": -0.22899183464540213
+ },
+ "8": {
+  "forest": [
+   {
+    "G_per_tree": 16,
+    "trees": 7,
+    "G_total": 112,
+    "sup_err": 0.26533595743853255
+   },
+   {
+    "G_per_tree": 64,
+    "trees": 7,
+    "G_total": 448,
+    "sup_err": 0.18107657976284852
+   },
+   {
+    "G_per_tree": 256,
+    "trees": 7,
+    "G_total": 1792,
+    "sup_err": 0.09589966733568878
+   },
+   {
+    "G_per_tree": 1024,
+    "trees": 7,
+    "G_total": 7168,
+    "sup_err": 0.037529429357677446
+   },
+   {
+    "G_per_tree": 4096,
+    "trees": 7,
+    "G_total": 28672,
+    "sup_err": 0.019922396104961382
+   }
+  ],
+  "single": [
+   {
+    "G_total": 256,
+    "sup_err": 0.34685457796695507
+   },
+   {
+    "G_total": 6561,
+    "sup_err": 0.28281040283957504
+   },
+   {
+    "G_total": 65536,
+    "sup_err": 0.26858599278250717
+   },
+   {
+    "G_total": 390625,
+    "sup_err": 0.22301136744929262
+   }
+  ],
+  "predicted_slope_forest": -0.5,
+  "predicted_slope_single": -0.125,
+  "measured_slope_forest": -0.4870609970733914,
+  "measured_slope_single": -0.05607382953138277
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "fe769eb7e085",
+  "cobweb_forest/cues.py": "3ce152125459",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "5f1e17c3f8a4",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "1b93f5c",
+  "host": "asimo.cc.gatech.edu"
+ }
+}

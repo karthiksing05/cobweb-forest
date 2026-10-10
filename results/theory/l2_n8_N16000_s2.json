@@ -1,0 +1,34 @@
+{
+ "n": 8,
+ "N": 16000,
+ "seed": 2,
+ "sd_f": 0.42197495698928833,
+ "results": {
+  "single": {
+   "rmse": 0.3196001029386066,
+   "rmse_interior": 0.3090947048576016,
+   "seconds": 139.26692867279053,
+   "kappa": 0.7,
+   "val": 0.3314706863393955
+  },
+  "forest": {
+   "rmse": 0.0981682786617768,
+   "rmse_interior": 0.10739219412360015,
+   "seconds": 1060.664803981781,
+   "kappa": 0.7,
+   "val": 0.1384951548564695
+  }
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "fe769eb7e085",
+  "cobweb_forest/cues.py": "3ce152125459",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "5f1e17c3f8a4",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "1b93f5c",
+  "host": "kipp.cc.gatech.edu"
+ }
+}

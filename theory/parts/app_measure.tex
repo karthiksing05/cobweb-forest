@@ -1,0 +1,45 @@
+\paragraph{Trees and prediction.}
+All measurements use the C++ hybrid Cobweb tree of the repository.  Constructed trees
+(\cref{prop:rate,thm:compose}) are depth-one trees loaded with exactly the statistics of
+\cref{def:concept}: one leaf per cell centre of an $m^d$ grid on the stated box, holding
+$(\gamma,g(\gamma))$ with count one, and variance floor $h=\tfrac12\times$ the grid spacing.
+Learned trees are built by \texttt{ifit} alone.  Every tree predicts with the
+count-weighted leaf mixture \eqref{eq:tree} (the \textsc{prior} weighting restricted to
+leaves) under full expansion.  Learned forests are trained with the split protocol.
+
+\paragraph{R1: one constructed tree (\cref{prop:rate}).}
+Targets on $[0,1]^d$: $\sin2\pi x_1$ ($d=1$), $\sin(2\pi x_1)\cos(\pi x_2)$ ($d=2$),
+$\sin(2\pi x_1)\cos(\pi x_2)+x_3^2$ ($d=3$); sup error over 400 uniform queries in all of
+$[0,1]^d$; grids $m=8,\dots,512$ ($d=1$), $4,\dots,64$ ($d=2$), $3,\dots,16$ ($d=3$).
+
+\paragraph{R2: composition (\cref{thm:compose}).}
+The target on $[0,1]^n$, $n=2,4,8$, is the balanced binary composition of
+$g(a,b)=\tfrac12(a+b)+\tfrac14|\sin(2\pi ab)|$ (``Lipschitz'': $g$ has kinks inside every
+input box, where the Lipschitz rate is attained) or of the same map without the absolute
+value (``smooth'').  Each vertex's input box is the range of its exact inputs over $2\times10^4$
+uniform points, enlarged by $10\%$ on each side (the margin $r$ of \cref{thm:compose}).  The
+forest has one constructed two-input tree per vertex with $G=m^2$ leaves, $m=4,\dots,64$;
+the single tree has an $m^n$ grid on $[0,1]^n$.  Sup error over 300 uniform queries.
+
+\paragraph{L1: one learned tree (\cref{thm:learn-tree}).}
+$Y=g(X)+0.3\,\xi$ with $X$ uniform on $[0,1]^d$, $\xi$ standard normal and $g$ as in R1;
+$N\in\{500,\dots,16000\}$; variance floor $h=\kappa N^{-1/(d+4)}$ in units of each
+coordinate's standard deviation, $\kappa\in\{0.35,0.7,1.4\}$ chosen on 1000 validation
+points; RMSE to $g$ on 2000 queries in $[0.25,0.75]^d$.
+
+\paragraph{L2: learned forest and one tree (\cref{prop:tasks}(a), \cref{rem:crossover}).}
+$Y=\exp\bigl(\tfrac2n\sum_{j<n/2}\sin\pi(X_{2j}^2+X_{2j+1}^2)\bigr)+0.1\,\xi$, $X$ uniform on
+$[-1,1]^n$.  The forest is the funnel forest over the blocks, composed by a balanced binary
+graph of two-input trees; each tree's floor follows $h=\kappa N^{-1/(k+4)}$ with $k$ its
+fan-in.  RMSE to $f$ on 2000 queries in $[-0.75,0.75]^n$, divided by $\mathrm{sd}(f)$.
+
+\paragraph{L3: what trees predict (\cref{prop:tasks}(b)--(d)).}
+(b),(c): $Y=X_1X_2+0.05\,\xi$ on $[-1,1]^2$; the funnel forest has two one-input trees, the
+label forest passes labels at a depth chosen in $\{1,2,3,4\}$ on validation data, with
+smoothing $\alpha=10^{-4}$ in the output tree (condition (c) of \cref{thm:labelcons}).  (d): the
+two-view Gaussian model of \cref{prop:multiview} with loadings $(1,0.8)$ and $(0.9,-0.7)$,
+noise scales $(0.5,0.6)$ and $(0.6,0.5)$, and the view-specific target $Y=E_{1,1}$; the
+cross-view trees predict one coordinate of the other view.  Every variable is linear in a
+standard Gaussian vector, so $f=\E[Y\mid X]$ and the ideal output $F=\E[Y\mid\mu_1,\mu_2]$
+are linear projections and $\Delta/\Var f=\|f-F\|^2/\|f\|^2$ is computed exactly from the
+coefficient vectors (\texttt{experiments/theory\_suite.py}, \texttt{multiview\_deficit}).
