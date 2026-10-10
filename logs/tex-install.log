@@ -1,0 +1,106 @@
+2 channel Terms of Service accepted
+Retrieving notices: ...working... done
+Channels:
+ - conda-forge
+ - defaults
+Platform: linux-64
+Collecting package metadata (repodata.json): ...working... done
+Solving environment: ...working... done
+
+## Package Plan ##
+
+  environment location: /nethome/ksingara3/flash/miniconda3/envs/tex
+
+  added / updated specs:
+    - tectonic
+
+
+The following packages will be downloaded:
+
+    package                    |            build
+    ---------------------------|-----------------
+    cairo-1.18.6               |       h3c89d7e_0         984 KB  conda-forge
+    fontconfig-2.18.3          |       h4db4eae_1         289 KB  conda-forge
+    freetype-2.14.3            |       ha770c72_2         171 KB  conda-forge
+    graphite2-1.3.15           |       h54a6638_1         100 KB  conda-forge
+    harfbuzz-14.6.0            |       ha770c72_1          11 KB  conda-forge
+    libexpat-2.8.5             |       hd2095e1_0          76 KB  conda-forge
+    libfreetype-2.14.3         |       ha770c72_2           8 KB  conda-forge
+    libfreetype6-2.14.3        |       h5e6c136_2         379 KB  conda-forge
+    libglib-2.90.0             |       h569388d_0         4.6 MB  conda-forge
+    libharfbuzz-14.6.0         |       h23af247_1         1.4 MB  conda-forge
+    libharfbuzz-devel-14.6.0   |       h23af247_1         2.2 MB  conda-forge
+    libiconv-1.18              |       h0cb94f2_3         771 KB  conda-forge
+    libpng-1.6.59              |       h922cc85_0         309 KB  conda-forge
+    libuuid-2.42.4             |       hcfc3c73_0          34 KB  conda-forge
+    libxcb-1.17.0              |       hb83e432_2         386 KB  conda-forge
+    openssl-3.6.5              |       h781a0a9_0         3.0 MB  conda-forge
+    pcre2-10.47                |       h8b3dc9c_1         1.2 MB  conda-forge
+    pixman-0.46.4              |       h54a6638_3         368 KB  conda-forge
+    pthread-stubs-0.4          |    h7cc23a3_1004           9 KB  conda-forge
+    tectonic-0.17.0            |       ha39f199_0         6.1 MB  conda-forge
+    xorg-libice-1.1.2          |       h280c20c_0          61 KB  conda-forge
+    xorg-libsm-1.2.6           |       h0d788c3_1          30 KB  conda-forge
+    xorg-libx11-1.8.13         |       he1eb515_1         820 KB  conda-forge
+    xorg-libxau-1.0.12         |       h7cc23a3_2          18 KB  conda-forge
+    xorg-libxdmcp-1.1.5        |       h7cc23a3_2          22 KB  conda-forge
+    xorg-libxext-1.3.7         |       h7cc23a3_1          52 KB  conda-forge
+    xorg-libxrender-0.9.12     |       hb03c661_1          34 KB  conda-forge
+    ------------------------------------------------------------
+                                           Total:        23.4 MB
+
+The following NEW packages will be INSTALLED:
+
+  _openmp_mutex      conda-forge/linux-64::_openmp_mutex-4.5-20_gnu 
+  bzip2              conda-forge/linux-64::bzip2-1.0.8-hda65f42_10 
+  ca-certificates    conda-forge/noarch::ca-certificates-2026.7.22-hbd8a1cb_0 
+  cairo              conda-forge/linux-64::cairo-1.18.6-h3c89d7e_0 
+  font-ttf-dejavu-s~ conda-forge/noarch::font-ttf-dejavu-sans-mono-2.37-hab24e00_0 
+  font-ttf-inconsol~ conda-forge/noarch::font-ttf-inconsolata-3.000-h77eed37_0 
+  font-ttf-source-c~ conda-forge/noarch::font-ttf-source-code-pro-2.038-h77eed37_0 
+  font-ttf-ubuntu    conda-forge/noarch::font-ttf-ubuntu-0.83-h77eed37_3 
+  fontconfig         conda-forge/linux-64::fontconfig-2.18.3-h4db4eae_1 
+  fonts-conda-ecosy~ conda-forge/noarch::fonts-conda-ecosystem-1-0 
+  fonts-conda-forge  conda-forge/noarch::fonts-conda-forge-1-hc364b38_1 
+  freetype           conda-forge/linux-64::freetype-2.14.3-ha770c72_2 
+  graphite2          conda-forge/linux-64::graphite2-1.3.15-h54a6638_1 
+  harfbuzz           conda-forge/linux-64::harfbuzz-14.6.0-ha770c72_1 
+  icu                conda-forge/linux-64::icu-78.3-py310h44b86e0_2 
+  libexpat           conda-forge/linux-64::libexpat-2.8.5-hd2095e1_0 
+  libffi             conda-forge/linux-64::libffi-3.7.0-h81df57d_1 
+  libfreetype        conda-forge/linux-64::libfreetype-2.14.3-ha770c72_2 
+  libfreetype6       conda-forge/linux-64::libfreetype6-2.14.3-h5e6c136_2 
+  libgcc             conda-forge/linux-64::libgcc-16.2.0-ha9f2e26_7 
+  libglib            conda-forge/linux-64::libglib-2.90.0-h569388d_0 
+  libgomp            conda-forge/linux-64::libgomp-16.2.0-he0feb66_7 
+  libharfbuzz        conda-forge/linux-64::libharfbuzz-14.6.0-h23af247_1 
+  libharfbuzz-devel  conda-forge/linux-64::libharfbuzz-devel-14.6.0-h23af247_1 
+  libiconv           conda-forge/linux-64::libiconv-1.18-h0cb94f2_3 
+  libpng             conda-forge/linux-64::libpng-1.6.59-h922cc85_0 
+  libstdcxx          conda-forge/linux-64::libstdcxx-16.2.0-h934c35e_7 
+  libuuid            conda-forge/linux-64::libuuid-2.42.4-hcfc3c73_0 
+  libxcb             conda-forge/linux-64::libxcb-1.17.0-hb83e432_2 
+  libzlib            conda-forge/linux-64::libzlib-1.3.2-h25fd6f3_3 
+  openssl            conda-forge/linux-64::openssl-3.6.5-h781a0a9_0 
+  pcre2              conda-forge/linux-64::pcre2-10.47-h8b3dc9c_1 
+  pixman             conda-forge/linux-64::pixman-0.46.4-h54a6638_3 
+  pthread-stubs      conda-forge/linux-64::pthread-stubs-0.4-h7cc23a3_1004 
+  tectonic           conda-forge/linux-64::tectonic-0.17.0-ha39f199_0 
+  xorg-libice        conda-forge/linux-64::xorg-libice-1.1.2-h280c20c_0 
+  xorg-libsm         conda-forge/linux-64::xorg-libsm-1.2.6-h0d788c3_1 
+  xorg-libx11        conda-forge/linux-64::xorg-libx11-1.8.13-he1eb515_1 
+  xorg-libxau        conda-forge/linux-64::xorg-libxau-1.0.12-h7cc23a3_2 
+  xorg-libxdmcp      conda-forge/linux-64::xorg-libxdmcp-1.1.5-h7cc23a3_2 
+  xorg-libxext       conda-forge/linux-64::xorg-libxext-1.3.7-h7cc23a3_1 
+  xorg-libxrender    conda-forge/linux-64::xorg-libxrender-0.9.12-hb03c661_1 
+  zlib               conda-forge/linux-64::zlib-1.3.2-h25fd6f3_3 
+
+
+Preparing transaction: ...working... done
+Verifying transaction: ...working... done
+Executing transaction: ...working... done
+
+Channel "defaults" has the following notices:
+  [warning] -- Wed Sep 30 00:00:00 2026
+  Anaconda will stop building new Python 3.10 packages on the main channel after October 31, 2026. Existing Python 3.10 packages will stay available but will no longer get new builds or security fixes. We recommend upgrading to Python 3.11 or later. Details: https://www.anaconda.com/docs/reference/policies-practices/python-version-support?utm_source=channel_notices
+

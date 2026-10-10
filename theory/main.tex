@@ -1,0 +1,697 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{enumitem,booktabs,graphicx,xcolor}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\usepackage[capitalise]{cleveref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\F}{\mathfrak{F}}
+\newcommand{\cL}{\mathcal{L}}
+\newcommand{\hy}{\hat{y}}
+\newcommand{\Lip}{\mathrm{Lip}}
+\newcommand{\diam}{\operatorname{diam}}
+\newcommand{\tr}{\operatorname{tr}}
+
+\title{Cobweb Forests:\\ A Kolmogorov--Arnold Theory of Networks of Concept Hierarchies}
+\author{Draft --- Karthik Singaravadivelan et al.\ (working notes)}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The Kolmogorov--Arnold (KA) representation theorem states that every continuous
+function of $n$ variables is a finite superposition of continuous functions of one
+variable and addition, and Kolmogorov--Arnold Networks (KANs) turn that statement into
+an architecture with learnable univariate functions on its edges.  We ask the two
+analogous questions for Cobweb, the incremental concept-formation system whose
+category utility is the mutual information between features and concepts.
+\emph{Representation:} does there exist a set of Cobweb trees that represents an
+arbitrary continuous function?  \emph{Learnability:} does Cobweb's own learning
+procedure---category utility and its four operators, with no gradients---learn it?
+We formalise a \emph{Cobweb forest}: a directed acyclic graph of hybrid Cobweb trees in
+which each tree reads raw features and the \emph{messages} of other trees---their
+\emph{activations} (multi-node predictions of a continuous attribute) and their
+\emph{labels} (the concepts an input sorts to)---and one designated tree produces the
+output.  We prove (i)~that a single tree is a universal approximator under the
+prediction rules of the hybrid implementation, but that the prior-weighted mixture over
+all concepts is not consistent; (ii)~a Cobweb--Kolmogorov--Arnold theorem: forests whose
+trees have at most two inputs and pass activations are universal, with $4n^2+4n$ trees,
+and two inputs per tree are necessary; (iii)~that label forests are universal as well;
+(iv)~a structural invariant of Cobweb's operators (no leaf is ever destroyed), which
+makes a single learned tree a universally consistent regressor independently of the
+structure category utility builds; and (v)~that a forest learned by Cobweb alone is
+consistent with a rate set by the trees' fan-in rather than by $n$ whenever its messages
+are \emph{sufficient}, while activation messages provably fail on functions such as $xy$
+and label messages repair them.  Each statement is paired with an experiment in the
+style of the KAN paper.
+\end{abstract}
+
+\tableofcontents
+
+%=====================================================================
+\section{Introduction}
+%=====================================================================
+
+\paragraph{Kolmogorov--Arnold.}
+For every $n\ge 2$ there are continuous functions $\varphi_{q,p}:[0,1]\to\R$
+($q=0,\dots,2n$, $p=1,\dots,n$) such that every $f\in C([0,1]^n)$ can be written as
+\begin{equation}\label{eq:ka}
+  f(x_1,\dots,x_n)=\sum_{q=0}^{2n}\Phi_q\Bigl(\sum_{p=1}^{n}\varphi_{q,p}(x_p)\Bigr)
+\end{equation}
+with continuous outer functions $\Phi_q:\R\to\R$ that depend on~$f$
+\citep{kolmogorov1957,arnold1957,lorentz1966,sprecher1965}.  The only genuinely
+multivariate operation is addition.  The inner functions may be very rough (nowhere
+differentiable), which long made \eqref{eq:ka} look irrelevant to learning
+\citep{girosi1989}.  Kolmogorov--Arnold Networks \citep{liu2024kan} stack layers of
+learnable univariate functions (B-splines on edges, sums at nodes) and prove an
+approximation theorem whose rate does not depend on $n$ when $f$ has a \emph{smooth}
+KA-type representation \citep[Thm.~2.1]{liu2024kan}.
+
+\paragraph{Cobweb.}
+Cobweb \citep{fisher1987} sorts each instance down a hierarchy of probabilistic
+concepts and, at every node, applies whichever of four operators---add to the best
+child, create a new child, merge the two best children, split the best child---most
+increases category utility, which in its information-theoretic form is the mutual
+information between features and concepts \citep{corter1992,maclellan2026rational}.
+Concepts store sufficient statistics (attribute--value counts for nominal attributes,
+a mean and variance for each continuous one), so learning is closed-form, incremental
+and does not forget.  Prediction expands concepts best-first and mixes their
+predictions \citep{maclellan2026rational}.
+
+Several recent systems use Cobweb trees as \emph{modules} whose representations become
+the inputs of other trees: Convolutional Cobweb \citep{maclellan2021conv} sorts image
+patches into a filter hierarchy and describes each image by the patches' filter labels
+for a second, classification hierarchy; TRELLIS \citep{singaravadivelan2026trellis}
+describes composites by bags of concept identifiers drawn from another hierarchy; and a
+Cobweb language model passes each tree's prediction for a position to the trees above
+it.  We call such a network a \emph{Cobweb forest} and ask what it can represent and
+learn.
+
+\paragraph{Questions.}
+\begin{enumerate}[label=\textbf{Q\arabic*.},leftmargin=*]
+\item \emph{Representation.} For every continuous $f$ and $\varepsilon>0$, is there a
+  Cobweb forest whose output is uniformly within $\varepsilon$ of $f$?  How few trees,
+  and how few inputs per tree, suffice?
+\item \emph{Learnability.} If every tree learns only with Cobweb's own procedure, does
+  the forest's output converge to $f$?  At what rate, and what decides it?
+\end{enumerate}
+
+\paragraph{Contributions.}
+\begin{itemize}[leftmargin=*]
+\item A formal model of the hybrid Cobweb tree as implemented in
+  \texttt{cobweb\_hybrid}, including its four prediction weightings, and of Cobweb
+  forests with activation and label messages (\cref{sec:model}).
+\item Representation (\cref{sec:repr}): single-tree universality with an explicit
+  rate (\cref{thm:single}); inconsistency of the prior-weighted all-concept mixture
+  (\cref{prop:prior}); the Cobweb--Kolmogorov--Arnold theorem for fan-in-two
+  activation forests (\cref{thm:cka}) and the necessity of fan-in two
+  (\cref{prop:fanin}); universality of label forests (\cref{thm:label}); and the
+  observation that merging (``interweaving'') trees under a common root yields
+  mixtures, not compositions (\cref{prop:interweave}).
+\item Learnability (\cref{sec:learn}): the leaf-preservation invariant of Cobweb's
+  operators (\cref{lem:leaves}); universal consistency of a learned tree, independent
+  of the structure category utility chooses (\cref{thm:consistency}); consistency of
+  Cobweb-learned forests under a sufficiency condition, at a rate governed by fan-in
+  (\cref{thm:forest}); the failure of activation messages without sufficiency
+  (\cref{prop:xy}); and consistency of unsupervised label forests as data-dependent
+  partitioning estimates (\cref{thm:labelcons}).
+\item A test battery that mirrors the KAN paper (\cref{sec:experiments}).
+\end{itemize}
+
+%=====================================================================
+\section{The model}\label{sec:model}
+%=====================================================================
+
+\subsection{Concepts and trees}
+
+An \emph{instance} is a pair $z=(a,u)$ of a nominal part $a$ (a table that assigns to
+each attribute a bag of values with weights) and a continuous part $u\in\R^m$.
+
+\begin{definition}[Concept]\label{def:concept}
+A concept $c$ stores its count $n_c$, the attribute--value counts $n_c(A{=}v)$ of the
+instances it covers, and, for the continuous block, their mean $\mu_c\in\R^m$ and
+empirical (per-dimension) variance $s_c^2\in\R^m_{\ge0}$.  With smoothing parameters
+$\alpha>0$ and $h^2>0$ (\texttt{alpha}, \texttt{prior\_var}) its model is
+\[
+  P_c(A{=}v)=\frac{n_c(A{=}v)+\alpha}{n_c(A)+(K_A+1)\alpha},\qquad
+  p_c(u_j)=\N\bigl(u_j;\,\mu_{c,j},\,v_{c,j}\bigr),\quad v_{c,j}=s^2_{c,j}+h^2,
+\]
+with attributes conditionally independent given $c$, $K_A$ the number of values of $A$
+seen so far.
+\end{definition}
+
+\begin{definition}[Cobweb tree]
+A Cobweb tree $\T$ is a rooted tree of concepts whose statistics are \emph{additive}:
+each internal concept's statistics are those of the pooled instances of its children.
+Its \emph{category utility} at a node with children $C$ is the normalised information
+gain $\mathrm{PU}=|C|^{-1}\bigl[H(\text{parent})-\sum_{c\in C}P(c)H(c)\bigr]$, where
+$H$ is the sum of the Dirichlet-smoothed categorical entropies and of the Gaussian
+differential entropies $\tfrac12\log(2\pi e\,v_{c,j})$; without the $|C|^{-1}$ factor
+this is the mutual information $I(Z;C)$ \citep{corter1992,maclellan2026rational}.
+\end{definition}
+
+Learning (\texttt{ifit}) sorts an instance from the root.  At a leaf it either
+increments the leaf (exact match) or performs a \emph{fringe split}: the leaf becomes an
+internal node with the old leaf and a new leaf for the instance as children.  At an
+internal node it adds the instance and chooses, by category utility, between
+\textsc{best} (descend into the best child), \textsc{new} (create a leaf),
+\textsc{merge} (join the two best children under a new node) and \textsc{split}
+(replace the best child by its children).
+
+\subsection{Prediction}
+
+A \emph{query} is an instance in which some attributes and some continuous
+coordinates are missing; we write $O$ for the observed coordinates (missing continuous
+coordinates are encoded as \texttt{NaN}, missing attributes are absent).  The
+log-likelihood of a query under a concept is
+$\ell_c(q)=\sum_{A\text{ obs.}}\log P_c(A{=}q_A)+\sum_{j\in O}\log p_c(q_j)$.
+
+\begin{definition}[Multi-node prediction]\label{def:predict}
+Prediction expands concepts best-first from the root (at most $M$ of them), scoring each
+concept $c$ with one of
+\[
+\begin{array}{ll}
+\textsc{lik}: & s_c=\ell_c(q),\\
+\textsc{prior}: & s_c=\ell_c(q)+\log(n_c/n_{\text{root}}),\\
+\textsc{path}: & s_c=\pi_c(q)+\ell_c(q),\qquad
+  \pi_c(q)=\sum_{c'\in\text{path}(c)\setminus\{\text{root}\}}
+  \log\frac{n_{c'}e^{\ell_{c'}(q)}}{\sum_{b\in\text{sib}(c')}n_b e^{\ell_b(q)}},\\
+\textsc{posterior}: & s_c=\pi_c(q),
+\end{array}
+\]
+where $\text{sib}(c')$ are the children of $c'$'s parent (including $c'$).  With
+$E_M(q)$ the expanded set and $w_c(q)\propto e^{s_c}$ normalised over $E_M(q)$, the
+prediction of a missing continuous coordinate $j$ and of a missing attribute $A$ is
+\[
+  \hy_j(q)=\sum_{c\in E_M(q)}w_c(q)\,\mu_{c,j},\qquad
+  \hat P(A{=}v\mid q)=\sum_{c\in E_M(q)}w_c(q)\,P_c(A{=}v).
+\]
+The \emph{leaves-only} variant restricts the mixture to the expanded leaves.
+\end{definition}
+
+\textsc{path} is the default of the implementation and of \texttt{cobweb\_torch};
+$\pi_c(q)$ is the log posterior of $c$ obtained by multiplying the sibling-normalised
+posteriors down its path, so $\sum_{c\text{ at depth }k}e^{\pi_c}\le1$ for every
+depth~$k$.  The rational account \citep{maclellan2026rational} ranks concepts by
+pointwise mutual information $\log p(x\mid c)-\log p(x)$, i.e.\ by $\ell_c$.
+
+\subsection{Cobweb forests}
+
+\begin{definition}[Messages]\label{def:messages}
+Let $\T$ be a tree whose continuous block contains \emph{task} coordinates
+$Y_\T$ (possibly none).  For a query $q$ in which $Y_\T$ is missing:
+\begin{itemize}[leftmargin=*]
+\item the \emph{activation} of $\T$ is its prediction $\hy_{Y_\T}(q)\in\R^{|Y_\T|}$;
+\item the \emph{label} of $\T$ at depth $k$ is the identifier of the depth-$k$ concept
+  on the root-to-leaf descent that chooses, at each node, the child maximising
+  $\log n_c+\ell_c(q)$ (the depth of a leaf if the path is shorter; $k=\infty$ denotes
+  the leaf).
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Cobweb forest]\label{def:forest}
+A Cobweb forest $\F=(V,E,o)$ is a finite directed acyclic graph whose vertices are
+Cobweb trees and whose edges $\sigma\to\tau$ carry the activation and/or the label of
+$\sigma$ into $\tau$, together with an output tree $o\in V$.  A tree $\tau$ reads an
+instance made of (a)~the raw coordinates $x_{R_\tau}$ it is wired to, (b)~the activations
+of its parents as continuous coordinates, (c)~the labels of its parents as nominal
+attributes (one attribute per parent), and (d)~its task attributes, if any.  For an input
+$x$ the forest computes the messages of every tree in topological order and outputs the
+activation (regression) or the predicted value distribution (classification) of $o$.
+The \emph{fan-in} of $\tau$ is the number of its continuous non-task inputs plus the
+number of its label inputs.
+\end{definition}
+
+\begin{definition}[Learning a forest with Cobweb]\label{def:forestlearn}
+Given a stream $(x_i,y_i)_{i\le N}$, every tree learns only with \texttt{ifit} on the
+instances defined in \cref{def:forest}; a tree's task attributes, if any, are the
+target $y$ (the target ``funnels'' through that tree), and a tree without task
+attributes is unsupervised.  Two protocols define which messages a tree is trained on:
+\begin{itemize}[leftmargin=*]
+\item \emph{online}: for each $i$, every tree first emits its message for $x_i$ from
+  what it has learned from $(x_{i'})_{i'<i}$, then learns instance $i$ (messages are
+  out-of-sample, as at test time);
+\item \emph{split}: the stream is cut into consecutive chunks, one per level of the
+  DAG; a tree at level $k$ learns chunk $k$ with the messages of its already-trained
+  (frozen) parents.
+\end{itemize}
+\end{definition}
+
+\begin{remark}[Why not train stage-wise on the same data]
+A tree that has learned $(x_i,y_i)$ keeps a leaf for it (\cref{lem:leaves}), and its
+activation at $x_i$ is close to $y_i$ itself.  A parent trained on such in-sample
+messages learns the relation between $y$ and a leaked copy of $y$, which it never sees at
+test time.  The online protocol (predict, then learn), already used by the Cobweb
+language model, and the split protocol avoid this; the experiments report the leaking
+protocol as a negative control.
+\end{remark}
+
+%=====================================================================
+\section{Representation}\label{sec:repr}
+%=====================================================================
+
+Throughout, a tree that \emph{represents} $g:K\to\R$ ($K\subset\R^d$ compact) is a tree
+over instances $(x,g(x))$ queried with the last coordinate missing, and
+$\omega_g(r)=\sup\{|g(x)-g(x')|:\|x-x'\|\le r\}$ is the modulus of continuity.
+
+\subsection{A local error certificate}
+
+\begin{lemma}[Concept bias]\label{lem:bias}
+Let $c$ be a concept of a tree over instances $(x_i,g(x_i))$ with $g$ $L$-Lipschitz.
+Then $|\mu_{c,Y}-g(\mu_{c,X})|\le L\sqrt{\tr S_c}$, where $S_c$ is the empirical
+covariance of the $x$-part of $c$'s instances, and consequently for every query $x$
+\begin{equation}\label{eq:cert}
+  |\hy(x)-g(x)|\;\le\;L\sum_{c\in E_M(x)}w_c(x)\Bigl(\|x-\mu_{c,X}\|+\sqrt{\tr S_c}\Bigr).
+\end{equation}
+\end{lemma}
+\begin{proof}
+$|\mu_{c,Y}-g(\mu_{c,X})|=|\tfrac{1}{n_c}\sum_i(g(x_i)-g(\mu_{c,X}))|\le
+\tfrac{L}{n_c}\sum_i\|x_i-\mu_{c,X}\|\le L(\tfrac1{n_c}\sum_i\|x_i-\mu_{c,X}\|^2)^{1/2}$
+by Jensen.  For~\eqref{eq:cert}, write $\hy-g(x)=\sum_c w_c(\mu_{c,Y}-g(\mu_{c,X}))+
+\sum_c w_c(g(\mu_{c,X})-g(x))$.
+\end{proof}
+
+The right side of \eqref{eq:cert} is computable from the tree; it says that a mixture
+is accurate exactly when it puts its weight on concepts that are near the query
+\emph{and} tight.  Every result below is a way of guaranteeing that.
+
+\subsection{One tree}
+
+\begin{theorem}[A single tree is a universal approximator]\label{thm:single}
+Let $g\in C(K)$, $K\subset\R^d$ compact, and $\varepsilon>0$.  There is a Cobweb tree $\T$
+and a variance floor $h^2>0$ such that $\sup_{x\in K}|\hy_\T(x)-g(x)|<\varepsilon$ under
+full expansion ($M=\infty$) with each of the weightings \textsc{lik} and \textsc{path},
+and with the leaves-only variant of any weighting.  If $g$ is $L$-Lipschitz, a tree with
+$G$ leaves achieves
+\begin{equation}\label{eq:singlerate}
+  \sup_{x\in K}|\hy_\T(x)-g(x)|\;\le\;C_d\,L\,G^{-1/d}\sqrt{\log G}+C_d\|g\|_\infty G^{-1}.
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Extend $g$ continuously to a cube $Q\supseteq K$ (Tietze) and rescale $Q=[0,1]^d$.
+Let $\delta=\beta h$ with a fixed $\beta>0$ and let $\Gamma$ be the grid of cell centres
+of spacing $\delta$, $G=|\Gamma|=\delta^{-d}$.  Take the depth-one tree whose leaves are
+the instances $(\gamma,g(\gamma))$, $\gamma\in\Gamma$, and whose root pools them.  Each
+leaf has $s^2=0$, hence variance $h^2$ in every coordinate; the root has variance at
+least $v_0>0$ (the variance of the grid) in every coordinate.  Write
+$K_h(r)=(2\pi h^2)^{-d/2}e^{-r^2/2h^2}$ and $k_\gamma=K_h(\|x-\gamma\|)$.
+
+\emph{Leaves dominate.}  Some $\gamma$ lies within $\sqrt d\,\delta/2$ of $x$, so
+$\max_\gamma k_\gamma\ge(2\pi h^2)^{-d/2}e^{-d\beta^2/8}$, while
+$\sum_\gamma k_\gamma\le(2\pi h^2)^{-d/2}C(\beta,d)$ by comparison with a Gaussian sum
+over $\delta\mathbb Z^d$.  Under \textsc{lik} the leaves carry unnormalised mass
+$\sum_\gamma k_\gamma\ge c\,h^{-d}$ and the root at most $(2\pi v_0)^{-d/2}$.  Under
+\textsc{path} the leaf $\gamma$ has $e^{\pi_\gamma}=k_\gamma/\sum_{\gamma'}k_{\gamma'}$
+(equal counts), so its mass is $k_\gamma^2/\sum k$, whose sum is at least
+$(\max k)^2/\sum k\ge c'h^{-d}$, while the root again has mass $O(1)$.  In both cases
+the root's weight is $O(h^d)=O(G^{-1})$.
+
+\emph{Leaves form a kernel smoother.}  Among the leaves, $w_\gamma\propto k_\gamma^{\,r}$
+with $r=1$ (\textsc{lik}) or $r=2$ (\textsc{path}), i.e.\ a normalised Gaussian kernel
+of bandwidth $h/\sqrt r$ on the grid.  For any $\rho>0$,
+\[
+\Bigl|\sum_\gamma w_\gamma g(\gamma)-g(x)\Bigr|\le\omega_g(\rho)+2\|g\|_\infty
+\sum_{\|\gamma-x\|>\rho}w_\gamma\le\omega_g(\rho)+2\|g\|_\infty C''e^{-\rho^2/2h^2},
+\]
+using the same lower bound on the normaliser.  Taking $\rho=\sqrt h$ makes the bound
+vanish as $h\to0$, uniformly in $x$; adding the root's $O(h^d)$ weight (times
+$2\|g\|_\infty$) gives the first claim.  For Lipschitz $g$ take
+$\rho=h\sqrt{2\log(1/h)}$, so $\omega_g(\rho)\le L\rho$ and the tail is $O(h)$; with
+$h\asymp G^{-1/d}$ this is \eqref{eq:singlerate}.  The leaves-only variant drops the
+root term.
+\end{proof}
+
+The \textsc{prior} weighting behaves differently: it multiplies each concept's
+likelihood by its \emph{relative count}, and the internal concepts of a tree then keep a
+share of the mixture that does not vanish as the variance floor shrinks.
+
+\begin{proposition}[The prior-weighted all-concept mixture is inconsistent]\label{prop:prior}
+In the setting of the proof of \cref{thm:single}, with \textsc{prior} weighting and full
+expansion, the root's weight $\lambda(x)$ satisfies
+$\lambda(x)\to\N(x;\mu_{\text{root}},v_{\text{root}})/(1+\N(x;\mu_{\text{root}},v_{\text{root}}))\in(0,1)$
+as $h\to0$, so $\hy(x)\to(1-\lambda(x))g(x)+\lambda(x)\bar g$ with $\bar g$ the mean of
+$g$ over the grid: the bias does not vanish unless $g$ is constant.  The same holds in
+any tree in which some internal concept $c\ni x$ keeps $n_c/n_{\text{root}}$ and
+$v_c$ bounded away from zero.
+\end{proposition}
+\begin{proof}
+Leaf $\gamma$ has prior $1/G$, so the leaves' mass is $G^{-1}\sum_\gamma k_\gamma$, a
+Riemann sum of the Gaussian kernel density estimate of the uniform density on $[0,1]^d$,
+which tends to $1$ for $x$ in the interior.  The root has prior $1$ and mass
+$\N(x;\mu_{\text{root}},v_{\text{root}})$, which does not depend on $h$ in the limit.
+\end{proof}
+
+\Cref{prop:prior} explains the flat error of the prior weighting in the sine experiment
+of \cref{sec:experiments} (RMSE $0.20\to0.14\to0.12$ while \textsc{path} falls
+$0.034\to0.015\to0.005$ and leaves-only \textsc{lik} $0.013\to0.006\to0.0015$, for
+$N=100,400,1600$).
+
+\subsection{Composition: the Cobweb--Kolmogorov--Arnold theorem}
+
+\begin{lemma}[Approximating a DAG of continuous maps]\label{lem:dag}
+Let $D$ be a finite DAG of continuous maps $g_v:\R^{k_v}\to\R$ whose inputs are raw
+coordinates of $x\in[0,1]^n$ or outputs of other vertices, and let $F$ be the map it
+computes; let $K_v$ be the (compact) set of input vectors of $v$ as $x$ ranges over
+$[0,1]^n$.  For every $\varepsilon>0$ there are $\rho_v,\eta_v>0$ such that any maps
+$\hat g_v$ with $\sup_{K_v+B_{\rho_v}}|\hat g_v-g_v|\le\eta_v$ define a network
+$\hat F$ with $\sup_x|\hat F(x)-F(x)|\le\varepsilon$.
+\end{lemma}
+\begin{proof}
+Process the vertices in reverse topological order.  At the output vertex put
+$\eta_o=\varepsilon/2$ and choose $\rho_o\le1$ with
+$\omega_{g_o}(\rho_o)\le\varepsilon/2$ on the compact $K_o+\bar B_1$.  Given the
+tolerance $\rho_v$ that the inputs of $v$ may deviate by, split it among the incoming
+vertices $u$ (each may deviate by $\rho_v/\sqrt{k_v}$) and set, for each such $u$,
+$\eta_u=\rho_v/(2\sqrt{k_v})$ and $\rho_u$ with
+$\omega_{g_u}(\rho_u)\le\rho_v/(2\sqrt{k_v})$ on $K_u+\bar B_1$ (taking minima over the
+several children of a vertex).  Induction in topological order shows that every
+vertex's input deviates from its exact value by less than $\rho_v$, so
+$|\hat g_v-g_v|\le\eta_v+\omega_{g_v}(\rho_v)$ at the computed inputs, and the output
+error is at most $\varepsilon$.
+\end{proof}
+
+\begin{theorem}[Cobweb--Kolmogorov--Arnold]\label{thm:cka}
+Let $n\ge2$.  For every $f\in C([0,1]^n)$ and $\varepsilon>0$ there is a Cobweb forest
+with activation messages, in which every tree has at most two inputs, consisting of
+\begin{itemize}[leftmargin=*,noitemsep]
+\item $n(2n+1)$ univariate trees for the inner functions $\varphi_{q,p}$ (independent of
+  $f$),
+\item $(2n+1)(n-1)$ two-input trees forming the inner sums,
+\item $2n+1$ univariate trees for the outer functions $\Phi_q$, and
+\item $2n$ two-input trees forming the outer sum,
+\end{itemize}
+$4n^2+4n$ trees in all, whose output is within $\varepsilon$ of $f$ on $[0,1]^n$.
+\end{theorem}
+\begin{proof}
+Write $f$ in the form \eqref{eq:ka} and read it as a DAG of continuous maps of one or
+two variables: $\varphi_{q,p}$, the binary additions $(a,b)\mapsto a+b$ chained to form
+the $2n+1$ inner sums of $n$ terms and the outer sum of $2n+1$ terms, and $\Phi_q$.
+Apply \cref{lem:dag}, and realise each $\hat g_v$ on the compact
+$K_v+\bar B_{\rho_v}$ by \cref{thm:single} as a tree over instances
+$(\text{inputs},g_v(\text{inputs}))$ whose task coordinate is the value of $g_v$; its
+activation is the required $\hat g_v$.  The count follows from the structure of
+\eqref{eq:ka}.
+\end{proof}
+
+\begin{proposition}[Two inputs are necessary]\label{prop:fanin}
+If every tree of a forest has fan-in one, its output depends on a single raw
+coordinate.  Hence fan-in two is the least fan-in at which Cobweb forests are universal.
+\end{proposition}
+\begin{proof}
+By induction in topological order, each tree's messages are functions of the one raw
+coordinate at the source of its unique input chain.
+\end{proof}
+
+\begin{remark}[Rates and smooth KA representations]\label{rem:rates}
+\Cref{thm:cka} uses a fixed number of trees, but for an arbitrary $f$ the inner functions
+of \eqref{eq:ka} are rough, and the number of leaves each tree needs is not controlled.
+As for KANs \citep[Thm.~2.1]{liu2024kan}, the useful statement assumes structure.  If
+$f$ is computed by a DAG of $s$ maps of fan-in $\le k$, each $L$-Lipschitz on a
+neighbourhood of its input set, then combining \eqref{eq:singlerate} with the stability
+argument of \cref{lem:dag} gives a forest of $s$ trees with $G$ leaves each and error
+$C(s,L)\,G^{-1/k}\sqrt{\log G}$---a rate set by the fan-in $k$, not by $n$.  A single
+tree over the $n$ inputs has rate $G^{-1/n}$ (\cref{thm:single}).  Note that Cobweb
+trees realise sums as learned two-input maps; KANs sum at nodes for free, which is why
+their rate is governed by one-dimensional splines.
+\end{remark}
+
+\subsection{Label forests}
+
+\begin{theorem}[Label forests are universal]\label{thm:label}
+For every $f\in C([0,1]^n)$ and $\varepsilon>0$ there is a forest of $n$ unsupervised
+univariate trees that pass leaf labels to an output tree whose instances consist of the
+$n$ labels (nominal attributes) and the target, such that the output tree's prediction
+(\textsc{lik}, leaves only, full expansion) is uniformly within $\varepsilon$ of $f$.
+\end{theorem}
+\begin{proof}
+Let tree $p$ be the depth-one tree over the $K$ grid points of spacing $\delta=1/K$ in
+$[0,1]$, all with count one and variance $h^2$.  Its label for $x_p$ is
+$\arg\max_\gamma\{\log n_\gamma+\ell_\gamma(x_p)\}$, the nearest grid point, so the
+labels partition $[0,1]^n$ into boxes $B_t$ of side $\delta$, indexed by label tuples
+$t$.  Let the output tree be the depth-one tree with one leaf per tuple $t$, holding the
+instance $(t,f(\text{centre}(B_t)))$.  A query with tuple $t$ gives leaf $t'$ that
+disagrees with $t$ in $m$ attributes the likelihood ratio
+$\bigl(\alpha/(1+\alpha)\bigr)^m$ relative to leaf $t$ (\cref{def:concept}, counts one).
+There are at most $\binom nm K^m$ such leaves, so their total weight is at most
+$(1+K\alpha)^n-1$.  Hence
+$|\hy(x)-f(x)|\le\omega_f(\sqrt n\,\delta/2)+2\|f\|_\infty\bigl((1+K\alpha)^n-1\bigr)$,
+which is below $\varepsilon$ for $K$ large and then $\alpha$ small.
+\end{proof}
+
+The label forest of \cref{thm:label} has an output tree with $K^n$ leaves: labels carry
+no metric, so this construction pays for every cell of the product partition.  Activations
+carry the metric and allow the fan-in-two construction of \cref{thm:cka}; a hybrid
+message (label and activation) carries both.
+
+\subsection{Interweaving trees}
+
+\begin{proposition}[Merging trees under a common root gives mixtures]\label{prop:interweave}
+Let $\T_1,\dots,\T_m$ be trees over the same instance space, and let $\T$ be the tree
+whose root pools their roots' statistics and has $\T_1,\dots,\T_m$ as its subtrees.
+Under full expansion with \textsc{lik} or \textsc{path} weighting,
+\[
+  \hy_\T(q)=\lambda_0(q)\,\mu_{\text{root}}+\sum_{j=1}^m\lambda_j(q)\,\hy_{\T_j}(q),
+  \qquad\lambda_j\ge0,\ \sum_{j=0}^m\lambda_j=1.
+\]
+\end{proposition}
+\begin{proof}
+Under \textsc{lik} a concept's score does not depend on the tree it sits in, so the
+mixture over $\T$ splits into the root term and the $m$ subtree mixtures, with
+$\lambda_j\propto\sum_{c\in\T_j}e^{\ell_c}$.  Under \textsc{path} every concept of
+$\T_j$ gains the same term $\log P(\T_j\mid q)$ in $\pi_c$, which rescales the subtree's
+weights uniformly and leaves its internal mixture unchanged.
+\end{proof}
+
+Interweaving therefore closes the class of tree predictors under input-dependent
+convex combinations; it never composes them.  Composition---one tree reading another's
+representation---is what forests add.
+
+%=====================================================================
+\section{Learnability}\label{sec:learn}
+%=====================================================================
+
+\subsection{An invariant of Cobweb's operators}
+
+\begin{lemma}[Leaf preservation]\label{lem:leaves}
+Run \texttt{ifit} on any sequence $z_1,\dots,z_N$ with any choices of operators
+(including add-only training), and suppose the depth limit is never reached.  Then
+(i)~every concept's statistics are the pooled statistics of the instances stored in the
+leaves below it; (ii)~no leaf is ever deleted; and (iii)~the leaves are in bijection with
+the distinct instances, where two instances are the same if they agree up to the
+exact-match tolerance.
+\end{lemma}
+\begin{proof}
+By induction over the branches of the sorting loop.  \textsc{best} increments the
+current node and descends; \textsc{new} increments the current node and creates a leaf
+holding $z$; \textsc{merge} inserts a new internal node whose statistics are the pooled
+statistics of the two children it adopts; \textsc{split} deletes the best child, which is
+internal (the operator requires it to have at least two children), and promotes its
+children; at a leaf, an exact match increments it and any other instance triggers a
+fringe split, which copies the leaf's statistics into a new internal parent, keeps the
+old leaf, and adds a leaf for $z$.  No branch deletes a leaf, every instance ends in
+exactly one leaf, and a leaf only absorbs exact matches.
+\end{proof}
+
+When the depth limit is reached the implementation inserts the instance into the
+current node, which may be a leaf; (iii) then fails, which is why the lemma assumes the
+default limit (1000) is not reached.
+
+\subsection{One learned tree}
+
+\begin{theorem}[A learned tree is universally consistent]\label{thm:consistency}
+Let $(X_i,Y_i)$ be i.i.d.\ with $X\in\R^d$, $|Y|\le B$, $m(x)=\E[Y\mid X=x]$.
+Let $\T_N$ be the tree that Cobweb learns from $(X_i,Y_i)_{i\le N}$ in any order and with
+any operator choices, and let it predict $Y$ from $X$ with the leaves-only mixture,
+\textsc{lik} weighting and full expansion, with variance floor $h_N^2$.  If $X$ has a
+density, $h_N\to0$ and $Nh_N^d\to\infty$, then
+$\int|\hy_{\T_N}(x)-m(x)|\,\mu(dx)\to0$ almost surely, whatever structure category
+utility builds ($\mu$ the distribution of $X$).
+\end{theorem}
+\begin{proof}
+With a density the $X_i$ are distinct almost surely and so are the instances, so by
+\cref{lem:leaves} the tree has exactly $N$ leaves, leaf $i$ holding $(X_i,Y_i)$ with zero
+empirical variance.  The \textsc{lik} score of leaf $i$ for a query $x$ with $Y$
+missing is $\log\N(x;X_i,h_N^2I)$, so the leaves-only mixture is
+$\sum_iK_{h_N}(x-X_i)Y_i/\sum_iK_{h_N}(x-X_i)$, the Nadaraya--Watson estimate with
+a Gaussian kernel.  The Gaussian kernel is \emph{regular} (it is bounded below by a
+positive constant on a ball and $\int\sup_{\|u-x\|\le r}K(u)\,dx<\infty$), and for
+regular kernels and bounded $Y$ this estimate is strongly consistent in $L_1(\mu)$
+under $h_N\to0$, $Nh_N^d\to\infty$ \citep{devroye1989}; see \citet[Ch.~5]{gyorfi2002}
+for the boxed-kernel version in $L_2$.
+\end{proof}
+
+\begin{remark}[What the structure is for]
+\Cref{thm:consistency} holds because Cobweb never forgets an instance; the hierarchy
+plays no role in it.  The structure matters for three things the theorem does not
+cover: (a)~a \emph{budget} $M<\infty$, where best-first search must find the leaves
+near the query, (b)~the \textsc{path} weighting, where the mixture weight of a leaf is
+its path posterior times its likelihood (\cref{lem:bias} bounds its error), and (c)~the
+\emph{labels} a tree passes to other trees, which are its concepts.  The branch-and-bound
+stop of \texttt{categorize(use\_best=True)} assumes $\ell_c\le0$, which holds for
+nominal attributes but not for Gaussian densities, so with a continuous block it can stop
+before the best concept.
+\end{remark}
+
+\subsection{Forests learned by Cobweb}
+
+The difficulty of learning a forest without gradients is that an inner tree has no
+target for its own output.  In a Cobweb forest each tree models a \emph{joint}
+distribution, and what it passes on is determined by what it models: an unsupervised
+tree passes its concepts (labels); a tree that also models $y$ passes its estimate of
+$\E[y\mid\text{its inputs}]$ (activation).  Whether that is enough depends on a
+property of $f$ relative to the forest's graph.
+
+\begin{definition}[Sufficiency]\label{def:sufficient}
+For a forest whose trees all model $y$ (activation messages), let
+$m_\tau(x)=\E[Y\mid X_{R(\tau)}=x_{R(\tau)}]$, where $R(\tau)$ is the set of raw
+coordinates upstream of $\tau$.  The forest is \emph{sufficient} for the distribution of
+$(X,Y)$ if, for every tree $\tau$ with parents $\sigma_1,\dots,\sigma_k$ and raw inputs
+$x_{S_\tau}$,
+\[
+  m_\tau(X)=\psi_\tau\bigl(m_{\sigma_1}(X),\dots,m_{\sigma_k}(X),X_{S_\tau}\bigr)
+  \quad\text{a.s.\ for some continuous }\psi_\tau,
+\]
+i.e.\ the parents' conditional expectations are sufficient for $Y$ given everything
+upstream of $\tau$.
+\end{definition}
+
+\begin{theorem}[Consistency of Cobweb-learned forests]\label{thm:forest}
+Let $X$ have a continuous density bounded away from zero on $[0,1]^n$, $Y=f(X)+\xi$ with
+$f$ continuous and $\xi$ bounded, independent, centred noise.  Let $\F$ be a sufficient
+activation forest of fan-in at most $k$, learned with the split protocol on $N$ samples,
+each tree predicting with the leaves-only \textsc{lik} mixture and variance floor
+$h_{\tau,N}^2$.  Assume each $\psi_\tau$ is continuous on a neighbourhood of the range of
+its arguments and the bandwidths satisfy $h_{\tau,N}\to0$,
+$Nh_{\tau,N}^{k}/\log N\to\infty$, and $h_{\tau,N}\gg\varepsilon_{\sigma,N}$ for every
+parent $\sigma$, where $\varepsilon_{\sigma,N}$ is the parent's uniform error.  Then
+$\sup_x|\hat F_N(x)-f(x)|\to0$ in probability.  If every $\psi_\tau$ is Lipschitz, the
+error is $O_P\bigl((N/\log N)^{-1/(k+2)}\bigr)$ up to the composition constants, a rate
+set by the fan-in~$k$ and not by~$n$.
+\end{theorem}
+\begin{proof}[Proof sketch]
+Induction in topological order.  A source tree $\tau$ is a learned tree over
+$(X_{S_\tau},Y)$; by \cref{lem:leaves} its leaves-only \textsc{lik} activation is the
+Nadaraya--Watson estimate of $m_\tau$, which converges uniformly on compacts where the
+design density is bounded below \citep{devroye1978,gyorfi2002}.  For a tree $\tau$ with
+parents, the split protocol trains it on a fresh chunk, on the inputs
+$\hat U=(\hat m_{\sigma_j}(X),X_{S_\tau})$ instead of $U=(m_{\sigma_j}(X),X_{S_\tau})$;
+since the Gaussian kernel is Lipschitz,
+$|K_h(u-\hat U_i)-K_h(u-U_i)|\le C\|\hat U_i-U_i\|h^{-1}K_{2h}(u-U_i)$ on the event that
+the deviation is below $h$, so the estimate built on $\hat U$ differs from the one built on
+$U$ by $O(\max_\sigma\varepsilon_{\sigma,N}/h_{\tau,N})$, which vanishes by assumption.
+The estimate built on $U$ is the Nadaraya--Watson estimate of $\E[Y\mid U]=m_\tau=
+\psi_\tau(U)$ by sufficiency, consistent as before; at test time its input is again
+$\hat U$, handled by the continuity of $\psi_\tau$.  The output tree is the last step,
+where $m_o=f$.  For the rate, the Nadaraya--Watson estimate of a Lipschitz function of
+$k$ variables has uniform error $O_P((N/\log N)^{-1/(k+2)})$ with the optimal bandwidth,
+and the composition multiplies it by constants.
+\end{proof}
+
+\begin{proposition}[A sufficient class]\label{prop:suffclass}
+Let the coordinates of $X$ be independent, and let $f(x)=\Phi\bigl(\sum_{p}\varphi_p(x_p)\bigr)$
+with $\Phi$ strictly increasing and continuous and $\varphi_p$ continuous.  Then every
+activation forest whose graph is a tree with the raw coordinates at its leaves
+(each raw coordinate read by exactly one tree) is sufficient.
+\end{proposition}
+\begin{proof}
+For an upstream set $S$, $m_S(x)=\E[\Phi(s_S+Z_{\bar S})]$ with $s_S=\sum_{p\in S}\varphi_p(x_p)$
+and $Z_{\bar S}$ independent of $x_S$; this is a strictly increasing function $H_S$ of
+$s_S$.  A tree with children covering disjoint sets $S_1,\dots,S_k$ (and raw inputs $S_0$)
+has $s_S=\sum_jH_{S_j}^{-1}(m_{S_j})+\sum_{p\in S_0}\varphi_p(x_p)$, so
+$m_S=H_S(\cdots)$ is a continuous function of the children's messages and its raw inputs.
+\end{proof}
+
+The KAN examples $\exp(\sin\pi x_1+x_2^2)$, $\exp\bigl(\tfrac1{100}\sum_i\sin^2(\pi x_i/2)\bigr)$
+and $\exp\bigl(\tfrac12(\sin\pi(x_1^2+x_2^2)+\sin\pi(x_3^2+x_4^2))\bigr)$ (the last for
+the graph whose leaves are the pairs $(x_1,x_2)$ and $(x_3,x_4)$) are in this class.
+
+\begin{proposition}[Activations alone can fail]\label{prop:xy}
+Let $X_1,X_2$ be independent and symmetric about $0$, and $f(x)=x_1x_2$.  In any
+activation forest whose output tree reads the activations of two trees over $x_1$ and
+$x_2$ respectively, $m_{\sigma_1}=m_{\sigma_2}\equiv0$, so the forest's output converges to
+$\E f=0$ and its error to $\operatorname{Var}(f)^{1/2}$ for every $N$ and every tree
+structure.
+\end{proposition}
+\begin{proof}
+$\E[X_1X_2\mid X_1]=X_1\E X_2=0$; by \cref{thm:consistency} the source trees' activations
+converge to $0$, so the output tree's input carries no information about $x$.
+\end{proof}
+
+Labels repair this: an unsupervised tree's labels do not depend on $f$ at all.
+
+\begin{theorem}[Consistency of label forests]\label{thm:labelcons}
+Let a forest consist of unsupervised trees over the raw coordinates passing labels at
+depth $k_N$ (or leaf labels) to an output tree that models $(\text{labels},Y)$, learned
+with the split protocol, and let the output tree predict with the leaves-only
+\textsc{lik} mixture with $\alpha_N\to0$ fast enough
+($\alpha_N\cdot\#\text{labels per tree}\cdot n\to0$).  Let $\mathcal P_N$ be the product
+partition of $[0,1]^n$ induced by the frozen label maps.  If (a)~the diameter of the cell
+of $\mathcal P_N$ containing $X$ tends to $0$ in probability and (b)~the number of cells
+of $\mathcal P_N$ that contain a sample of the output chunk is $o(N)$, then the forest is
+a consistent regression estimate.
+\end{theorem}
+\begin{proof}[Proof sketch]
+As in the proof of \cref{thm:label}, with $\alpha_N\to0$ the output tree's leaves-only
+mixture for a query in cell $B$ puts weight $1-o(1)$ uniformly on the leaves whose
+label tuple equals that of $B$ (one per training point of the output chunk in $B$, by
+\cref{lem:leaves}); their $y$-means average to the partitioning estimate
+$\sum_{X_i\in B}Y_i/\#\{X_i\in B\}$.  Conditional on the frozen partition this is the
+classical partitioning estimate, consistent under (a) and (b) \citep[Thm.~4.2]{gyorfi2002}.
+\end{proof}
+
+\begin{remark}[The trade-off]\label{rem:tradeoff}
+Condition (b) requires the product partition to have fewer occupied cells than samples;
+with $K$ labels per tree that is $K^n=o(N)$, so the rate of a label forest is governed by
+$n$, not by the fan-in.  Activation forests have rates governed by the fan-in
+(\cref{thm:forest}) but require sufficiency (\cref{prop:xy}).  Hybrid messages carry
+both.
+\end{remark}
+
+\begin{conjecture}[Hybrid messages]\label{conj:hybrid}
+A forest passing labels and activations is consistent for every continuous $f$
+(through its labels) and attains the fan-in rate of \cref{thm:forest} when the forest is
+sufficient (through its activations).
+\end{conjecture}
+
+%=====================================================================
+\section{Experiments}\label{sec:experiments}
+%=====================================================================
+
+\emph{(Filled in from \texttt{results/}; see \texttt{experiments/README.md}.)}
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}\toprule
+Claim & Test & Prediction \\\midrule
+\Cref{thm:single}, \eqref{eq:singlerate} & $\sin(\pi x)$, $J_0(20x)$, one tree & error $\downarrow$ with $N$; slope $\approx -1/d$ to $-2/d$ \\
+\Cref{prop:prior} & same, four weightings & \textsc{prior} error plateaus \\
+\Cref{thm:cka}, \cref{rem:rates} & 4-D and 100-D KAN functions & forest slope set by fan-in; single tree by $n$ \\
+\Cref{prop:suffclass}, \cref{thm:forest} & $\exp(\sin\pi x+y^2)$, 100-D & activation forest consistent \\
+\Cref{prop:xy} & $xy$ & activation forest error $=\mathrm{sd}(f)$; labels/hybrid $\downarrow$ \\
+\Cref{thm:labelcons} & label forests, cell diameters & cells shrink; error $\downarrow$, slowly \\
+\Cref{lem:leaves} & continual 5-peak task (KAN Fig.~3.4) & no forgetting \\
+--- & Feynman equations, tabular, MNIST, text & forest vs single tree vs MLP/KAN \\\bottomrule
+\end{tabular}
+\end{center}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+\end{document}
