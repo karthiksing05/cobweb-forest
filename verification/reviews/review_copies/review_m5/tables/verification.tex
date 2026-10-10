@@ -1,0 +1,21 @@
+\begin{tabular}{@{}llp{9.2cm}@{}}\toprule
+result & statement & check\\\midrule
+pass & \cref{def:predict} & Def.~multi-node prediction and Def.~concept equal the implementation\\
+pass & \cref{lem:leaves} & Leaf preservation (no leaf deleted; additivity; leaves hold identical copies)\\
+pass & \cref{lem:bias} & Concept-bias certificate holds for every weighting and budget\\
+pass & \cref{thm:single}, \cref{prop:prior} & Grid tree: error and root weight vanish (lik, path, leaves); prior plateaus\\
+pass & \cref{thm:label} & Label-forest construction meets its error bound; labels are nearest grid points\\
+pass & \cref{prop:interweave} & Interwoven tree = convex combination of the subtrees (lik, path)\\
+pass & \cref{lem:dag}, \cref{thm:cka} & Composed constructed trees approximate $\Phi(\varphi_1+\varphi_2)$\\
+pass & \cref{thm:consistency} & Learned tree, leaves-only lik = Nadaraya--Watson (path is not)\\
+pass & \cref{prop:xy} & $xy$: funnel activations vanish, funnel forest fails; label error falls with $N$ at every depth\\
+pass & \cref{thm:locality} & Sign construction: local laws equal; composition separates the worlds\\
+pass & \cref{prop:multiview} & Posterior given all views = function of per-view posterior means\\
+pass & \cref{rem:structure} & Branch-and-bound stop returns a sub-optimal concept\\
+pass & \cref{prop:suffclass} & $H_S$ strictly increasing; funnel forest on a monotone-additive target converges\\
+pass & \cref{cor:parity} & 3-way parity: pairs independent of $Y$; label forest learns it, funnel does not\\
+pass & \cref{thm:ideal} & Split protocol: sup error to the ideal forest falls with $N$\\
+pass & \cref{thm:selection} & Validation at the output never selects the funnel forest on $xy$\\
+pass & \cref{app:verify} & Every reported result comes from the fixed build or a path the bug cannot reach\\
+pass & \cref{thm:consistency}, \cref{thm:labelcons} & Count-weighted leaves = Nadaraya--Watson and partitioning estimate with repeats; count-blind leaves fail\\
+\bottomrule\end{tabular}

@@ -12,3 +12,12 @@ Each round is a fresh, independent reviewer agent. All rounds use `REVIEW_PROMPT
 - **`scripts/<round>/`** holds the reviewer's own simulations, copied from its scratch directory. `scripts/calibration/cw.py` is an independent Python port of `ifit` written from the C++ source.
 - **The calibration answer key** is the planted-error table in `../REVIEW.md`.
 - **`../REVIEW.md`** records how each finding was resolved.
+
+**`review_copies/`** holds the exact working directories each reviewer was pointed at, moved here from the flash root:
+- `review_k7`: calibration copy with planted errors;
+- `review_m5`: round 2;
+- `review_n7`: round 3;
+- `review_p8`: round 4;
+- `review_r3`: an early copy of v2, staged but never reviewed.
+
+The reviews' path references (`/coc/flash10/ksingara3/review_*`) refer to these.
