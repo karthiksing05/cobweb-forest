@@ -144,8 +144,8 @@ tasks} (\cref{sec:tasks}) and their inference (\cref{sec:infer}).
   forests with activation and label messages (\cref{sec:model}).  An executable verifier
   checks that the model equals the code (\cref{app:verify}).
 \item Representation (\cref{sec:repr}): single-tree universality with an explicit
-  rate (\cref{thm:single}); inconsistency of the prior-weighted all-concept mixture
-  (\cref{prop:prior}); the Cobweb--Kolmogorov--Arnold theorem (\cref{thm:cka}) and the
+  rate (\cref{thm:single}); inconsistency of the prior- and posterior-weighted
+  all-concept mixtures (\cref{prop:prior}); the Cobweb--Kolmogorov--Arnold theorem (\cref{thm:cka}) and the
   necessity of fan-in two (\cref{prop:fanin}); universality of label forests
   (\cref{thm:label}); merging trees gives mixtures (\cref{prop:interweave}).
 \item One learned tree (\cref{sec:learn}): no operator deletes a leaf
@@ -164,6 +164,10 @@ tasks} (\cref{sec:tasks}) and their inference (\cref{sec:infer}).
   the composing tree selects a sufficient assignment with probability tending to one
   (\cref{thm:selection}); this yields task operators chosen like Cobweb's own
   (\cref{proc:induction}).
+\item Experiments (\cref{sec:experiments}) that test each statement and repeat the KAN
+  paper's battery, and a two-layer verification (\cref{app:verify}): an executable check
+  of each testable statement against the implementation, and an adversarial reviewer
+  calibrated on planted errors.
 \end{itemize}
 
 %=====================================================================
@@ -755,8 +759,8 @@ and for $\|u-U_i\|>Rh\ge2\varepsilon$, $K_h(u-\hat U_i)\le(2\pi h^2)^{-k/2}
 e^{-\|u-U_i\|^2/8h^2}$.  Since the density of $U_\tau$ is bounded below on $D_\tau$ and
 bounded above, and $D_\tau$ has Lipschitz boundary, the kernel mass of the near points
 is at least $c\,N$ and that of the far points at most $C\,Ne^{-R^2/16}$, uniformly in $u$
-within $o(h)$ of $D_\tau$, with probability tending to one (uniform laws of large numbers
-for kernel classes).
+within $o(h)$ of $D_\tau$, with probability tending to one, by the uniform consistency
+of kernel density estimates \citep{einmahl2005}.
 Hence $\sup_u|\hat\psi(u)-\check\psi(u)|\le2B\bigl(e^{2\eta}-1+C'e^{-R^2/16}\bigr)$, which
 tends to zero in probability when $R=R_N\to\infty$ slowly enough that
 $R\varepsilon/h\to0$, possible by (A4).
@@ -871,28 +875,49 @@ A tree without an outcome passes labels.  Its labels do not depend on $f$ at all
 is their strength and their cost.
 
 \begin{theorem}[Consistency of label forests]\label{thm:labelcons}
-Let a forest consist of trees without outcomes over the raw coordinates passing labels
-at depth $k_N$ (or leaf labels) to an output tree that models $(\text{labels},Y)$, learned
-with the split protocol, and let the output tree match instances exactly and predict with
-the count-weighted leaves-only mixture under full expansion.  Let $\mathcal P_N$ be the
-product partition of $[0,1]^n$ induced by the frozen label maps and $M_N$ the number of
-its cells that contain a sample of the output chunk.  If (a)~the diameter of the cell of
-$\mathcal P_N$ containing $X$ tends to $0$ in probability, (b)~$M_N=o(N)$, and
-(c)~$\alpha_NM_N\to0$, then the forest is a consistent regression estimate in $L_2(\mu)$.
+Let a forest consist of $n$ trees without outcomes over the raw coordinates passing labels
+at depth $k_N$ (or leaf labels) to an output tree that models $(\text{labels},Y)$, $|Y|\le B$,
+learned with the split protocol; let the output tree match instances exactly and
+predict with the count-weighted leaves-only mixture under full expansion.  Let $X$ have
+compact support $\mathcal X$, let $\mathcal P_N$ be the product partition induced by the
+frozen label maps, and let $M_N$ be the number of its cells that meet $\mathcal X$.  If,
+in probability, (a)~the largest diameter of a cell meeting $\mathcal X$ tends to $0$,
+(b)~$M_N/N\to0$, and (c)~$\alpha_NM_N\to0$, then the forest's prediction $\hy$ satisfies
+$\E\int(\hy-m)^2\,d\mu\to0$.
 \end{theorem}
-\begin{proof}[Proof sketch]
-Condition on the frozen partition.  A query in cell $B$ carries the label tuple $t_B$.  By
-\cref{lem:leaves} the leaves with tuple $t_B$ store the $n_B$ output-chunk points of $B$,
-copies counted, so under the count-weighted mixture they carry total weight proportional
-to $n_B$ and their $y$-means average to the partitioning estimate
-$\bar y_B=\sum_{X_i\in B}Y_i/n_B$---whether or not $Y$ has atoms.  A leaf whose tuple
-differs from $t_B$ in $m\ge1$ attributes has relative likelihood $(\alpha/(1+\alpha))^m$, so
-all such leaves together carry at most $\alpha N/n_B$ relative weight, and the prediction
-differs from $\bar y_B$ by at most $2B\min(1,\alpha N/n_B)$.  Averaged over the cells
-(with $n_B\approx Np_B$ for cells of probability $p_B$) this is at most of order
-$B\sum_B\min(p_B,\alpha)\le B\,\alpha M_N\to0$ by (c), apart from cells of vanishing total
-mass.  The partitioning estimate itself is consistent under (a) and (b)
-\citep[Thm.~4.2]{gyorfi2002}.
+\begin{proof}
+Condition on the frozen partition and let $N'\asymp N$ be the size of the output chunk,
+$n_C$ the number of its points in cell $C$, and $\hat m$ the partitioning estimate
+($\hat m=\bar y_C$, the mean of the chunk's $Y$ in $C$, and $\hat m=0$ on empty cells).
+Under (a) and (b) the proof of \citet[Thm.~4.2]{gyorfi2002}, applied to the fixed
+partition (its conditions are stated for the cells meeting a ball, which here may be
+taken to contain $\mathcal X$), gives $\E\int(\hat m-m)^2d\mu\to0$; it remains to show
+$\E\int(\hy-\hat m)^2d\mu\to0$.
+
+Take a query in a cell $C$ with $n_C\ge1$ and label tuple $t_C$.  By \cref{lem:leaves}
+($\tau=0$) every leaf $c$ stores $n_c$ copies of one instance $(t_c,y_c)$, and the leaves
+with $t_c=t_C$ store exactly the $n_C$ points of $C$.  With $K_a$ labels for tree $a$, an
+attribute that a leaf matches has probability
+$(n_c+\alpha)/(n_c+(K_a+1)\alpha)\in[\kappa_a,1]$ with $\kappa_a=(1+(K_a+1)\alpha)^{-1}$, and
+one it does not match has probability $\alpha/(n_c+(K_a+1)\alpha)\le\alpha/n_c$.  Hence,
+with $\kappa=\prod_a\kappa_a$, the matching leaves carry count-weighted mass between
+$\kappa n_C$ and $n_C$, distributed in proportion to their counts up to factors in
+$[\kappa,1]$, and every other leaf carries at most $n_c(\alpha/n_c)^m\le\alpha$, where
+$m\ge1$ is the number of attributes it misses.  There are at most $N'$ other leaves, so
+\[
+  |\hy-\bar y_C|\;\le\;2B\Bigl(\min\Bigl(1,\frac{\alpha N'}{\kappa n_C}\Bigr)+\frac{1-\kappa}{\kappa}\Bigr),
+\]
+and $|\hy-\hat m|\le B$ when $n_C=0$.  Every label of tree $a$ is the label of some cell,
+so $K_a\le M_N$ and $1-\kappa\le\alpha\sum_a(K_a+1)\le n\alpha(M_N+1)\to0$ by (c).  For a cell of probability $\mu(C)$,
+$\Pr(n_C<N'\mu(C)/2)\le e^{-N'\mu(C)/8}$ (Chernoff), so
+\[
+  \E\int\min\Bigl(1,\frac{\alpha N'}{\kappa n_C}\Bigr)d\mu\;\le\;
+  \sum_{C\cap\mathcal X\ne\emptyset}\mu(C)\Bigl(e^{-N'\mu(C)/8}+\frac{2\alpha}{\kappa\,\mu(C)}\Bigr)
+  \;\le\;\frac{8M_N}{eN'}+\frac{2\alpha M_N}{\kappa},
+\]
+using $te^{-N't/8}\le8/(eN')$; both terms tend to zero by (b) and (c).  Therefore $\E\int(\hy-\hat m)^2d\mu\to0$.  The bounds hold conditionally on the
+partition; since everything is bounded, the conditions in probability and bounded
+convergence give the claim.
 \end{proof}
 
 \begin{remark}[The trade-off]\label{rem:tradeoff}
@@ -1415,10 +1440,11 @@ counterpart here.  Categorization is sufficient whenever its cells shrink but pa
 distinguishes (\cref{thm:labelcons,rem:tradeoff}), and it becomes fine enough only if
 acuity sharpens with experience---the variance floor $h_N\to0$ of every consistency result,
 which is perceptual learning in the sense of \citet{goldstone1998}.  Outcome prediction
-compresses the cue to what matters for the outcome, which is sufficient exactly when the
-outcome's dependence on the parts is monotone-additive (\cref{prop:suffclass}) and fails
-on interactions (\cref{prop:xy}).  Perceptual prediction never needs the target and is
-sufficient when the target depends on what the views share (\cref{prop:multiview}).
+compresses the cue to what matters for the outcome, which is sufficient when the
+outcome depends on the parts monotone-additively (\cref{prop:suffclass}) and can fail on
+interactions (\cref{prop:xy}).  Perceptual prediction never needs the target and, in a
+Gaussian latent model, is sufficient when the target depends only on what the views
+share (\cref{prop:multiview}).
 
 \paragraph{Credit assignment.}
 \Cref{thm:locality} is a precise form of the credit-assignment problem
@@ -1430,10 +1456,13 @@ verifying candidate tasks against an observed outcome (\cref{thm:selection}).  T
 locality and selection experiments show both halves.
 
 \paragraph{Limitations.}
-\Cref{thm:ideal} covers the split protocol with full expansion and the \textsc{lik}
-mixture; the experiments use the online protocol, a leaf budget and the \textsc{path}
-mixture, which the theory does not cover (\cref{rem:structure}).  \Cref{thm:labelcons} is
-proved in outline only, and the hybrid case is a conjecture (\cref{conj:hybrid}).
+\Cref{thm:ideal} covers the split protocol with full expansion, exact matching and the
+count-weighted leaves-only mixture; the experiments use the online protocol, a leaf
+budget, the implementation's tolerance and the \textsc{path} mixture, which the theory
+does not cover (\cref{rem:counts,rem:structure}).  Step~2 of the proof of
+\cref{thm:ideal} relies on standard uniform laws for kernel sums rather than a full
+derivation, the conditions of \cref{thm:labelcons} on the label cells are not derived
+from category utility, and the hybrid case is a conjecture (\cref{conj:hybrid}).
 \Cref{proc:induction} is greedy and its thresholds are not calibrated.  Finally, the
 rates are those of nonparametric smoothing: on smooth targets gradient-trained models
 are far more accurate, and in high dimension a funnel forest's errors compound through

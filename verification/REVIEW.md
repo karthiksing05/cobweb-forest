@@ -29,4 +29,34 @@ The calibration score is recall (planted errors found with a correct diagnosis) 
 
 ## Results
 
-(Filled in below as the runs complete.)
+### Calibration (copy with 8 planted errors)
+
+**Recall: 8/8.** Every planted error was found with a correct diagnosis and concrete evidence. The reviewer wrote a line-by-line Python port of `ifit` and the scoring from the C++ files, and settled each disputed point by simulation:
+
+| planted in | verdict | evidence the reviewer produced |
+|---|---|---|
+| `prop:prior` | GAP (minor) | λ oscillates with x/δ: 0.583 vs 0.504 along two subsequences (β = 3) |
+| `lem:leaves` (iii) | INVALID (major) | 9 leaves for 8 distinct instances; the bijection fails in 19/20 streams |
+| `thm:single` | GAP (minor) | the tail with ρ = h√(2 log 1/h) is h^{1/2}, absent from the bound |
+| `prop:suffclass` | INVALID (major) | Y = (X₁+X₂)²: Δ = 4/9 (Monte Carlo 0.4446) |
+| `thm:label` | GAP (minor) | a table where the actual error exceeds the stated bound (0.2475 vs 0.025) |
+| `thm:locality` | INVALID (major) | "always keep" errs with probability 0 under P_a |
+| `thm:selection` | GAP (major) | an interpolating forest satisfies the hypotheses and wins in-sample |
+| `prop:multiview` | GAP (minor) | m = 3: true precision 7, stated 6 |
+
+**False alarms: none.** Every INVALID or GAP outside the planted set pointed at a genuine problem in the text the calibration copy shared with the real draft. These were fixed in v3:
+
+- **Label forests failed when the target has atoms.** Identical (cell, y) instances merge into one leaf, and the count-blind leaves-only `lik` mixture predicts 0.5 in every cell of a Bernoulli target. Fix: count-weighted leaves (leaves-only `prior`), which equal the partitioning estimate exactly. The new check C18 confirms this to 2e-7, and shows the count-blind mixture is off by 0.28.
+- **Single-tree consistency assumed exact matching.** The code merges instances within 1e-5. Fix: exact matching or count weighting, a remark on the tolerance, and the depth-limit hypothesis.
+- **The crossover exponents were wrong** (random design). Fixed: the threshold is now n > k + 2.
+- **Smaller fixes:**
+  - the parity corollary now accounts for outcomes that can reveal coordinates;
+  - `prop:xy` is now stated asymptotically, with the needed hypotheses;
+  - the stage-wise remark is qualified;
+  - McShane's extension is used, and the rate is sharpened to G^{-1/d};
+  - "CU = I(Z;C)" is replaced by Σ_A I(A;C);
+  - the overclaiming phrases in the abstract and the experiments are softened.
+
+### Round 2 (real draft v3)
+
+(Pending.)
