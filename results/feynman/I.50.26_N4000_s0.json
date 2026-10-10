@@ -1,0 +1,247 @@
+{
+ "eq": "I.50.26",
+ "n": 4,
+ "N": 4000,
+ "seed": 0,
+ "sd_f": 2.057965040206909,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "706e4e2eb91e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "d78ffdd",
+  "host": "olivaw.cc.gatech.edu"
+ },
+ "results": {
+  "single": {
+   "hp": {
+    "kappa": 0.5
+   },
+   "val": 0.5714998841285706,
+   "train_s": 0.8077290058135986,
+   "test": 0.666185736656189,
+   "test_s": 1.061614990234375,
+   "concepts": 6444,
+   "trees": 1,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "act": {
+   "hp": {
+    "kappa": 0.5
+   },
+   "val": 1.5888104438781738,
+   "train_s": 13.770546913146973,
+   "test": 1.6576718091964722,
+   "test_s": 6.698896408081055,
+   "concepts": 48574,
+   "trees": 7,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "label": {
+   "hp": {
+    "kappa": 0.25,
+    "label_depth": 2
+   },
+   "val": 1.732815146446228,
+   "train_s": 9.017400979995728,
+   "test": 1.8108104467391968,
+   "test_s": 3.5474281311035156,
+   "concepts": 48496,
+   "trees": 7,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 6
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 2
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 3
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 4
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 6
+    }
+   ]
+  },
+  "hybrid": {
+   "hp": {
+    "kappa": 0.5,
+    "label_depth": 2
+   },
+   "val": 1.483105182647705,
+   "train_s": 21.81362748146057,
+   "test": 1.5723493099212646,
+   "test_s": 10.247103691101074,
+   "concepts": 46739,
+   "trees": 7,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 6
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 2
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 3
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 4
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 6
+    }
+   ]
+  },
+  "mlp": {
+   "hp": {
+    "width": 128
+   },
+   "val": 0.02360965870320797,
+   "train_s": 53.17295742034912,
+   "test": 0.019622737541794777,
+   "params": 17281
+  },
+  "kan": {
+   "hp": {
+    "grid": 10
+   },
+   "val": 0.11116135865449905,
+   "train_s": 152.65000081062317,
+   "test": 0.11707141995429993,
+   "params": 285
+  }
+ }
+}

@@ -1,0 +1,274 @@
+{
+ "fn": "expsin",
+ "N": 16000,
+ "seed": 0,
+ "noise": 0.0,
+ "n": 2,
+ "sd_f": 1.3951836344390927,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "706e4e2eb91e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "d78ffdd",
+  "host": "kipp.cc.gatech.edu"
+ },
+ "results": {
+  "single": {
+   "hp": {
+    "kappa": 0.1
+   },
+   "val": 0.025057494640350342,
+   "train_s": 2.70646333694458,
+   "test": 0.023258382454514503,
+   "test_s": 0.9167451858520508,
+   "concepts": 27487,
+   "trees": 1,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "act:uni": {
+   "hp": {
+    "kappa": 0.25
+   },
+   "val": 0.16428878903388977,
+   "train_s": 17.50400400161743,
+   "test": 0.16016791760921478,
+   "test_s": 2.296635627746582,
+   "concepts": 83605,
+   "trees": 3,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "label:uni": {
+   "hp": {
+    "kappa": 0.25,
+    "label_depth": 4
+   },
+   "val": 0.14274102449417114,
+   "train_s": 18.189887046813965,
+   "test": 0.13745348155498505,
+   "test_s": 2.9850075244903564,
+   "concepts": 75987,
+   "trees": 3,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 6
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 2
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 3
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 4
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 6
+    }
+   ]
+  },
+  "hybrid:uni": {
+   "hp": {
+    "kappa": 0.25,
+    "label_depth": 4
+   },
+   "val": 0.09669480472803116,
+   "train_s": 30.363356351852417,
+   "test": 0.0946037545800209,
+   "test_s": 3.7575783729553223,
+   "concepts": 74312,
+   "trees": 3,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 6
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 2
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 3
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 4
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 6
+    }
+   ]
+  },
+  "act-split:uni": {
+   "hp": {
+    "kappa": 0.25
+   },
+   "val": 0.11986131966114044,
+   "train_s": 9.362728595733643,
+   "test": 0.11512887477874756,
+   "test_s": 1.7337849140167236,
+   "concepts": 41885,
+   "trees": 3,
+   "protocol": "split",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "mlp": {
+   "hp": {
+    "width": 32
+   },
+   "val": 0.002143282676115632,
+   "train_s": 83.27419877052307,
+   "test": 0.002090366557240486,
+   "params": 1185
+  },
+  "kan": {
+   "hp": {
+    "grid": 10
+   },
+   "val": 0.0007083534146659076,
+   "train_s": 110.3537986278534,
+   "test": 0.000716109701897949,
+   "params": 44
+  }
+ }
+}

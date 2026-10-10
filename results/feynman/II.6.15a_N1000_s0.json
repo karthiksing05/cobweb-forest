@@ -1,0 +1,247 @@
+{
+ "eq": "II.6.15a",
+ "n": 6,
+ "N": 1000,
+ "seed": 0,
+ "sd_f": 0.3744552433490753,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "706e4e2eb91e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "d78ffdd",
+  "host": "olivaw.cc.gatech.edu"
+ },
+ "results": {
+  "single": {
+   "hp": {
+    "kappa": 1.0
+   },
+   "val": 0.2122904658317566,
+   "train_s": 0.17305636405944824,
+   "test": 0.20467428863048553,
+   "test_s": 0.7458312511444092,
+   "concepts": 1600,
+   "trees": 1,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "act": {
+   "hp": {
+    "kappa": 1.0
+   },
+   "val": 0.22286368906497955,
+   "train_s": 4.671300649642944,
+   "test": 0.23049616813659668,
+   "test_s": 9.639612197875977,
+   "concepts": 19110,
+   "trees": 11,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "label": {
+   "hp": {
+    "kappa": 1.0,
+    "label_depth": 2
+   },
+   "val": 0.38157421350479126,
+   "train_s": 1.1730372905731201,
+   "test": 0.3555595874786377,
+   "test_s": 1.4239492416381836,
+   "concepts": 15982,
+   "trees": 11,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 6
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 2
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 3
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 4
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 6
+    }
+   ]
+  },
+  "hybrid": {
+   "hp": {
+    "kappa": 1.0,
+    "label_depth": 2
+   },
+   "val": 0.21023300290107727,
+   "train_s": 7.364375352859497,
+   "test": 0.22925545275211334,
+   "test_s": 12.330422639846802,
+   "concepts": 20371,
+   "trees": 11,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 6
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 2
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 3
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 4
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 6
+    }
+   ]
+  },
+  "mlp": {
+   "hp": {
+    "width": 128
+   },
+   "val": 0.010272281244397163,
+   "train_s": 11.461138725280762,
+   "test": 0.016452856361865997,
+   "params": 17537
+  },
+  "kan": {
+   "hp": {
+    "grid": 5
+   },
+   "val": 0.06879182159900665,
+   "train_s": 17.062376260757446,
+   "test": 0.05189435929059982,
+   "params": 385
+  }
+ }
+}

@@ -1,0 +1,320 @@
+{
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "bf1d956d220e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "d78ffdd",
+  "host": "asimo.cc.gatech.edu"
+ },
+ "checks": [
+  {
+   "label": "def:predict",
+   "passed": true,
+   "max_rel_score_diff": 8.6551596237089655e-16,
+   "max_mixture_diff": 2.7007808461876337e-07,
+   "predict_probs_uses_K_alpha": true,
+   "seconds": 0.3,
+   "check": "check_model_matches_code"
+  },
+  {
+   "label": "lem:leaves",
+   "passed": true,
+   "full": {
+    "no_leaf_deleted": true,
+    "additive": true,
+    "leaves_hold_identical_instances": true,
+    "n_leaves": 352,
+    "n_distinct": 341,
+    "n_instances": 400,
+    "leaves_ge_distinct": true
+   },
+   "add_only": {
+    "no_leaf_deleted": true,
+    "additive": true,
+    "leaves_hold_identical_instances": true,
+    "n_leaves": 357,
+    "n_distinct": 341,
+    "n_instances": 400,
+    "leaves_ge_distinct": true
+   },
+   "add_only+new": {
+    "no_leaf_deleted": true,
+    "additive": true,
+    "leaves_hold_identical_instances": true,
+    "n_leaves": 350,
+    "n_distinct": 341,
+    "n_instances": 400,
+    "leaves_ge_distinct": true
+   },
+   "seconds": 0.3,
+   "check": "check_leaf_preservation"
+  },
+  {
+   "label": "lem:bias",
+   "passed": true,
+   "max_violation": -0.08133380734341995,
+   "seconds": 1.1,
+   "check": "check_bias_certificate"
+  },
+  {
+   "label": "thm:single+prop:prior",
+   "passed": true,
+   "single_ok": true,
+   "prior_inconsistent": true,
+   "rows": {
+    "d1": [
+     {
+      "G": 8,
+      "h": 0.125,
+      "sup_err": {
+       "lik": 0.4831476813259839,
+       "path": 0.39641738342482047,
+       "leaves": 0.4336424177590131,
+       "prior": 0.6181151467065699
+      },
+      "max_root_w": {
+       "lik": 0.13762031021453883,
+       "path": 0.3613185276184268,
+       "prior": 0.4060515322959845
+      },
+      "bound_shape": 1.1325652683060738
+     },
+     {
+      "G": 16,
+      "h": 0.0625,
+      "sup_err": {
+       "lik": 0.2875660365525006,
+       "path": 0.21242676851636222,
+       "leaves": 0.22580334600837218,
+       "prior": 0.5331228117867132
+      },
+      "max_root_w": {
+       "lik": 0.07798035497616113,
+       "path": 0.2306767174608137,
+       "prior": 0.3452658275803013
+      },
+      "bound_shape": 0.6538868625313324
+     },
+     {
+      "G": 32,
+      "h": 0.03125,
+      "sup_err": {
+       "lik": 0.14685587641627776,
+       "path": 0.11009054924479011,
+       "leaves": 0.10856305119426238,
+       "prior": 0.5079615911042576
+      },
+      "max_root_w": {
+       "lik": 0.04118738575604214,
+       "path": 0.13216527343849677,
+       "prior": 0.30081293722564384
+      },
+      "bound_shape": 0.36553386855352993
+     },
+     {
+      "G": 64,
+      "h": 0.015625,
+      "sup_err": {
+       "lik": 0.06928796377809035,
+       "path": 0.056148086140293874,
+       "leaves": 0.04835100528628814,
+       "prior": 0.5014850696122533
+      },
+      "max_root_w": {
+       "lik": 0.021109237289726274,
+       "path": 0.07102210014017768,
+       "prior": 0.2728432723215706
+      },
+      "bound_shape": 0.2002111453388966
+     },
+     {
+      "G": 128,
+      "h": 0.0078125,
+      "sup_err": {
+       "lik": 0.029552754581284403,
+       "path": 0.028346810886997975,
+       "leaves": 0.01853463482887733,
+       "prior": 0.49985193214772994
+      },
+      "max_root_w": {
+       "lik": 0.010677822497469612,
+       "path": 0.036854175271186465,
+       "prior": 0.2563543122303319
+      },
+      "bound_shape": 0.10812637648938654
+     }
+    ],
+    "d2": [
+     {
+      "G": 36,
+      "h": 0.16666666666666666,
+      "sup_err": {
+       "lik": 0.45512884567092404,
+       "path": 0.37366504882198887,
+       "leaves": 0.4023239157043131,
+       "prior": 0.6647048245352966
+      },
+      "max_root_w": {
+       "lik": 0.03906148667384903,
+       "path": 0.33642680170345746,
+       "prior": 0.3677644308230135
+      },
+      "bound_shape": 2.2163506756720315
+     },
+     {
+      "G": 144,
+      "h": 0.08333333333333333,
+      "sup_err": {
+       "lik": 0.2868269524417551,
+       "path": 0.20916652710395417,
+       "leaves": 0.21507267684894166,
+       "prior": 0.4565443532241211
+      },
+      "max_root_w": {
+       "lik": 0.01212084287922572,
+       "path": 0.13359032337135107,
+       "prior": 0.25653764873210033
+      },
+      "bound_shape": 1.3050395270472932
+     },
+     {
+      "G": 576,
+      "h": 0.041666666666666664,
+      "sup_err": {
+       "lik": 0.1433436426635321,
+       "path": 0.10159088702159486,
+       "leaves": 0.10234829814391694,
+       "prior": 0.3804027572212324
+      },
+      "max_root_w": {
+       "lik": 0.003228602319087829,
+       "path": 0.03910610731820089,
+       "prior": 0.18504608371991815
+      },
+      "bound_shape": 0.7379369476662078
+     }
+    ]
+   },
+   "seconds": 0.6,
+   "check": "check_single_tree"
+  },
+  {
+   "label": "thm:label",
+   "passed": true,
+   "rows": [
+    {
+     "K": 8,
+     "alpha": 0.001,
+     "max_violation": 0.0,
+     "bound": 0.4408441963044665,
+     "labels_are_nearest": true
+    },
+    {
+     "K": 16,
+     "alpha": 0.0001,
+     "max_violation": 0.0,
+     "bound": 0.2011043381522334,
+     "labels_are_nearest": true
+    },
+    {
+     "K": 32,
+     "alpha": 1e-05,
+     "max_violation": 0.0,
+     "bound": 0.09670745867611746,
+     "labels_are_nearest": true
+    }
+   ],
+   "seconds": 0.2,
+   "check": "check_label_construction"
+  },
+  {
+   "label": "prop:interweave",
+   "passed": true,
+   "max_abs_diff": "1.9073486e-06",
+   "seconds": 0.0,
+   "check": "check_interweave"
+  },
+  {
+   "label": "lem:dag+thm:cka",
+   "passed": true,
+   "rows": [
+    {
+     "G": 8,
+     "sup_err": 0.25462525085934296
+    },
+    {
+     "G": 16,
+     "sup_err": 0.0372737410104973
+    },
+    {
+     "G": 32,
+     "sup_err": 0.005674815883840445
+    },
+    {
+     "G": 64,
+     "sup_err": 0.001303058853616701
+    }
+   ],
+   "seconds": 0.6,
+   "check": "check_composition"
+  },
+  {
+   "label": "thm:consistency",
+   "passed": true,
+   "max_abs_diff_lik_vs_NW": 2.9115753186204074e-07,
+   "max_abs_diff_path_vs_NW": 0.07924205211845337,
+   "note": "path leaves-only is not Nadaraya-Watson in a learned tree (structure-dependent)",
+   "seconds": 0.0,
+   "check": "check_tree_is_nw"
+  },
+  {
+   "label": "check_xy",
+   "passed": false,
+   "error": "TypeError(\"dict() got multiple values for keyword argument 'label'\")",
+   "seconds": 2.7,
+   "check": "check_xy"
+  },
+  {
+   "label": "thm:locality",
+   "passed": true,
+   "ks_pvalues_x2_given_y": [
+    0.38839193032113983,
+    0.015546889874828112
+   ],
+   "p_y_pos": [
+    0.4866666666666667,
+    0.5233333333333333
+   ],
+   "rmse": {
+    "a:act": 1.0832332372665405,
+    "a:label": 0.45486852526664734,
+    "b:act": 1.0036273002624512,
+    "b:label": 1.072304368019104
+   },
+   "seconds": 9.6,
+   "check": "check_locality"
+  },
+  {
+   "label": "prop:multiview",
+   "passed": true,
+   "max_abs_diff": 6.661338147750939e-16,
+   "seconds": 0.0,
+   "check": "check_multiview"
+  },
+  {
+   "label": "rem:structure (branch-and-bound)",
+   "passed": true,
+   "counterexample": {
+    "seed": 0,
+    "returned": 3.9452093691778165,
+    "best": 6.131314564619988
+   },
+   "seconds": 0.0,
+   "check": "check_branch_and_bound"
+  }
+ ]
+}

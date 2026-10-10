@@ -8,11 +8,11 @@ n = 100
 f = lambda X: np.exp(np.mean(np.sin(np.pi * X / 2) ** 2, 1))
 u = np.sin(np.pi * np.random.default_rng(9).uniform(-1, 1, 10 ** 6) / 2) ** 2
 c = np.mean(np.exp(u / 100))
-N = int(sys.argv[1]); kappa = float(sys.argv[2])
+N = int(sys.argv[1]); kappa = float(sys.argv[2]); M = int(sys.argv[3]) if len(sys.argv) > 3 else 100
 rng = np.random.default_rng(0)
 X = rng.uniform(-1, 1, (N, n)).astype(np.float32); Y = f(X)[:, None].astype(np.float32)
 Xt = rng.uniform(-1, 1, (300, n)).astype(np.float32); Yt = f(Xt)
-specs = D.ka(D.balanced(range(n)), "act", N, kappa=kappa, max_nodes=100, leaves_only=True)
+specs = D.ka(D.balanced(range(n)), "act", N, kappa=kappa, max_nodes=M, leaves_only=True)
 F = Forest(specs, "out").fit(X, Y, protocol="online")
 # raw coordinates upstream of every tree
 up = {}

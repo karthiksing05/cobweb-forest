@@ -1,0 +1,64 @@
+{
+ "fn": "j0",
+ "N": 1000,
+ "seed": 1,
+ "noise": 0.0,
+ "n": 1,
+ "sd_f": 0.2955791145896692,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "706e4e2eb91e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "d78ffdd",
+  "host": "eva.cc.gatech.edu"
+ },
+ "results": {
+  "single": {
+   "hp": {
+    "kappa": 0.1
+   },
+   "val": 0.01280164998024702,
+   "train_s": 0.11273789405822754,
+   "test": 0.014185206964612007,
+   "test_s": 0.4663116931915283,
+   "concepts": 1788,
+   "trees": 1,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "mlp": {
+   "hp": {
+    "width": 128
+   },
+   "val": 0.014740506187081337,
+   "train_s": 21.106829166412354,
+   "test": 0.014570357277989388,
+   "params": 16897
+  },
+  "kan": {
+   "hp": {
+    "grid": 20
+   },
+   "val": 0.008231095969676971,
+   "train_s": 14.362212181091309,
+   "test": 0.008100754581391811,
+   "params": 25
+  }
+ }
+}

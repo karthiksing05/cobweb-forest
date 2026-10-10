@@ -29,6 +29,11 @@ import numpy as np
 from ._core import CobwebHybridTree
 
 NAN = np.float32(np.nan)
+
+
+def raw_outcome(task):
+    """Index j of a cross-view outcome "raw:j", else None."""
+    return int(task.split(":")[1]) if isinstance(task, str) and task.startswith("raw:") else None
 EMPTY = np.zeros(0, dtype=np.float32)
 
 
@@ -40,7 +45,10 @@ class TreeSpec:
     act_from:   parent trees whose activation messages it reads (continuous)
     label_from: parent trees whose label messages it reads (discrete, one attr each)
     raw_disc:   indices of raw *discrete* input columns (e.g. tokens), one attr each
-    task:       None, "y" (continuous target, may be multi-dim), or "class"
+    task:       the tree's outcome (Def. "cognitive task"): None (categorization only),
+                "y" (the continuous target, may be multi-dim), "class" (the discrete
+                target), or "raw:j" (the raw coordinate j, which the tree must not
+                perceive -- a cross-view, self-supervised outcome)
     emits:      subset of {"act", "label"}
     """
     name: str
@@ -71,7 +79,10 @@ class Tree:
         self.n_raw = len(spec.raw)
         self.n_act = len(spec.act_from) if n_act is None else n_act
         self.n_classes = n_classes
-        self.y_dim = y_dim if spec.task == "y" else 0
+        j = raw_outcome(spec.task)
+        if j is not None and j in list(spec.raw):
+            raise ValueError(f"tree {spec.name}: outcome raw:{j} is also one of its cues")
+        self.y_dim = y_dim if spec.task == "y" else (1 if j is not None else 0)
         self.size = self.n_raw + self.n_act + self.y_dim
         self.tree = CobwebHybridTree(self.size, alpha=spec.alpha, prior_var=spec.prior_var,
                                      cont_weight=spec.cont_weight)
@@ -174,6 +185,8 @@ class Forest:
 
     def act_dim(self, name):
         task = self.by_name[name].task
+        if raw_outcome(task) is not None:
+            return 1
         return self.y_dim if task == "y" else (self.n_classes if task == "class" else 0)
 
     def _topo(self):
@@ -239,10 +252,17 @@ class Forest:
                     # a class distribution is measured on the scale of the one-hot class
                     k = self.n_classes
                     mu.append(np.full(k, 1.0 / k)); sd.append(np.full(k, np.sqrt((1.0 / k) * (1 - 1.0 / k))))
+                elif raw_outcome(self.by_name[p].task) is not None:
+                    j = raw_outcome(self.by_name[p].task)       # measured in x_j's units
+                    mu.append(xm[[j]]); sd.append(xs[[j]])
                 else:
                     mu.append(ym); sd.append(ys)
             if t.y_dim:
-                mu.append(ym); sd.append(ys)
+                j = raw_outcome(t.spec.task)
+                if j is not None:
+                    mu.append(xm[[j]]); sd.append(xs[[j]])
+                else:
+                    mu.append(ym); sd.append(ys)
             if mu:
                 t.mu = np.concatenate(mu).astype(np.float32)
                 t.sd = np.concatenate(sd).astype(np.float32)
@@ -294,7 +314,11 @@ class Forest:
             t = self.trees[name]
             xr, xd = row(i)
             inp = self._inputs(name, xr, xd, msgs)
-            y = Y[i] if (Y is not None and t.spec.task == "y") else None
+            j = raw_outcome(t.spec.task)
+            if j is not None:
+                y = xr[j:j + 1]                      # cross-view outcome: a raw coordinate
+            else:
+                y = Y[i] if (Y is not None and t.spec.task == "y") else None
             c = C[i] if (C is not None and t.spec.task == "class") else None
             t.ifit(*inp, y=y, cls=c)
 

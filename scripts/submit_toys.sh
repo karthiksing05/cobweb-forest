@@ -1,7 +1,7 @@
 #!/bin/bash
 # Toy battery sweep: one job per (fn, N, seed[, method group]).
 cd /coc/flash10/ksingara3/cobweb-forest
-SNAP=$(scripts/snapshot.sh toys)
+SNAP=${SNAP:-$(scripts/snapshot.sh toys)}
 echo "snapshot $SNAP"
 for seed in 0 1 2; do
   for fn in sin j0 expsin xy nested4; do

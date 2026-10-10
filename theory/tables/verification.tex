@@ -1,0 +1,15 @@
+\begin{tabular}{@{}llp{9.2cm}@{}}\toprule
+result & statement & check\\\midrule
+pass & \cref{def:predict} & Def.~multi-node prediction and Def.~concept equal the implementation\\
+pass & \cref{lem:leaves} & Leaf preservation (no leaf deleted; additivity; leaves hold identical copies)\\
+pass & \cref{lem:bias} & Concept-bias certificate holds for every weighting and budget\\
+pass & \cref{thm:single}, \cref{prop:prior} & Grid tree: error and root weight vanish (lik, path, leaves); prior plateaus\\
+pass & \cref{thm:label} & Label-forest construction meets its error bound; labels are nearest grid points\\
+pass & \cref{prop:interweave} & Interwoven tree = convex combination of the subtrees (lik, path)\\
+pass & \cref{lem:dag}, \cref{thm:cka} & Composed constructed trees approximate $\Phi(\varphi_1+\varphi_2)$\\
+pass & \cref{thm:consistency} & Learned tree, leaves-only lik = Nadaraya--Watson (path is not)\\
+\textbf{fail} & \cref{check_xy} & check_xy\\
+pass & \cref{thm:locality} & Sign construction: local laws equal; composition separates the worlds\\
+pass & \cref{prop:multiview} & Posterior given all views = function of per-view posterior means\\
+pass & \cref{rem:structure} & Branch-and-bound stop returns a sub-optimal concept\\
+\bottomrule\end{tabular}
