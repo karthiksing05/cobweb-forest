@@ -128,4 +128,18 @@ Every finding was addressed in v4:
 
 ### Round 4 (real draft v5)
 
-(Pending.)
+**No INVALID statement, and no main result fails** (full report in `reviews/round4.md`).
+
+v6 fixes every finding:
+- **G3:** `thm:labelcons` (a) now bounds diam(C ∩ 𝒳). The old form could never hold, because edge cells are unbounded.
+- **G1:** the unused density hypothesis is dropped from `thm:consistency`.
+- **G2:** Step 2's uniform law is stated as taken-as-given, with the route to it.
+- **G4:** `cor:parity` now uses the upstream raw set R(τ).
+- **Text:**
+  - the posterior range is corrected;
+  - the diag100 improvement depends on the budget;
+  - under P_b only the constant is optimal, and the normalisation there is sd(Y);
+  - the housing induction gain comes from the merge of longitude with latitude at τ = 0.1/0.2, checked in the result files;
+  - the categorization claims now include the smoothing condition.
+
+**Trajectory.** Calibration found 5 false statements, round 2 none (text issues only), round 3 none (one conceptual correction), and round 4 none and nothing INVALID.

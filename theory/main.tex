@@ -70,7 +70,7 @@ perceives (its \emph{cue}) and what it predicts and later observes (its
 monotone-additive targets, predicting another view of the input is sufficient in a
 Gaussian multi-view model whose target depends only on what the views share, and
 categorization is sufficient whenever its cells shrink and stay few compared with the
-sample, a requirement that grows with the dimension.  Tasks cannot be inferred locally---a sign construction makes a tree's
+sample and its smoothing vanishes fast enough, a requirement that grows with the dimension.  Tasks cannot be inferred locally---a sign construction makes a tree's
 own data identical whether its input is necessary or irrelevant---but they can be
 inferred consistently by verifying candidate tasks at the tree that composes them.  An
 executable verifier tests the statements against the implementation, and an independent
@@ -162,8 +162,8 @@ tasks} (\cref{sec:tasks}) and their inference (\cref{sec:infer}).
   (\cref{cor:iff}); funnel tasks are sufficient for monotone-additive targets
   (\cref{prop:suffclass}) but not for $x_1x_2$ with symmetric inputs (\cref{prop:xy});
   cross-view tasks are sufficient in a Gaussian multi-view model (\cref{prop:multiview});
-  categorization is sufficient whenever its cells shrink and stay few compared with the
-  sample (\cref{thm:labelcons}).
+  categorization is sufficient whenever its cells shrink, stay few compared with the
+  sample, and its smoothing vanishes fast enough (\cref{thm:labelcons}).
 \item Inferring tasks (\cref{sec:infer}): no rule that looks at a tree's own data can
   infer its task (\cref{thm:locality}, \cref{cor:parity}); verifying candidate tasks at
   the composing tree selects a sufficient assignment with probability tending to one
@@ -623,7 +623,7 @@ Let $\T_N$ be the tree that Cobweb learns from $(X_i,Y_i)_{i\le N}$ in any order
 any operator choices, with exact matching ($\tau=0$) and without reaching the depth
 limit, and let it predict $Y$ from $X$ with the \emph{count-weighted} leaves-only mixture
 (\textsc{prior} weighting restricted to the leaves) under full expansion, with variance
-floor $h_N^2$.  If $X$ has a density, $h_N\to0$ and $Nh_N^d\to\infty$, then
+floor $h_N^2$.  If $h_N\to0$ and $Nh_N^d\to\infty$, then
 $\int|\hy_{\T_N}(x)-m(x)|\,\mu(dx)\to0$ almost surely, whatever structure category
 utility builds ($\mu$ the distribution of $X$).
 \end{theorem}
@@ -793,9 +793,13 @@ tolerance the stored cues move by at most about $\tau(1+\ln N)$ (\cref{rem:count
 perturbation that Step~2 absorbs when $\tau\ln N=o(h)$.)
 
 \emph{Step 2: the perturbed design does not matter.}  Let $\check\psi$ be the same
-estimate built on the ideal cues $U_i=u_\tau(X_i)$.  By (A1)--(A3), $\check\psi\to\psi_\tau$
-uniformly on the $\delta$-neighbourhood of $D_\tau$ for any $\delta=o(h)$, almost surely
-\citep{devroye1978,mack1982}.  Write $\hat U_i=U_i+\Delta_i$, $\|\Delta_i\|\le\varepsilon$.
+estimate built on the ideal cues $U_i=u_\tau(X_i)$.  We take as given the uniform Nadaraya--Watson law that, under (A1)--(A3),
+$\check\psi\to\psi_\tau$ uniformly on the $\delta$-neighbourhood of $D_\tau$ for any
+$\delta=o(h)$, in probability.  The cited results \citep{devroye1978,mack1982} state it on
+interior compact sets; up to a Lipschitz boundary and for the Gaussian kernel it follows from
+the cone condition (a fixed fraction of every small ball around a point of $D_\tau$ lies in
+$D_\tau$), the uniform kernel-density law of \citet{einmahl2005} for the denominator, and the
+bias bound $\omega_{\psi_\tau}(Rh)+2Be^{-R^2/16}$, but we do not write out that derivation.  Write $\hat U_i=U_i+\Delta_i$, $\|\Delta_i\|\le\varepsilon$.
 For $\|u-U_i\|\le Rh$,
 \[
   \frac{K_h(u-\hat U_i)}{K_h(u-U_i)}=\exp\Bigl(\frac{2\langle u-U_i,\Delta_i\rangle-\|\Delta_i\|^2}{2h^2}\Bigr)
@@ -929,7 +933,9 @@ learned with the split protocol; let the output tree match instances exactly and
 predict with the count-weighted leaves-only mixture under full expansion.  Let $X$ have
 compact support $\mathcal X$, let $\mathcal P_N$ be the product partition induced by the
 frozen label maps, and let $M_N$ be the number of its cells that meet $\mathcal X$.  If,
-in probability, (a)~the largest diameter of a cell meeting $\mathcal X$ tends to $0$,
+in probability, (a)~$\max_C\diam(C\cap\mathcal X)\to0$ over the cells $C$ meeting $\mathcal X$ (the label
+maps partition all of the input space, so cells at the edge are unbounded; only their part
+in $\mathcal X$ matters),
 (b)~$M_N/N\to0$, and (c)~$\alpha_NM_N\to0$, then the forest's prediction $\hy$ satisfies
 $\E\int(\hy-m)^2\,d\mu\to0$.
 \end{theorem}
@@ -1058,10 +1064,10 @@ $P_a$ and $p$ under $P_b$.  (iii) $\E[Y\mid X_j]=0$ for $j=1,2$ by (i), so
 \begin{corollary}[Parity requires composition]\label{cor:parity}
 Let $X_1,\dots,X_n$ be independent and uniform on $[-1,1]$ and
 $Y=\prod_{j\in J}\operatorname{sign}(X_j)$.  For every $S$ that does not contain $J$,
-$Y$ is independent of $X_S$.  Hence no tree whose cue misses a coordinate of $J$, and no rule using the streams of
-any set of trees whose cues and outcomes together miss a coordinate of $J$, can detect the
-dependence; every funnel activation of a tree whose cue misses a coordinate of $J$
-vanishes; and the ideal output of an activation forest whose outcomes are $Y$ or raw
+$Y$ is independent of $X_S$.  Hence no tree whose upstream raw set $R(\tau)$ misses a coordinate of $J$, and no rule
+using the streams of any set of trees whose cues and outcomes together are functions of
+$X_S$ with $J\not\subseteq S$, can detect the dependence; every funnel activation of a tree
+with $J\not\subseteq R(\tau)$ vanishes; and the ideal output of an activation forest whose outcomes are $Y$ or raw
 coordinates equals $f$ only if the raw cue of some tree contains $J$ (a merged cue).
 Labels, which pass a tree's cue rather than a prediction, are the other way to bring all
 of $J$ to one tree; for learned forests these statements hold in the limit of
@@ -1206,7 +1212,8 @@ in the task experiments of \cref{sec:exp-tasks}, which fix $\kappa=0.25$ so that
 candidates differ only in their tasks.  MLP and KAN (B-spline edges as in
 \citet{liu2024kan}) are trained with Adam and early stopping, with width or grid chosen
 on the same validation set.  Toy targets are noise-free on $[-1,1]^n$ and are scored on
-2000 fresh points; errors are RMSE divided by the standard deviation of $f$, averaged
+2000 fresh points; errors are RMSE divided by the standard deviation of $f$ (of $Y$ where
+$f$ is constant, as in the sign world $P_b$), averaged
 over three seeds, and over five for the locality, selection and multi-view experiments.
 Every result file records the hashes of the code that produced it, and the verifier
 checks that every reported result comes from a build without the budget bug described in
@@ -1241,7 +1248,8 @@ grid tree, and of \cref{thm:consistency}: the variance floor equals the data spa
 $Nh^d\to\infty$.  They show the same pattern as the constructions: for $\sin(\pi x)$ the
 leaves-only error falls from $0.019$ at $N=100$ to $0.00038$ at $N=6400$, a factor of about
 four per quadrupling of $N$, while the \textsc{prior} mixture over all concepts stays
-between $0.11$ and $0.20$ and the \textsc{posterior} mixture between $0.08$ and $0.20$
+between $0.11$ and $0.20$ and the \textsc{posterior} mixture between $0.08$ and $0.14$ at the tabulated $N$ (and
+$0.19$ at $N=800$ in the figure)
 (between $0.15$ and $0.19$ for $J_0(20x)$).
 
 \subsection{The KAN battery}
@@ -1303,9 +1311,10 @@ $\E[Y\mid X_i]$, whose standard deviation is about a tenth of that of $Y$.  At $
 of 100 leaves the estimate is dominated by noise (ratio $1.4$ for $\kappa=0.25$, $3.2$ for
 $\kappa=1$); with 1000 or 4000 leaves it carries signal (ratio $0.57$), but the trees one
 level up read these noisy activations, and the signal is gone by the third level.  At $N=16000$ with 4000 leaves part of
-it survives to the top (ratios $0.56$ to $0.91$, output $0.92$): the composition improves
-with $N$, in the direction \cref{thm:ideal} predicts for the limit (these messages have
-critical points and so fall outside (A2)), but far too slowly to be useful here.  This is the finite-sample face of the
+it survives to the top (ratios $0.56$ to $0.91$, output $0.92$): with this budget the composition improves with $N$, in the direction \cref{thm:ideal}
+predicts for the limit, but with 1000 leaves the low levels get worse with $N$ ($0.57\to0.90$
+at level~0), so the improvement depends on the budget; these runs are in any case outside
+the theorem (online protocol, a budget, and messages with critical points, outside (A2)).  This is the finite-sample face of the
 condition behind (A4): the children's errors are not small compared with what their
 parents must resolve, and errors compound through the levels.  A KAN does not face this
 problem, because its gradient corrects all inner functions against the error of the
@@ -1328,8 +1337,8 @@ tree's test RMSE for four task assignments.}
 has the same validation error and the same flat activation in both worlds, so nothing
 it can compute tells it whether $x_2$ matters.  The composing tree separates the worlds:
 under $P_a$ the merged tree reaches $0.22$ and the label forest $0.43$ at $N=16000$, while
-under $P_b$ every assignment stays near $1$.  The funnel forest fails in both worlds; under
-$P_a$ its error even rises above the constant predictor's ($1.16$ at $N=16000$), because
+under $P_b$, where $f\equiv0$ and the constant predictor is optimal, every assignment
+stays near $1$.  The funnel forest fails under $P_a$, where its error even rises above the constant predictor's ($1.16$ at $N=16000$), because
 its online, budget-limited activations are noise that the output tree fits.
 
 \begin{table}[t]
@@ -1403,7 +1412,9 @@ $\theta_1$, whose difference the formula uses; in $I.29.16$ it merges the two an
 the 4-D target it recovers the two blocks.  The selected forest equals the best candidate,
 or is within one percent of it, in every row but one; it beats the single tree where the
 induced structure is real (the 4-D target and housing at both sizes, e.g.\ $0.495$ against
-$0.598$ on housing at $N=16000$, and narrowly on $I.12.11$ and $I.50.26$); and it falls back
+$0.598$ on housing at $N=16000$, where the threshold $\tau=0.05$ merges every input but the
+selected forests, at $\tau=0.1$ or $0.2$, merge only longitude with latitude in all three runs;
+and narrowly on $I.12.11$ and $I.50.26$); and it falls back
 on the single tree on the other formulas.
 The exception is $II.6.15a$, where the selected forest ($0.546$) is worse than the single
 tree ($0.519$), which was among the candidates.  The generic balanced forest is the worst
@@ -1575,8 +1586,8 @@ perceives: \emph{categorize} it, \emph{predict an outcome} of it, or \emph{predi
 another part of it}.  The first is concept formation in Cobweb's original sense; the
 second is cue--outcome learning \citep{rescorla1972}; the third is the perceptual
 prediction of predictive-processing accounts \citep{clark2013}.  Each has a mathematical
-counterpart here.  Categorization is sufficient whenever its cells shrink and stay few compared with the
-sample, and it pays for every cell it distinguishes (\cref{thm:labelcons,rem:tradeoff}):
+counterpart here.  Categorization is sufficient whenever its cells shrink, stay few compared with the
+sample, and its smoothing vanishes fast enough, and it pays for every cell it distinguishes (\cref{thm:labelcons,rem:tradeoff}):
 its categories must become finer with experience, just as the activations' consistency
 needs the variance floor---the acuity---to shrink, $h_N\to0$; both are perceptual learning
 in the sense of \citet{goldstone1998}.  Outcome prediction
@@ -1669,6 +1680,7 @@ round & outcome\\\midrule
 calibration & 8/8 planted errors found; extra findings (label consistency with atoms, exact matching, crossover exponents) fixed\\
 2 & no statement false under its hypotheses; experiments text contradicting tables, overstated remarks and summaries; fixed\\
 3 & no statement false under its hypotheses; prior/posterior weightings on hierarchies (verified by check C19), branch-and-bound repair, minor gaps; fixed\\
+4 & no statement invalid; four minor gaps (an unsatisfiable form of a hypothesis of \cref{thm:labelcons}, an unused density hypothesis, a cited uniform law, an ambiguous phrase) and five text items; fixed\\
 \bottomrule
 \end{tabular}
 \end{center}

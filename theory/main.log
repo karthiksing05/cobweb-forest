@@ -486,12 +486,11 @@ mm/m/it/10.95 ^^L[]\OT1/cmr/m/n/10.95 (2\OML/cmm/m/it/10.95 ^^Y\OT1/cmr/m/n/10.
 95 )[] [][] \OML/cmm/m/it/10.95 e[]$
  []
 
-[7]
+[7] [8]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
 (Font)              using `TU/lmr/m/scsl' instead on input line 521.
 
-[8]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
 (Font)              using `TU/lmr/m/scsl' instead on input line 562.
@@ -518,18 +517,17 @@ File: figs/weighting_sin.pdf Graphic file (type pdf)
 <use figs/weighting_sin.pdf>
 File: figs/weighting_j0.pdf Graphic file (type pdf)
 <use figs/weighting_j0.pdf>
- (tables/weighting)
+ (tables/weighting) [19]
 File: figs/toys.pdf Graphic file (type pdf)
 <use figs/toys.pdf>
- [19]
-(tables/toys) (tables/diag100) (tables/locality) [20] (tables/selection)
+
+(tables/toys) [20] (tables/diag100) (tables/locality) [21] (tables/selection)
 File: figs/synergy.pdf Graphic file (type pdf)
 <use figs/synergy.pdf>
 
-[21] (tables/induce)
+[22] (tables/induce) [23]
 File: figs/multiview.pdf Graphic file (type pdf)
 <use figs/multiview.pdf>
- [22]
 File: figs/continual.pdf Graphic file (type pdf)
 <use figs/continual.pdf>
  (tables/continual)
@@ -537,33 +535,33 @@ File: figs/interpret.pdf Graphic file (type pdf)
 <use figs/interpret.pdf>
 File: figs/label_cells.pdf Graphic file (type pdf)
 <use figs/label_cells.pdf>
- [23] (tables/feynman_N4000)
-(tables/housing) (tables/mnist) (tables/owt) [24] [25] [26]
-(tables/verification) [27]
-Overfull \vbox (61.64914pt too high) has occurred while \output is active []
+ [24] (tables/feynman_N4000)
+(tables/housing) (tables/mnist) (tables/owt) [25] [26] [27]
+(tables/verification) [28]
+Overfull \vbox (200.76735pt too high) has occurred while \output is active []
 
 
-[28]
-Overfull \hbox (9.59581pt too wide) in paragraph at lines 1657--1665
+[29]
+Overfull \hbox (9.59581pt too wide) in paragraph at lines 1668--1676
  []\TU/lmr/bx/n/10.95 Adversarial review.[] \TU/lmr/m/n/10.95 Each statement is
  also checked by an independent reviewer—a fresh language-
  []
 
 
-Overfull \hbox (48.31355pt too wide) in paragraph at lines 1657--1665
+Overfull \hbox (48.31355pt too wide) in paragraph at lines 1668--1676
 \TU/lmr/m/n/10.95 nothing but this document, its tables and the two C++ files i
 t formalises (\TU/lmtt/m/n/10.95 verification/REVIEW_PROMPT.md\TU/lmr/m/n/10.95
  ).
  []
 
 
-Overfull \hbox (0.9329pt too wide) in paragraph at lines 1676--1679
+Overfull \hbox (0.9329pt too wide) in paragraph at lines 1688--1691
 \TU/lmr/m/n/10.95 The reports, the drafts they reviewed and the reviewers’ own 
 scripts are in \TU/lmtt/m/n/10.95 verification/reviews/\TU/lmr/m/n/10.95 ;
  []
 
-(main.bbl [29] [30] [31]) [32] (main.aux)
+(main.bbl [30] [31]) [32] (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 24DEB4ED838B5E2249E908C06BAA1E90;4358.
  )
-Output written on main.xdv (32 pages, 976568 bytes).
+Output written on main.xdv (32 pages, 988888 bytes).
