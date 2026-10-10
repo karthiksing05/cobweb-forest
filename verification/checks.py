@@ -757,7 +757,7 @@ LEAN_THEOREMS = [
     "validity_nonneg", "condExp_const_of_validity_zero", "condExp_blocked",
     "conditional_validity_blocked", "Chain.fanin_one", "ka_tree_count", "sign_worlds_local_law",
     "local_rule_same", "sign_worlds_differ", "parity_fibre_balanced", "merged_prediction",
-    "merged_weights",
+    "merged_weights", "leaf_sum_eq", "leaf_mixture_eq_nw",
 ]
 
 

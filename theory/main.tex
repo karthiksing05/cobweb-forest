@@ -52,14 +52,15 @@ prove three things.  \emph{Representation:} one Cobweb tree approximates any con
 function, and a forest of $4n^2+4n$ two-input trees realises the Kolmogorov--Arnold
 representation of any continuous function of $n$ variables; one input per tree is not
 enough.  \emph{Learning:} Cobweb never deletes what it has stored, so a learned tree is a
-consistent regressor whatever hierarchy it builds, and a learned forest converges to the
-forest in which every tree predicts the expectation of its outcome given its inputs.
+consistent regressor whatever hierarchy it builds, and a forest of trees passing
+predictions, learned level by level, converges to the forest in which every tree predicts
+the expectation of its outcome given its inputs.
 \emph{Tasks:} without back-propagation a tree can only learn to predict what it will
 observe, so the forest must give each tree an observable outcome.  Predicting the final
 target works when the parts combine monotonically and fails on interactions such as
 $x_1x_2$; categorizing works for every target but pays for every cell it distinguishes; and no tree can tell its
 role from its own data, so the choice must be verified where trees are composed.
-Following the KAN paper's experiments, Cobweb forests do not forget in continual
+Following the KAN paper's experiments, a Cobweb tree does not forget in continual
 learning and their trees can be plotted like KAN edges, while on smooth targets
 gradient-trained KANs and MLPs are far more accurate.  The discrete cores of the
 statements are proved in Lean~4 and the rest are checked against the implementation.
@@ -117,7 +118,7 @@ unit & weights, fixed activation & learnable spline on an edge & a Cobweb tree (
 summation & free, at nodes & free, at nodes & a two-input tree\\
 what a unit passes & a number & a number & a prediction or a concept label\\
 learning & back-propagation & back-propagation & sort and restructure; each tree predicts an observable outcome\\
-forgetting & catastrophic & local & none: no stored example is deleted (\cref{thm:main-learn})\\
+forgetting & catastrophic & local & none within a tree: no stored example is deleted (\cref{thm:main-learn})\\
 interpretability & low & plot each edge & plot each tree\\
 \bottomrule
 \end{tabular}
@@ -232,9 +233,9 @@ accuracy backwards from the output keeps the total error below $\varepsilon$
 (\cref{lem:dag}).
 
 Three remarks place the theorem.  First, as for KANs, the useful statement assumes
-structure: if $f$ is a composition of maps with at most $k$ inputs each, a forest with
-$G$ leaves per tree has error of order $G^{-1/k}$, set by the fan-in and not by $n$,
-while a single tree pays $G^{-1/n}$ (\cref{rem:rates}).  Second, labels are universal
+structure: if $f$ is a composition of Lipschitz maps with at most $k$ inputs each, a
+forest with $G$ leaves per tree has error of order $G^{-1/k}$, set by the fan-in and not by
+$n$, while the available bound for a single tree is $G^{-1/n}$ (\cref{rem:rates}).  Second, labels are universal
 too: trees that categorize each coordinate and pass their labels to a lookup tree
 approximate any $f$, but the lookup tree needs one leaf per cell, $K^n$ in all, because
 labels carry no metric (\cref{thm:label}).  Third, merging trees under one common root
@@ -250,10 +251,10 @@ does not compose them: the merged tree predicts a mixture of their predictions
 \begin{theorem}[Cobweb never forgets, so a learned tree is consistent;
 \cref{lem:leaves,thm:consistency}]\label{thm:main-learn}
 None of Cobweb's operators deletes a leaf, and every example ends in exactly one leaf.
-Hence, whatever hierarchy category utility builds and in whatever order the examples
-arrive, the count-weighted leaf mixture \eqref{eq:tree} of a learned tree equals the
-Nadaraya--Watson kernel regression on all examples seen.  With exact matching, if
-$h\to0$ and $Nh^d\to\infty$, the learned tree's prediction converges to $\E[Y\mid X]$
+Hence, with exact matching and below the depth limit, whatever hierarchy category utility
+builds and in whatever order the examples arrive, the count-weighted leaf mixture
+\eqref{eq:tree} of a learned tree equals the Nadaraya--Watson kernel regression on all
+examples seen (an identity checked in Lean).  If $h\to0$ and $Nh^d\to\infty$, the learned tree's prediction converges to $\E[Y\mid X]$
 (almost surely, in $L_1$) for every distribution of $(X,Y)$ with bounded $Y$.
 \end{theorem}
 
@@ -273,6 +274,8 @@ $U_\tau$ is built from the ideal messages of its parents.
 
 \begin{theorem}[A learned forest converges to its ideal forest;
 \cref{thm:ideal,cor:iff}]\label{thm:main-forest}
+Consider a forest whose trees pass activations, trained with the split protocol (each
+level of the graph learns on its own part of the data, reading its frozen parents).
 Under regularity conditions (bounded outcomes, inputs with densities, variance floors
 that shrink slowly enough, \cref{ass:regular}), the output of a forest learned by Cobweb
 converges uniformly, in probability, to the output $F$ of its ideal forest.  It therefore learns
@@ -299,16 +302,18 @@ Convolutional Cobweb).
 \leavevmode
 \begin{enumerate}[label=(\alph*),leftmargin=*,noitemsep]
 \item \emph{Funnel tasks work when the parts combine monotonically}: if
-  $Y=\Phi\bigl(\sum_jg_j(X_{B_j})\bigr)+\text{noise}$ with $\Phi$ increasing and
-  independent blocks $X_{B_j}$, a forest in which each tree predicts $Y$ is sufficient
-  (\cref{prop:suffclass}).
-\item \emph{Funnel tasks fail on interactions}: for $Y=X_1X_2$ with symmetric inputs, a
+  $Y=\Phi\bigl(\sum_jg_j(X_{B_j})\bigr)+\text{noise}$ with $\Phi$ continuous and strictly
+  increasing, $g_j$ continuous and independent blocks $X_{B_j}$, a forest whose graph is a
+  rooted tree, in which each block is the raw input of exactly one tree and every tree
+  predicts $Y$, is sufficient (\cref{prop:suffclass}).
+\item \emph{Funnel tasks fail on interactions}: for $Y=X_1X_2$ with independent inputs symmetric about $0$, a
   tree that sees only $X_1$ predicts $\E[Y\mid X_1]=0$, so the funnel forest learns
   nothing (\cref{prop:xy}).
-\item \emph{Categorization works for every target, at a price}: label forests are
-  consistent whenever their cells shrink and stay few compared with the data, conditions
-  that do not depend on $f$; filling $n$ dimensions takes a number of cells exponential
-  in $n$ (\cref{thm:labelcons}).
+\item \emph{Categorization works for every target, at a price}: a label forest trained
+  with the split protocol is consistent whenever its cells shrink, stay few compared with
+  the data, and its smoothing $\alpha$ vanishes faster than the number of cells grows,
+  conditions that do not depend on $f$ (\cref{thm:labelcons}); filling $n$ dimensions takes
+  a number of cells exponential in $n$ (\cref{rem:tradeoff}).
 \item \emph{Cross-view tasks work when the target lives in what the views share}, as in a
   Gaussian multi-view model (\cref{prop:multiview}).
 \end{enumerate}
@@ -318,7 +323,7 @@ Can a tree find out by itself whether its task is right?  No.
 
 \begin{proposition}[A tree cannot tell its role from its own data;
 \cref{thm:locality,cor:parity}]\label{prop:main-local}
-Let $X_1,X_2,X_3$ be uniform on $[-1,1]$ and compare $Y=\operatorname{sign}(X_1X_2)$ with
+Let $X_1,X_2,X_3$ be independent and uniform on $[-1,1]$ and compare $Y=\operatorname{sign}(X_1X_2)$ with
 $Y=\operatorname{sign}(X_1X_3)$, observing only $X_1,X_2,Y$.  In the first world $X_2$
 is essential; in the second it is irrelevant.  Yet the pair $(X_2,Y)$ has the same
 distribution in both, so a tree that sees $X_2$, whatever it predicts, receives the same
@@ -491,8 +496,8 @@ messages should be concepts.
 
 \paragraph{Limitations.}
 The convergence theorems assume the split protocol, full expansion, exact matching and
-the count-weighted leaf mixture; the experiments use the implementation's defaults.  One
-step of \cref{thm:ideal} relies on a standard uniform law for kernel sums, the label-cell
+the count-weighted leaf mixture; the experiments use the implementation's defaults.  \Cref{thm:ideal} assumes a uniform law for kernel smoothers up to the boundary of the
+input set ((A5) of \cref{ass:regular}), the label-cell
 conditions of \cref{thm:labelcons} are not derived from category utility, and the task
 recipe is greedy.  The rates are those of nonparametric smoothing.
 
@@ -831,7 +836,9 @@ neighbourhood of its input set, then \eqref{eq:singlerate} and the stability arg
 \cref{lem:dag} give a forest of $s$ trees with $G$ leaves each and error $C\,G^{-1/k}$, with $C$
 depending on $s$, $k$, $L$ and the diameters of the input sets---a rate set by the fan-in
 $k$, not by $n$.  A single
-tree over the $n$ inputs has rate $G^{-1/n}$ (\cref{thm:single}).  Cobweb trees realise
+tree over the $n$ inputs has the upper bound $G^{-1/n}$ (\cref{thm:single}); we prove no
+matching lower bound, and a tree whose leaves pool examples can do better when $f$
+depends on fewer coordinates.  Cobweb trees realise
 sums as learned two-input maps; KANs sum at nodes for free, which is why their rate is
 governed by one-dimensional splines.
 \end{remark}
@@ -1084,8 +1091,20 @@ with variance floor $h_{\tau,N}^2$, $h_{\tau,N}\to0$ and
 $Nh_{\tau,N}^{k_\tau}/\log N\to\infty$.  (A4) For every edge $\sigma\to\tau$,
 $\varepsilon_{\sigma,N}/h_{\tau,N}\to0$ in probability, where
 $\varepsilon_{\sigma,N}=\sup_x|\hat m_\sigma(x)-m_\sigma(x)|$ is the parent's uniform
-error.
+error.  (A5) For every tree, the Nadaraya--Watson estimate with the Gaussian kernel and
+bandwidth $h_{\tau,N}$, built on $N$ i.i.d.\ ideal inputs $U_\tau$ and outcomes, converges to
+$\psi_\tau$ uniformly on the $\delta_N$-neighbourhood of $D_\tau$ in probability, for every
+$\delta_N=o(h_{\tau,N})$, and the normalised kernel mass $N^{-1}\sum_iK_h(u-U_i)$ is
+bounded below by a positive constant uniformly on that neighbourhood, with probability
+tending to one.
 \end{assumption}
+
+(A5) is a uniform law for kernel smoothers up to the boundary.  The cited results
+\citep{devroye1978,mack1982} state it on interior compact sets; up to a Lipschitz boundary
+it is expected to follow from the cone condition (a fixed fraction of every small ball
+around a point of $D_\tau$ lies in $D_\tau$), the uniform kernel-density law of
+\citet{einmahl2005} and the bias bound $\omega_{\psi_\tau}(Rh)+2Be^{-R^2/16}$; we state it as
+an assumption rather than derive it.
 
 (A4) is a condition on the schedule: by induction the parents' errors tend to zero
 (\cref{thm:ideal}), so variance floors that shrink slowly enough satisfy it.  (A2) is
@@ -1117,13 +1136,8 @@ tolerance the stored inputs move by at most about $\tau(1+\ln N)$ (\cref{rem:cou
 perturbation that Step~2 absorbs when $\tau\ln N=o(h)$.)
 
 \emph{Step 2: the perturbed design does not matter.}  Let $\check\psi$ be the same
-estimate built on the ideal inputs $U_i=u_\tau(X_i)$.  We take as given the uniform Nadaraya--Watson law that, under (A1)--(A3),
-$\check\psi\to\psi_\tau$ uniformly on the $\delta$-neighbourhood of $D_\tau$ for any
-$\delta=o(h)$, in probability.  The cited results \citep{devroye1978,mack1982} state it on
-interior compact sets; up to a Lipschitz boundary and for the Gaussian kernel it follows from
-the cone condition (a fixed fraction of every small ball around a point of $D_\tau$ lies in
-$D_\tau$), the uniform kernel-density law of \citet{einmahl2005} for the denominator, and the
-bias bound $\omega_{\psi_\tau}(Rh)+2Be^{-R^2/16}$, but we do not write out that derivation.  Write $\hat U_i=U_i+\Delta_i$, $\|\Delta_i\|\le\varepsilon$.
+estimate built on the ideal inputs $U_i=u_\tau(X_i)$.  By (A5), $\check\psi\to\psi_\tau$ uniformly on the $\delta$-neighbourhood of $D_\tau$ for
+any $\delta=o(h)$, in probability.  Write $\hat U_i=U_i+\Delta_i$, $\|\Delta_i\|\le\varepsilon$.
 For $\|u-U_i\|\le Rh$,
 \[
   \frac{K_h(u-\hat U_i)}{K_h(u-U_i)}=\exp\Bigl(\frac{2\langle u-U_i,\Delta_i\rangle-\|\Delta_i\|^2}{2h^2}\Bigr)
@@ -1454,8 +1468,10 @@ quantity---the information a partition carries about an attribute---when Cobweb 
 among its operators; task selection evaluates it one level up, for the outcome and the
 composing tree's input.  In
 the online protocol the prequential error $\frac1N\sum_i(Y_i-\hat F_{A,i-1}(X_i))^2$
-plays the role of the validation error \citep{dawid1984}; it converges to the same limit
-whenever the online forest's risk tends to that of $F_A$, by a Ces\`aro argument.
+plays the role of the validation error \citep{dawid1984}; whenever the online forest's risk tends to that of $F_A$, its expectation converges to
+the same limit by a Ces\`aro argument, and the average itself converges almost surely
+because $(Y_i-\hat F_{A,i-1}(X_i))^2$ minus its conditional expectation given the past is a
+bounded martingale difference sequence, to which the strong law for martingales applies.
 
 \subsection{Task operators}
 
@@ -1887,6 +1903,7 @@ statement & Lean theorem & scope\\\midrule
 \cref{prop:xy}, \cref{cor:parity} (constant messages) & \texttt{validity\_nonneg}, \texttt{condExp\_const\_of\_validity\_zero} & a tree whose input carries no information about its outcome emits a constant message (any finite distribution)\\
 \cref{thm:locality}(i)--(ii) & \texttt{sign\_worlds\_local\_law}, \texttt{local\_rule\_same}, \texttt{sign\_worlds\_differ} & the sign skeleton on $\{\pm1\}^3$\\
 \cref{cor:parity} & \texttt{parity\_fibre\_balanced} & parity of all $n$ bits ($J=[n]$, signs as bits), every $S$ missing a bit\\
+\cref{lem:leaves,thm:consistency} (leaf mixture) & \texttt{leaf\_sum\_eq}, \texttt{leaf\_mixture\_eq\_nw} & a count-weighted sum over leaves equals the sum over the examples they hold; hence the leaf mixture is Nadaraya--Watson, for any tree and kernel\\
 \cref{prop:interweave} & \texttt{merged\_prediction}, \texttt{merged\_weights} & the mixture identity, $m$ subtrees\\
 \cref{prop:fanin} & \texttt{Chain.fanin\_one} & every fan-in-one forest\\
 \cref{thm:cka} (count) & \texttt{ka\_tree\_count} & $4n^2+4n$ trees, $n\ge1$\\
@@ -1913,6 +1930,7 @@ calibration & 8/8 planted errors found; extra findings (label consistency with a
 2 & no statement false under its hypotheses; experiments text contradicting tables, overstated remarks and summaries; fixed\\
 3 & no statement false under its hypotheses; prior/posterior weightings on hierarchies (verified by check C19), branch-and-bound repair, minor gaps; fixed\\
 4 & no statement invalid; four minor gaps (an unsatisfiable form of a hypothesis of \cref{thm:labelcons}, an unused density hypothesis, a cited uniform law, an ambiguous phrase) and five text items; fixed\\
+5 (v7, simplified main text) & no statement invalid; every appendix statement valid; main-text summaries had dropped hypotheses (one major: forest convergence needs activation messages and the split protocol), the uniform kernel law became an explicit assumption, a martingale step was added to the prequential remark; fixed\\
 \bottomrule
 \end{tabular}
 \end{center}

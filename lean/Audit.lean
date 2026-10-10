@@ -13,3 +13,5 @@ import CobwebForest
 #print axioms CobwebForest.parity_fibre_balanced
 #print axioms CobwebForest.merged_prediction
 #print axioms CobwebForest.merged_weights
+#print axioms CobwebForest.leaf_sum_eq
+#print axioms CobwebForest.leaf_mixture_eq_nw
