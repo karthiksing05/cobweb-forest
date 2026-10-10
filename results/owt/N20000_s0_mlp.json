@@ -1,0 +1,23 @@
+{
+ "N": 20000,
+ "seed": 0,
+ "V": 2002,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "477d41551a7c",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "706e4e2eb91e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "9fdf5d7",
+  "host": "siri.cc.gatech.edu"
+ },
+ "results": {
+  "mlp": {
+   "test_acc": 0.2089,
+   "test_nll": 5.099752902984619,
+   "params": 708434,
+   "seconds": 8.167371273040771
+  }
+ }
+}

@@ -65,10 +65,12 @@ class TreeSpec:
 class Tree:
     """A hybrid Cobweb tree with a fixed instance layout."""
 
-    def __init__(self, spec: TreeSpec, y_dim: int = 1):
+    def __init__(self, spec: TreeSpec, y_dim: int = 1, n_act: Optional[int] = None,
+                 n_classes: int = 0):
         self.spec = spec
         self.n_raw = len(spec.raw)
-        self.n_act = len(spec.act_from)
+        self.n_act = len(spec.act_from) if n_act is None else n_act
+        self.n_classes = n_classes
         self.y_dim = y_dim if spec.task == "y" else 0
         self.size = self.n_raw + self.n_act + self.y_dim
         self.tree = CobwebHybridTree(self.size, alpha=spec.alpha, prior_var=spec.prior_var,
@@ -129,7 +131,16 @@ class Tree:
         return path[min(depth, len(path) - 1)].uid
 
     def act(self, x_raw, acts, labels, x_disc):
-        """Mixture prediction of the continuous task dims (the activation)."""
+        """The activation: the tree's mixture prediction of its task attributes -- the
+        continuous task dims, or for a discrete task the predicted class distribution
+        as a vector of length n_classes."""
+        if self.spec.task == "class":
+            p = self.predict_class(x_raw, acts, labels, x_disc)
+            v = np.zeros(self.n_classes, dtype=np.float32)
+            for c, pc in p.items():
+                if 0 <= c < self.n_classes:
+                    v[c] = pc
+            return v
         q = self._std(self._cont(x_raw, acts))
         m = self.tree.predict_mean(self._disc(labels, x_disc), q, self.spec.max_nodes, False,
                                    self.spec.weighting, self.spec.leaves_only)
@@ -149,13 +160,21 @@ class Forest:
     specs: List[TreeSpec]
     output: str
     y_dim: int = 1
+    n_classes: int = 0
+    raw_scale: str = "per_dim"     # "per_dim" or "global" (one acuity for all raw inputs, e.g. pixels)
     trees: Dict[str, Tree] = field(default_factory=dict)
 
     def __post_init__(self):
         self.by_name = {s.name: s for s in self.specs}
         self.order = self._topo()
-        for s in self.specs:
-            self.trees[s.name] = Tree(s, self.y_dim)
+        for name in self.order:
+            s = self.by_name[name]
+            n_act = sum(self.act_dim(p) for p in s.act_from)
+            self.trees[name] = Tree(s, self.y_dim, n_act=n_act, n_classes=self.n_classes)
+
+    def act_dim(self, name):
+        task = self.by_name[name].task
+        return self.y_dim if task == "y" else (self.n_classes if task == "class" else 0)
 
     def _topo(self):
         seen, order = set(), []
@@ -206,14 +225,22 @@ class Forest:
         activation dimension estimates y, so it is measured in y's units."""
         xm = np.nanmean(X, 0) if X is not None and len(X) else None
         xs = np.maximum(np.nanstd(X, 0), 1e-6) if xm is not None else None
+        if xm is not None and self.raw_scale == "global":
+            xm = np.zeros_like(xm)
+            xs = np.full_like(xs, max(float(np.nanstd(X)), 1e-6))
         ym = np.nanmean(Y, 0) if Y is not None else np.zeros(self.y_dim)
         ys = np.maximum(np.nanstd(Y, 0), 1e-6) if Y is not None else np.ones(self.y_dim)
         for t in self.trees.values():
             mu, sd = [], []
             if t.n_raw:
                 mu.append(xm[list(t.spec.raw)]); sd.append(xs[list(t.spec.raw)])
-            for _ in t.spec.act_from:
-                mu.append(ym); sd.append(ys)
+            for p in t.spec.act_from:
+                if self.by_name[p].task == "class":
+                    # a class distribution is measured on the scale of the one-hot class
+                    k = self.n_classes
+                    mu.append(np.full(k, 1.0 / k)); sd.append(np.full(k, np.sqrt((1.0 / k) * (1 - 1.0 / k))))
+                else:
+                    mu.append(ym); sd.append(ys)
             if t.y_dim:
                 mu.append(ym); sd.append(ys)
             if mu:
@@ -223,7 +250,7 @@ class Forest:
     def _emit(self, name, inp):
         t = self.trees[name]
         m = {}
-        if "act" in t.spec.emits and t.y_dim:
+        if "act" in t.spec.emits and self.act_dim(name):
             m["act"] = t.act(*inp)
         if "label" in t.spec.emits:
             m["label"] = t.label(*inp)
@@ -318,6 +345,16 @@ class Forest:
             else:
                 out.append(t.act(*inp))
         return np.array(out)
+
+    def predict_proba(self, X, X_disc=None):
+        """Class distributions of the output tree, one dict per query."""
+        out = []
+        for i in range(len(X) if X is not None else len(X_disc)):
+            xr = X[i] if X is not None else EMPTY
+            xd = X_disc[i] if X_disc is not None else None
+            msgs = self.messages(xr, xd, upto=self.output)
+            out.append(self.trees[self.output].predict_class(*self._inputs(self.output, xr, xd, msgs)))
+        return out
 
     def num_concepts(self):
         return {n: t.tree.num_concepts() for n, t in self.trees.items()}

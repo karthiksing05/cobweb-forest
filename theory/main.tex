@@ -361,9 +361,12 @@ $\N(x;\mu_{\text{root}},v_{\text{root}})$, which does not depend on $h$ in the l
 \end{proof}
 
 \Cref{prop:prior} explains the flat error of the prior weighting in the sine experiment
-of \cref{sec:experiments} (RMSE $0.20\to0.14\to0.12$ while \textsc{path} falls
-$0.034\to0.015\to0.005$ and leaves-only \textsc{lik} $0.013\to0.006\to0.0015$, for
-$N=100,400,1600$).
+of \cref{sec:experiments}.  The \textsc{posterior} weighting fails for a related reason:
+it scores a concept by its path posterior alone, which is $0$ (its maximum) at the root
+and can only decrease down a path, so the root and other wide concepts keep a share of
+the mixture whatever $h$ is.
+Both are \emph{all-concept} pathologies: restricted to leaves, \textsc{prior} and
+\textsc{lik} coincide (equal counts) and converge.
 
 \subsection{Composition: the Cobweb--Kolmogorov--Arnold theorem}
 
@@ -433,6 +436,23 @@ tree over the $n$ inputs has rate $G^{-1/n}$ (\cref{thm:single}).  Note that Cob
 trees realise sums as learned two-input maps; KANs sum at nodes for free, which is why
 their rate is governed by one-dimensional splines.
 \end{remark}
+
+\begin{corollary}[When does a forest beat a single tree?]\label{cor:crossover}
+Compare a single tree over all $n$ inputs with a sufficient fan-in-$k$ activation forest
+(\cref{thm:forest}) on a smooth target.  If the target is observed \emph{without noise},
+the single tree interpolates and its error decays as $N^{-2/n}$ in the interior (as a
+Nadaraya--Watson smoother of a $C^2$ function on a grid of spacing $N^{-1/n}$), while
+each tree of the forest regresses a target that is noisy \emph{given its own inputs}
+(the coordinates it does not see act as noise, of variance $\operatorname{Var}(Y\mid
+X_{R(\tau)})$) and decays as $N^{-2/(k+4)}$.  The forest therefore wins asymptotically
+only when $n>k+4$.  If the target is itself noisy, the single tree also decays as
+$N^{-2/(n+4)}$ and the forest wins as soon as $n>k$.
+\end{corollary}
+
+This is the price of learning without gradients: a KAN assigns credit to an inner
+function through the chain rule, whereas a Cobweb tree learns its activation as a
+conditional expectation of the one target it sees, with the rest of the input acting as
+noise.  The 4-D and 100-D experiments test the crossover.
 
 \subsection{Label forests}
 

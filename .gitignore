@@ -5,3 +5,4 @@ __pycache__/
 results/**/raw/
 data/
 *.out
+runs/
