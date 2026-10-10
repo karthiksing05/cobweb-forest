@@ -1,0 +1,7 @@
+build/
+third_party/eigen/
+__pycache__/
+*.so
+results/**/raw/
+data/
+*.out
