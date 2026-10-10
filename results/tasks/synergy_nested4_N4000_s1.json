@@ -1,0 +1,49 @@
+{
+ "args": {
+  "which": "synergy",
+  "N": 4000,
+  "seed": 1,
+  "target": "nested4"
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "bf1d956d220e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "93a198e",
+  "host": "flexo.cc.gatech.edu"
+ },
+ "seconds": 29.937991619110107,
+ "result": {
+  "target": "nested4",
+  "deficit_over_var": [
+   [
+    NaN,
+    0.17837388459915648,
+    -0.018454628912182063,
+    -0.03659937150327622
+   ],
+   [
+    0.17837388459915648,
+    NaN,
+    -0.0046435257727602,
+    -0.02002125514140187
+   ],
+   [
+    -0.018454628912182063,
+    -0.0046435257727602,
+    NaN,
+    0.06975481814637605
+   ],
+   [
+    -0.03659937150327622,
+    -0.02002125514140187,
+    0.06975481814637605,
+    NaN
+   ]
+  ]
+ }
+}

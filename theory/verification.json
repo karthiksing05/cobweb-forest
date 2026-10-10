@@ -7,7 +7,7 @@
   "cobweb_forest/designs.py": "0d9a94dff886",
   "cobweb_forest/forest.py": "bf1d956d220e",
   "cobweb_forest/provenance.py": "16cf21396b12",
-  "git": "d78ffdd",
+  "git": "93a198e",
   "host": "asimo.cc.gatech.edu"
  },
  "checks": [
@@ -272,10 +272,15 @@
    "check": "check_tree_is_nw"
   },
   {
-   "label": "check_xy",
-   "passed": false,
-   "error": "TypeError(\"dict() got multiple values for keyword argument 'label'\")",
-   "seconds": 2.7,
+   "label": "prop:xy",
+   "passed": true,
+   "funnel_N1000": 1.0201114416122437,
+   "act_sd_over_sd_y": 0.14134466648101807,
+   "label_d2_N1000": 0.3517349362373352,
+   "label_d2_N4000": 0.34477847814559937,
+   "label_d4_N1000": 0.8685956597328186,
+   "label_d4_N4000": 0.4959430396556854,
+   "seconds": 5.7,
    "check": "check_xy"
   },
   {
@@ -295,7 +300,7 @@
     "b:act": 1.0036273002624512,
     "b:label": 1.072304368019104
    },
-   "seconds": 9.6,
+   "seconds": 9.7,
    "check": "check_locality"
   },
   {
@@ -313,8 +318,57 @@
     "returned": 3.9452093691778165,
     "best": 6.131314564619988
    },
-   "seconds": 0.0,
+   "seconds": 0.2,
    "check": "check_branch_and_bound"
+  },
+  {
+   "label": "prop:suffclass",
+   "passed": true,
+   "H_strictly_increasing": true,
+   "rmse_over_sd": {
+    "1000": 0.1467680037021637,
+    "8000": 0.10447001457214355
+   },
+   "seconds": 7.0,
+   "check": "check_suffclass"
+  },
+  {
+   "label": "cor:parity",
+   "passed": true,
+   "ks_pvalues_pair_vs_y": [
+    0.5279014426733745,
+    0.049847697908638855,
+    0.6476622760165507,
+    0.04772330287624214
+   ],
+   "rmse": {
+    "act": 1.1466623544692993,
+    "label": 0.6891968846321106
+   },
+   "seconds": 15.9,
+   "check": "check_parity"
+  },
+  {
+   "label": "thm:ideal",
+   "passed": true,
+   "sup_err": {
+    "1500": 0.9948611259460449,
+    "6000": 0.3599050045013428,
+    "24000": 0.2613029479980469
+   },
+   "seconds": 56.7,
+   "check": "check_ideal"
+  },
+  {
+   "label": "thm:selection",
+   "passed": true,
+   "picks": [
+    "merge",
+    "merge",
+    "merge"
+   ],
+   "seconds": 8.2,
+   "check": "check_selection"
   }
  ]
 }

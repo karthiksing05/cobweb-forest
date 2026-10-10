@@ -1,0 +1,33 @@
+{
+ "args": {
+  "which": "synergy",
+  "N": 4000,
+  "seed": 0,
+  "target": "expsin"
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "bf1d956d220e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "93a198e",
+  "host": "flexo.cc.gatech.edu"
+ },
+ "seconds": 4.805060625076294,
+ "result": {
+  "target": "expsin",
+  "deficit_over_var": [
+   [
+    NaN,
+    0.015283463785819395
+   ],
+   [
+    0.015283463785819395,
+    NaN
+   ]
+  ]
+ }
+}

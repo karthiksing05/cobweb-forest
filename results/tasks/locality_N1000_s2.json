@@ -1,0 +1,82 @@
+{
+ "args": {
+  "which": "locality",
+  "N": 1000,
+  "seed": 2,
+  "target": "xy"
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "bf1d956d220e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "93a198e",
+  "host": "eva.cc.gatech.edu"
+ },
+ "seconds": 24.286273956298828,
+ "result": {
+  "a": {
+   "local_x2_val_rmse": 1.0044960975646973,
+   "local_x2_const_rmse": 1.0025568008422852,
+   "local_x2_act_sd": 0.05357278883457184,
+   "local_x2_concepts": 1877,
+   "compose:funnel": {
+    "val": 0.9964581727981567,
+    "test": 0.9997374415397644
+   },
+   "compose:label-d2": {
+    "val": 0.5519872307777405,
+    "test": 0.564435601234436
+   },
+   "compose:label-d3": {
+    "val": 0.6883865594863892,
+    "test": 0.6828775405883789
+   },
+   "compose:label-d4": {
+    "val": 0.8495668768882751,
+    "test": 0.8767061829566956
+   },
+   "compose:hybrid-d3": {
+    "val": 0.9003384113311768,
+    "test": 0.8875162601470947
+   },
+   "compose:merge": {
+    "val": 0.2770439088344574,
+    "test": 0.2824994921684265
+   }
+  },
+  "b": {
+   "local_x2_val_rmse": 1.0025160312652588,
+   "local_x2_const_rmse": 1.0005117654800415,
+   "local_x2_act_sd": 0.0643668994307518,
+   "local_x2_concepts": 1854,
+   "compose:funnel": {
+    "val": 1.0005238056182861,
+    "test": 0.9999622702598572
+   },
+   "compose:label-d2": {
+    "val": 1.1212894916534424,
+    "test": 1.1320937871932983
+   },
+   "compose:label-d3": {
+    "val": 1.1233651638031006,
+    "test": 1.1542888879776
+   },
+   "compose:label-d4": {
+    "val": 1.1620537042617798,
+    "test": 1.156416654586792
+   },
+   "compose:hybrid-d3": {
+    "val": 1.1626149415969849,
+    "test": 1.130045771598816
+   },
+   "compose:merge": {
+    "val": 1.0626024007797241,
+    "test": 1.0914357900619507
+   }
+  }
+ }
+}

@@ -251,6 +251,234 @@
      "label_depth": 6
     }
    ]
+  },
+  "hybrid:pairs": {
+   "hp": {
+    "kappa": 0.5,
+    "label_depth": 3
+   },
+   "val": 0.15575511753559113,
+   "train_s": 31.974245071411133,
+   "test": 0.15905283391475677,
+   "test_s": 5.217732191085815,
+   "concepts": 72932,
+   "trees": 3,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 6
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 2
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 3
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 4
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 6
+    }
+   ]
+  },
+  "hybrid:uni": {
+   "hp": {
+    "kappa": 0.25,
+    "label_depth": 3
+   },
+   "val": 0.25134068727493286,
+   "train_s": 145.79447722434998,
+   "test": 0.25513020157814026,
+   "test_s": 21.348828315734863,
+   "concepts": 171022,
+   "trees": 7,
+   "protocol": "online",
+   "grid": [
+    {
+     "kappa": 0.1,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.1,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.25,
+     "label_depth": 6
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 2
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 3
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 4
+    },
+    {
+     "kappa": 0.5,
+     "label_depth": 6
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 2
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 3
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 4
+    },
+    {
+     "kappa": 1.0,
+     "label_depth": 6
+    }
+   ]
+  },
+  "act-split:pairs": {
+   "hp": {
+    "kappa": 0.5
+   },
+   "val": 0.2227240651845932,
+   "train_s": 10.225479364395142,
+   "test": 0.22624506056308746,
+   "test_s": 1.933300256729126,
+   "concepts": 40715,
+   "trees": 3,
+   "protocol": "split",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "act-split:uni": {
+   "hp": {
+    "kappa": 0.5
+   },
+   "val": 0.296675443649292,
+   "train_s": 25.83872675895691,
+   "test": 0.2955314517021179,
+   "test_s": 4.199796438217163,
+   "concepts": 64857,
+   "trees": 7,
+   "protocol": "split",
+   "grid": [
+    {
+     "kappa": 0.1
+    },
+    {
+     "kappa": 0.25
+    },
+    {
+     "kappa": 0.5
+    },
+    {
+     "kappa": 1.0
+    }
+   ]
+  },
+  "mlp": {
+   "hp": {
+    "width": 128
+   },
+   "val": 0.0057914783246815205,
+   "train_s": 123.25683808326721,
+   "test": 0.005634014960378408,
+   "params": 17281
+  },
+  "kan": {
+   "hp": {
+    "grid": 5
+   },
+   "val": 0.0014490014873445034,
+   "train_s": 341.1465482711792,
+   "test": 0.0014844771940261126,
+   "params": 251
   }
  }
 }

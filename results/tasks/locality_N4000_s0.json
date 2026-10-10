@@ -1,0 +1,82 @@
+{
+ "args": {
+  "which": "locality",
+  "N": 4000,
+  "seed": 0,
+  "target": "xy"
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "bf1d956d220e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "93a198e",
+  "host": "asimo.cc.gatech.edu"
+ },
+ "seconds": 68.00347590446472,
+ "result": {
+  "a": {
+   "local_x2_val_rmse": 0.9982352256774902,
+   "local_x2_const_rmse": 0.9986342191696167,
+   "local_x2_act_sd": 0.04794880002737045,
+   "local_x2_concepts": 7493,
+   "compose:funnel": {
+    "val": 1.2071906328201294,
+    "test": 1.190782904624939
+   },
+   "compose:label-d2": {
+    "val": 0.5529454946517944,
+    "test": 0.544579029083252
+   },
+   "compose:label-d3": {
+    "val": 0.43696901202201843,
+    "test": 0.43316778540611267
+   },
+   "compose:label-d4": {
+    "val": 0.47502076625823975,
+    "test": 0.48448655009269714
+   },
+   "compose:hybrid-d3": {
+    "val": 0.4615876376628876,
+    "test": 0.4395861029624939
+   },
+   "compose:merge": {
+    "val": 0.2634202241897583,
+    "test": 0.2493772655725479
+   }
+  },
+  "b": {
+   "local_x2_val_rmse": 1.0032237768173218,
+   "local_x2_const_rmse": 1.0007601976394653,
+   "local_x2_act_sd": 0.0467785969376564,
+   "local_x2_concepts": 7495,
+   "compose:funnel": {
+    "val": 1.0051136016845703,
+    "test": 1.0082296133041382
+   },
+   "compose:label-d2": {
+    "val": 1.1849861145019531,
+    "test": 1.1856136322021484
+   },
+   "compose:label-d3": {
+    "val": 1.0907177925109863,
+    "test": 1.0817949771881104
+   },
+   "compose:label-d4": {
+    "val": 1.0796257257461548,
+    "test": 1.0775189399719238
+   },
+   "compose:hybrid-d3": {
+    "val": 1.0589683055877686,
+    "test": 1.0714679956436157
+   },
+   "compose:merge": {
+    "val": 1.0159368515014648,
+    "test": 1.021312952041626
+   }
+  }
+ }
+}

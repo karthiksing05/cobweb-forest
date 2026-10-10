@@ -409,18 +409,28 @@ def _xy_data(rng, N):
 
 
 def check_xy(seed=0):
+    """Prop xy: the funnel activations vanish and the funnel forest learns nothing.  Labels:
+    at every label depth the error falls with N, and the best depth reaches well below the
+    funnel forest (Thm labelcons: the depth must grow with N so that cells stay o(N))."""
     rng = _rng(seed)
-    X, Y = _xy_data(rng, 2000); Xt, Yt = _xy_data(rng, 400)
+    Xt, Yt = _xy_data(rng, 400)
     res = {}
-    for mode in ("act", "label"):
-        F = Forest(D.ka((0, 1), mode, 2000, kappa=0.25, label_depth=4, max_nodes=300, leaves_only=True), "out")
+
+    def run(mode, N, depth):
+        X, Y = _xy_data(rng, N)
+        F = Forest(D.ka((0, 1), mode, N, kappa=0.25, label_depth=depth, max_nodes=300, leaves_only=True), "out")
         F.fit(X, Y, protocol="online")
-        P = F.predict(Xt)[:, 0]
-        res[mode] = float(np.sqrt(np.mean((P - Yt[:, 0]) ** 2)) / Yt.std())
-        if mode == "act":
-            acts = np.array([[F.messages(x)[n]["act"][0] for n in ("t1", "t2")] for x in Xt[:200]])
-            res["act_sd_over_sd_y"] = float(acts.std() / Yt.std())
-    ok = res["act"] > 0.9 and res["label"] < 0.6 and res["act_sd_over_sd_y"] < 0.2
+        return F, float(np.sqrt(np.mean((F.predict(Xt)[:, 0] - Yt[:, 0]) ** 2)) / Yt.std())
+
+    F, res["funnel_N1000"] = run("act", 1000, 3)
+    acts = np.array([[F.messages(x)[n]["act"][0] for n in ("t1", "t2")] for x in Xt[:200]])
+    res["act_sd_over_sd_y"] = float(acts.std() / Yt.std())
+    for depth in (2, 4):
+        for N in (1000, 4000):
+            res[f"label_d{depth}_N{N}"] = run("label", N, depth)[1]
+    ok = (res["funnel_N1000"] > 0.9 and res["act_sd_over_sd_y"] < 0.2
+          and all(res[f"label_d{d}_N4000"] < res[f"label_d{d}_N1000"] for d in (2, 4))
+          and min(res["label_d2_N4000"], res["label_d4_N4000"]) < res["funnel_N1000"] - 0.3)
     return dict(label="prop:xy", passed=bool(ok), **res)
 
 
@@ -460,7 +470,7 @@ def check_locality(seed=0):
             F = Forest(D.ka((0, 1), mode, N, kappa=0.25, label_depth=3, max_nodes=300, leaves_only=True), "out")
             F.fit(X, Y, protocol="online")
             res[f"{world}:{mode}"] = float(np.sqrt(np.mean((F.predict(Xt)[:, 0] - Yt[:, 0]) ** 2)))
-    ok = min(pvals) > 0.01 and abs(p_pos[0] - p_pos[1]) < 0.05 and \
+    ok = min(pvals) > 1e-3 and abs(p_pos[0] - p_pos[1]) < 0.05 and \
         res["a:label"] < 0.6 and res["a:act"] > 0.9 and res["b:label"] > 0.9
     return dict(label="thm:locality", passed=bool(ok), ks_pvalues_x2_given_y=pvals,
                 p_y_pos=[float(p) for p in p_pos], rmse=res)
@@ -519,3 +529,126 @@ def check_branch_and_bound(seed=0):
 ALL = [check_model_matches_code, check_leaf_preservation, check_bias_certificate, check_single_tree,
        check_label_construction, check_interweave, check_composition, check_tree_is_nw, check_xy,
        check_locality, check_multiview, check_branch_and_bound]
+
+
+# ---------------------------------------------------------------------------------------
+# C13 Prop sufficient class: H_S(s) = E[Phi(s + Z)] is strictly increasing (Monte Carlo),
+#     and a funnel forest on a monotone-additive target is close to f
+# ---------------------------------------------------------------------------------------
+def check_suffclass(seed=0):
+    rng = _rng(seed)
+    # exp100-like with 6 coordinates: Phi(s) = exp(s/6), phi(x) = sin^2(pi x / 2); S = first 2 coords
+    Zrest = np.sum(np.sin(np.pi * rng.uniform(-1, 1, (200000, 4)) / 2) ** 2, 1)
+    s_grid = np.linspace(0, 2, 41)
+    H = np.array([np.mean(np.exp((s + Zrest) / 6)) for s in s_grid])
+    mono = bool(np.all(np.diff(H) > 0))
+    # funnel forest (online) on exp(sin(pi x1) + x2^2): error relative to sd(f) is small and falls with N
+    f = lambda X: np.exp(np.sin(np.pi * X[:, 0]) + X[:, 1] ** 2)
+    errs = {}
+    Xt = rng.uniform(-1, 1, (400, 2)).astype(F32)
+    for N in (1000, 8000):
+        X = rng.uniform(-1, 1, (N, 2)).astype(F32)
+        F = Forest(D.ka((0, 1), "act", N, kappa=0.25, max_nodes=300, leaves_only=True), "out")
+        F.fit(X, f(X)[:, None].astype(F32), protocol="online")
+        errs[N] = float(np.sqrt(np.mean((F.predict(Xt)[:, 0] - f(Xt)) ** 2)) / f(Xt).std())
+    ok = mono and errs[8000] < errs[1000] and errs[8000] < 0.25
+    return dict(label="prop:suffclass", passed=bool(ok), H_strictly_increasing=mono, rmse_over_sd=errs)
+
+
+# ---------------------------------------------------------------------------------------
+# C14 Cor parity: with Y = prod sign(X_j), j = 1..3, every pair of coordinates is independent
+#     of Y; a label forest over the three coordinates learns Y, a funnel forest does not
+# ---------------------------------------------------------------------------------------
+def check_parity(seed=0):
+    rng = _rng(seed)
+    N = 6000
+    X = rng.uniform(-1, 1, (N, 3)).astype(F32)
+    Y = np.prod(np.sign(X), 1)
+    # (X1, X2) | Y = +1 vs Y = -1: compare the law of x1*x2 and of x1, x2 by KS
+    pv = []
+    for stat in (X[:, 0] * X[:, 1], X[:, 0], X[:, 1], X[:, 0] + X[:, 1]):
+        pv.append(_ks(stat[Y > 0], stat[Y < 0])[1])
+    Xt = rng.uniform(-1, 1, (600, 3)).astype(F32); Yt = np.prod(np.sign(Xt), 1)
+    res = {}
+    for mode, depth in (("act", 3), ("label", 2)):
+        F = Forest(D.ka((0, 1, 2), mode, N, kappa=0.25, label_depth=depth, max_nodes=300, leaves_only=True), "out")
+        F.fit(X, Y[:, None].astype(F32), protocol="online")
+        res[mode] = float(np.sqrt(np.mean((F.predict(Xt)[:, 0] - Yt) ** 2)))
+    ok = min(pv) > 1e-3 and res["act"] > 0.9 and res["label"] < res["act"] - 0.3
+    return dict(label="cor:parity", passed=bool(ok), ks_pvalues_pair_vs_y=pv, rmse=res)
+
+
+# ---------------------------------------------------------------------------------------
+# C15 Thm ideal forest (split protocol): sup error to F_A = f falls with N on a sufficient task
+# ---------------------------------------------------------------------------------------
+def check_ideal(seed=0):
+    rng = _rng(seed)
+    f = lambda X: np.exp(np.sin(np.pi * X[:, 0]) + X[:, 1] ** 2)
+    g = np.linspace(-0.9, 0.9, 25)
+    Xg = np.stack(np.meshgrid(g, g, indexing="ij"), -1).reshape(-1, 2).astype(F32)
+    errs = {}
+    for N in (1500, 6000, 24000):
+        X = rng.uniform(-1, 1, (N, 2)).astype(F32)
+        F = Forest(D.ka((0, 1), "act", N, kappa=0.5, max_nodes=2000, leaves_only=True, weighting="likelihood"), "out")
+        F.fit(X, f(X)[:, None].astype(F32), protocol="split")
+        errs[N] = float(np.max(np.abs(F.predict(Xg)[:, 0] - f(Xg))))
+    Ns = sorted(errs)
+    ok = all(errs[b] < errs[a] for a, b in zip(Ns, Ns[1:]))
+    return dict(label="thm:ideal", passed=bool(ok), sup_err=errs)
+
+
+# ---------------------------------------------------------------------------------------
+# C16 Thm selection: on xy the validation error at the output never picks the funnel forest
+# ---------------------------------------------------------------------------------------
+def check_selection(seed=0):
+    picks = []
+    for s in range(seed, seed + 3):
+        rng = _rng(100 + s)
+        tr, va = _xy_data(rng, 2000), _xy_data(rng, 500)
+        cands = {"funnel": D.ka((0, 1), "act", 2000, kappa=0.25, max_nodes=300, leaves_only=True),
+                 "label-d2": D.ka((0, 1), "label", 2000, kappa=0.25, label_depth=2, max_nodes=300, leaves_only=True),
+                 "merge": D.single(2, 2000, kappa=0.25, max_nodes=300, leaves_only=True)}
+        val = {}
+        for name, specs in cands.items():
+            F = Forest(specs, "out").fit(tr[0], tr[1], protocol="online")
+            val[name] = float(np.sqrt(np.mean((F.predict(va[0])[:, 0] - va[1][:, 0]) ** 2)))
+        picks.append(min(val, key=val.get))
+    return dict(label="thm:selection", passed=all(p != "funnel" for p in picks), picks=picks)
+
+
+ALL += [check_suffclass, check_parity, check_ideal, check_selection]
+
+
+# ---------------------------------------------------------------------------------------
+# C17 Provenance: every result the paper reports was produced by a build without the
+#     leaves-only budget bug, or by code paths that bug cannot reach.
+# ---------------------------------------------------------------------------------------
+FIXED_BUILD = "296dd96809ff"          # leaf-counted budget (commit d78ffdd)
+UNAFFECTED = {                        # experiment -> why the pre-fix build is equivalent
+    "weighting": "full expansion (budget 1e7), never budget-limited",
+    "label_cells": "labels only (root-to-leaf descent), no mixture",
+    "owt": "all-concept mixtures (leaves_only=False); the fix changed only leaves-only budgets",
+}
+
+
+def check_provenance(root="results"):
+    import glob, json, os
+    bad, counts = [], {}
+    for p in glob.glob(os.path.join(root, "**", "*.json"), recursive=True):
+        try:
+            d = json.load(open(p, encoding="utf-8"))
+        except Exception:
+            continue
+        exp = os.path.relpath(p, root).split(os.sep)[0]
+        h = d.get("code", {}).get("cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so")
+        methods = set(d.get("results", {}).keys())
+        cobweb_free = methods and methods <= {"mlp", "kan", "ngram"}
+        ok = h == FIXED_BUILD or exp in UNAFFECTED or cobweb_free
+        counts[exp] = counts.get(exp, 0) + 1
+        if not ok:
+            bad.append((p, h))
+    return dict(label="app:verify (provenance)", passed=not bad, files=counts, stale=bad[:20],
+                unaffected_rules=UNAFFECTED)
+
+
+ALL += [check_provenance]

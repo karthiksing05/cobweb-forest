@@ -1,0 +1,58 @@
+{
+ "args": {
+  "which": "select",
+  "N": 500,
+  "seed": 1,
+  "target": "expsin"
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "bf1d956d220e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "93a198e",
+  "host": "smith.cc.gatech.edu"
+ },
+ "seconds": 8.247535467147827,
+ "result": {
+  "target": "expsin",
+  "candidates": {
+   "funnel": {
+    "val": 0.4078657627105713,
+    "test": 0.35360005497932434,
+    "seconds": 1.988091230392456
+   },
+   "label-d2": {
+    "val": 0.9163169860839844,
+    "test": 0.899696946144104,
+    "seconds": 1.0640032291412354
+   },
+   "label-d3": {
+    "val": 0.5705649852752686,
+    "test": 0.5386586785316467,
+    "seconds": 1.0442702770233154
+   },
+   "label-d4": {
+    "val": 0.7022554278373718,
+    "test": 0.7033510804176331,
+    "seconds": 0.9912045001983643
+   },
+   "hybrid-d3": {
+    "val": 0.35721445083618164,
+    "test": 0.3233203589916229,
+    "seconds": 2.4930307865142822
+   },
+   "merge": {
+    "val": 0.19081775844097137,
+    "test": 0.18524113297462463,
+    "seconds": 0.6334373950958252
+   }
+  },
+  "pick": "merge",
+  "best_test": "merge",
+  "sd_y": 1.4195135831832886
+ }
+}

@@ -1,0 +1,82 @@
+{
+ "args": {
+  "which": "locality",
+  "N": 16000,
+  "seed": 4,
+  "target": "xy"
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "bf1d956d220e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "93a198e",
+  "host": "neo.cc.gatech.edu"
+ },
+ "seconds": 391.1885783672333,
+ "result": {
+  "a": {
+   "local_x2_val_rmse": 1.0024210214614868,
+   "local_x2_const_rmse": 1.0000295639038086,
+   "local_x2_act_sd": 0.07485585659742355,
+   "local_x2_concepts": 29545,
+   "compose:funnel": {
+    "val": 1.1549854278564453,
+    "test": 1.1879127025604248
+   },
+   "compose:label-d2": {
+    "val": 0.5765100121498108,
+    "test": 0.5894303321838379
+   },
+   "compose:label-d3": {
+    "val": 0.4043283760547638,
+    "test": 0.4030053913593292
+   },
+   "compose:label-d4": {
+    "val": 0.43163391947746277,
+    "test": 0.43621474504470825
+   },
+   "compose:hybrid-d3": {
+    "val": 0.4926539659500122,
+    "test": 0.4923514127731323
+   },
+   "compose:merge": {
+    "val": 0.22395044565200806,
+    "test": 0.22037474811077118
+   }
+  },
+  "b": {
+   "local_x2_val_rmse": 1.003497838973999,
+   "local_x2_const_rmse": 1.0000046491622925,
+   "local_x2_act_sd": 0.0694732815027237,
+   "local_x2_concepts": 29547,
+   "compose:funnel": {
+    "val": 1.1181856393814087,
+    "test": 1.1190829277038574
+   },
+   "compose:label-d2": {
+    "val": 1.1462844610214233,
+    "test": 1.1721103191375732
+   },
+   "compose:label-d3": {
+    "val": 1.0800285339355469,
+    "test": 1.0601072311401367
+   },
+   "compose:label-d4": {
+    "val": 1.0474058389663696,
+    "test": 1.0628468990325928
+   },
+   "compose:hybrid-d3": {
+    "val": 1.0216906070709229,
+    "test": 1.0266616344451904
+   },
+   "compose:merge": {
+    "val": 1.008128046989441,
+    "test": 1.0076626539230347
+   }
+  }
+ }
+}

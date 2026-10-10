@@ -1,0 +1,26 @@
+{
+ "N": 20000,
+ "seed": 1,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "706e4e2eb91e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "d78ffdd",
+  "host": "zima.cc.gatech.edu"
+ },
+ "results": {
+  "hybrid": {
+   "hp": {
+    "pv": 0.1,
+    "depth": 2
+   },
+   "val": 0.956,
+   "test": 0.941,
+   "concepts": 333910,
+   "seconds": 3506.0659143924713
+  }
+ }
+}

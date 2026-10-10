@@ -83,16 +83,19 @@ def toy_table():
             rows.append(d)
     T = collections.defaultdict(list)          # (fn, N, method) -> [test rmse / sd_f]
     for d in rows:
+        fn = d["fn"] + ("+noise" if d.get("noise", 0) else "")
         for m, r in d["results"].items():
-            T[(d["fn"], d["N"], m)].append(r["test"] / d["sd_f"])
+            T[(fn, d["N"], m)].append(r["test"] / d["sd_f"])
     return T
 
 
 def fig_toys(T):
-    fns = ["sin", "j0", "expsin", "xy", "nested4", "exp100"]
+    fns = ["sin", "j0", "expsin", "xy", "nested4", "nested4+noise", "exp100"]
     titles = {"sin": "sin(πx)", "j0": "J0(20x)", "expsin": "exp(sin πx + y²)", "xy": "xy",
-              "nested4": "4-D nested", "exp100": "100-D exp(mean sin²)"}
-    fig, axes = plt.subplots(2, 3, figsize=(7.0, 4.4))
+              "nested4": "4-D nested", "nested4+noise": "4-D nested, noisy target",
+              "exp100": "100-D exp(mean sin²)"}
+    fig, axes = plt.subplots(2, 4, figsize=(9.0, 4.4))
+    axes.ravel()[-1].set_visible(False)
     for ax, fn in zip(axes.ravel(), fns):
         meths = sorted({k[2] for k in T if k[0] == fn})
         for m in meths:
@@ -101,7 +104,7 @@ def fig_toys(T):
                 continue
             Ns = sorted({k[1] for k in T if k[0] == fn and k[2] == m})
             mu = [np.mean(T[(fn, N, m)]) for N in Ns]
-            ls = ":" if m.endswith(":uni") and fn == "nested4" else "-"
+            ls = ":" if m.endswith(":uni") and fn.startswith("nested4") else "-"
             lab = NAME[b] + (" (uni graph)" if ls == ":" else "")
             ax.loglog(Ns, mu, color=COL[b], marker=MARK[b], ms=3.5, ls=ls, label=lab)
         ax.set_title(titles[fn], color=INK)
@@ -120,7 +123,7 @@ def fig_toys(T):
 
 
 def tab_toys(T):
-    fns = ["sin", "j0", "expsin", "xy", "nested4", "exp100"]
+    fns = ["sin", "j0", "expsin", "xy", "nested4", "nested4+noise", "exp100"]
     meths = ["single", "act", "label", "hybrid", "act-split", "mlp", "kan"]
     lines = [r"\begin{tabular}{@{}ll" + "r" * len(meths) + r"@{}}\toprule",
              "fn & N & " + " & ".join(NAME[m].replace("forest: ", "") for m in meths) + r"\\\midrule"]
@@ -134,8 +137,8 @@ def tab_toys(T):
                     continue
                 k = min(ks, key=lambda k: np.mean(T[k]))     # best graph for this method
                 mu, sd = msd(T[k])
-                cells.append(f"{mu:.3f}" + ("$^{u}$" if k[2].endswith(":uni") and fn == "nested4" else ""))
-            lines.append(f"{fn} & {N} & " + " & ".join(cells) + r"\\")
+                cells.append(f"{mu:.3f}" + ("$^{u}$" if k[2].endswith(":uni") and fn.startswith("nested4") else ""))
+            lines.append(f"{fn.replace('+noise', ' (noisy)')} & {N} & " + " & ".join(cells) + r"\\")
     lines.append(r"\bottomrule\end{tabular}")
     open(f"{TAB}/toys.tex", "w", encoding="utf-8").write("\n".join(lines))
 
@@ -271,6 +274,140 @@ def tab_real():
     return out
 
 
+# ---------------------------------------------------------------- cognitive tasks (Secs. 5-6)
+def task_results(which):
+    return [d for d in load("results/tasks/*.json") if d["args"]["which"] == which]
+
+
+def tab_locality():
+    L = collections.defaultdict(list)
+    for d in task_results("locality"):
+        for w, res in d["result"].items():
+            L[(w, d["args"]["N"])].append(res)
+    if not L:
+        return
+    lines = [r"\begin{tabular}{@{}llrrrrrr@{}}\toprule",
+             r"& & \multicolumn{2}{c}{tree perceiving $x_2$ alone} & \multicolumn{4}{c}{composing tree (test RMSE)}\\",
+             r"\cmidrule(lr){3-4}\cmidrule(l){5-8}",
+             r"$N$ & world & val.\ RMSE & act.\ sd & funnel & labels ($d{=}3$) & hybrid & merged\\\midrule"]
+    for N in sorted({k[1] for k in L}):
+        for w in ("a", "b"):
+            rs = L[(w, N)]
+            if not rs:
+                continue
+            v = lambda f: np.mean([f(x) for x in rs])
+            lines.append(f"{N} & $P_{w}$ & {v(lambda x: x['local_x2_val_rmse']):.3f} & {v(lambda x: x['local_x2_act_sd']):.3f} & "
+                         f"{v(lambda x: x['compose:funnel']['test']):.3f} & {v(lambda x: x['compose:label-d3']['test']):.3f} & "
+                         f"{v(lambda x: x['compose:hybrid-d3']['test']):.3f} & {v(lambda x: x['compose:merge']['test']):.3f}\\\\")
+    lines.append(r"\bottomrule\end{tabular}")
+    open(f"{TAB}/locality.tex", "w", encoding="utf-8").write("\n".join(lines))
+
+
+def tab_selection():
+    S = collections.defaultdict(list)
+    for d in task_results("select"):
+        S[(d["result"]["target"], d["args"]["N"])].append(d["result"])
+    if not S:
+        return
+    lines = [r"\begin{tabular}{@{}lrlrr@{}}\toprule",
+             r"target & $N$ & selected (count of 5) & funnel & selected\\\midrule"]
+    for t in ("xy", "sign", "expsin", "nested4"):
+        for N in sorted({k[1] for k in S if k[0] == t}):
+            rs = S[(t, N)]
+            picks = collections.Counter(x["pick"] for x in rs)
+            pk = ", ".join(f"{k} ({v})" for k, v in picks.most_common())
+            fun = np.mean([x["candidates"]["funnel"]["test"] / x["sd_y"] for x in rs])
+            sel = np.mean([x["candidates"][x["pick"]]["test"] / x["sd_y"] for x in rs])
+            lines.append(f"{t} & {N} & {pk} & {fun:.3f} & {sel:.3f}\\\\")
+    lines.append(r"\bottomrule\end{tabular}")
+    open(f"{TAB}/selection.tex", "w", encoding="utf-8").write("\n".join(lines))
+
+
+def fig_synergy():
+    Sy = collections.defaultdict(list)
+    for d in task_results("synergy"):
+        Sy[(d["result"]["target"], d["args"]["N"])].append(np.array(d["result"]["deficit_over_var"], dtype=float))
+    panels = [(("nested4", 16000), "4-D nested, N=16000", ["x1", "x2", "x3", "x4"]),
+              (("housing", 4000), "housing, N=4000", ["lon", "lat", "age", "rooms", "bedr.", "occ.", "hh", "inc."])]
+    panels = [p for p in panels if Sy.get(p[0])]
+    if not panels:
+        return
+    fig, axes = plt.subplots(1, len(panels), figsize=(3.3 * len(panels), 2.9))
+    axes = np.atleast_1d(axes)
+    for ax, (key, title, names) in zip(axes, panels):
+        M = np.nanmean(Sy[key], 0)
+        im = ax.imshow(np.clip(M, 0, None), cmap="Blues", vmin=0)
+        ax.set_xticks(range(len(names))); ax.set_xticklabels(names, rotation=60, fontsize=6)
+        ax.set_yticks(range(len(names))); ax.set_yticklabels(names, fontsize=6)
+        ax.grid(False)
+        for i in range(len(names)):
+            for j in range(len(names)):
+                if i != j:
+                    ax.text(j, i, f"{M[i, j]:.2f}", ha="center", va="center", fontsize=5,
+                            color="white" if M[i, j] > 0.6 * np.nanmax(M) else INK)
+        ax.set_title(title + f" ({len(Sy[key])} seeds)", color=INK)
+        fig.colorbar(im, ax=ax, fraction=0.046)
+    fig.tight_layout()
+    fig.savefig(f"{FIG}/synergy.pdf"); fig.savefig(f"{FIG}/synergy.png", dpi=160)
+    plt.close(fig)
+
+
+def fig_multiview():
+    M = collections.defaultdict(list)
+    for d in task_results("multiview"):
+        for kind, res in d["result"].items():
+            M[(kind, d["args"]["N"])].append(res)
+    if not M:
+        return
+    styles = {"cross-view": ("#e87ba4", "v"), "funnel": (COL["act"], MARK["act"]),
+              "label": (COL["label"], MARK["label"]), "single": (COL["single"], MARK["single"])}
+    fig, axes = plt.subplots(1, 2, figsize=(6.4, 2.5), sharey=True)
+    for ax, kind, title in zip(axes, ("shared", "view-specific"),
+                               ("target shared by the views", "target specific to view 1")):
+        Ns = sorted({k[1] for k in M if k[0] == kind})
+        for name, (c, mk) in styles.items():
+            y = [np.mean([x[name]["rmse_vs_f"] / x["sd_f"] for x in M[(kind, N)]]) for N in Ns]
+            ax.loglog(Ns, y, color=c, marker=mk, ms=3.5, label={"cross-view": "forest: cross-view",
+                      "funnel": "forest: funnel", "label": "forest: labels", "single": "one tree"}[name])
+        ax.set_title(title, color=INK); ax.set_xlabel("N")
+    axes[0].set_ylabel("RMSE to f / sd(f)")
+    axes[1].legend(fontsize=6.5)
+    fig.tight_layout()
+    fig.savefig(f"{FIG}/multiview.pdf"); fig.savefig(f"{FIG}/multiview.png", dpi=160)
+    plt.close(fig)
+
+
+def tab_diag100():
+    """100-D funnel forest, level by level: activation RMSE / sd of the ideal message.
+    Sources: logs of experiments/diag_100d.py on the fixed build (leaf-counted budget)."""
+    import re
+    runs = []
+    for p in sorted(glob.glob("logs/d100-*-40412[4-9]*.out") + glob.glob("logs/d100M-*.out")):
+        txt = open(p, encoding="utf-8").read()
+        if "output RMSE" not in txt:
+            continue
+        name = os.path.basename(p)[:-4]
+        if name.startswith("d100M"):
+            _, N, M, _ = name.split("-")
+        else:
+            N, M = "4000", "100"
+        ratios = [float(x) for x in re.findall(r"ratio ([0-9.]+)", txt)]
+        out = float(re.findall(r"output RMSE/sd ([0-9.]+)", txt)[0])
+        kappa = "0.25" if "-0.25-" in name else "1.0"
+        runs.append((int(N), int(M), kappa, ratios, out))
+    if not runs:
+        return
+    runs.sort()
+    L = max(len(r[3]) for r in runs)
+    lines = [r"\begin{tabular}{@{}rrr" + "r" * L + r"r@{}}\toprule",
+             r"$N$ & leaf budget & $\kappa$ & " + " & ".join(f"level {i}" for i in range(L)) + r" & output\\",
+             r" & & & " + " & ".join([r"$|S|{\le}" + str(2 ** i) + "$" for i in range(L)]) + r" & RMSE/sd\\\midrule"]
+    for N, M, kappa, ratios, out in runs:
+        lines.append(f"{N} & {M} & {kappa} & " + " & ".join(f"{r:.2f}" for r in ratios) + f" & {out:.2f}\\\\")
+    lines.append(r"\bottomrule\end{tabular}")
+    open(f"{TAB}/diag100.tex", "w", encoding="utf-8").write("\n".join(lines))
+
+
 def main():
     fig_weighting()
     T = toy_table()
@@ -280,6 +417,11 @@ def main():
     fig_continual()
     fig_cells()
     real = tab_real()
+    tab_locality()
+    tab_selection()
+    fig_synergy()
+    fig_multiview()
+    tab_diag100()
     print("== toys (RMSE / sd(f), mean over seeds)")
     for fn in ["sin", "j0", "expsin", "xy", "nested4", "exp100"]:
         for N in sorted({k[1] for k in T if k[0] == fn}):

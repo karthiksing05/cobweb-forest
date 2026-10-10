@@ -58,7 +58,7 @@ class TreeSpec:
     raw_disc: Sequence[int] = ()
     task: Optional[str] = None
     emits: Sequence[str] = ("act",)
-    label_depth: Optional[int] = None      # None = leaf
+    label_depth: Optional[object] = None   # int depth, None = leaf, "basic" = basic level
     alpha: float = 0.1
     prior_var: float = 1e-3
     cont_weight: float = 1.0
@@ -133,6 +133,10 @@ class Tree:
         depth = self.spec.label_depth
         if depth is None:
             return leaf.uid
+        if depth == "basic":
+            # the basic level of the branch: the concept on the leaf's path with the
+            # largest expected pointwise mutual information against the root
+            return leaf.get_basic().uid
         path = []
         n = leaf
         while n is not None:

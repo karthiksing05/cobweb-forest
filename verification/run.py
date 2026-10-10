@@ -16,10 +16,15 @@ TITLES = {
     "prop:interweave": "Interwoven tree = convex combination of the subtrees (lik, path)",
     "lem:dag+thm:cka": "Composed constructed trees approximate $\\Phi(\\varphi_1+\\varphi_2)$",
     "thm:consistency": "Learned tree, leaves-only lik = Nadaraya--Watson (path is not)",
-    "prop:xy": "$xy$: activations vanish and fail; labels succeed",
+    "prop:xy": "$xy$: funnel activations vanish, funnel forest fails; label error falls with $N$ at every depth",
     "thm:locality": "Sign construction: local laws equal; composition separates the worlds",
     "prop:multiview": "Posterior given all views = function of per-view posterior means",
     "rem:structure (branch-and-bound)": "Branch-and-bound stop returns a sub-optimal concept",
+    "prop:suffclass": "$H_S$ strictly increasing; funnel forest on a monotone-additive target converges",
+    "cor:parity": "3-way parity: pairs independent of $Y$; label forest learns it, funnel does not",
+    "thm:ideal": "Split protocol: sup error to the ideal forest falls with $N$",
+    "thm:selection": "Validation at the output never selects the funnel forest on $xy$",
+    "app:verify (provenance)": "Every reported result comes from the fixed build or a path the bug cannot reach",
 }
 
 

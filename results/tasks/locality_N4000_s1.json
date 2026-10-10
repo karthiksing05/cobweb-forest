@@ -1,0 +1,82 @@
+{
+ "args": {
+  "which": "locality",
+  "N": 4000,
+  "seed": 1,
+  "target": "xy"
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "bf1d956d220e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "93a198e",
+  "host": "smith.cc.gatech.edu"
+ },
+ "seconds": 69.39253163337708,
+ "result": {
+  "a": {
+   "local_x2_val_rmse": 1.0004733800888062,
+   "local_x2_const_rmse": 1.000076413154602,
+   "local_x2_act_sd": 0.03754007816314697,
+   "local_x2_concepts": 7482,
+   "compose:funnel": {
+    "val": 1.0018430948257446,
+    "test": 1.0049968957901
+   },
+   "compose:label-d2": {
+    "val": 0.6736688613891602,
+    "test": 0.7009284496307373
+   },
+   "compose:label-d3": {
+    "val": 0.4059218466281891,
+    "test": 0.4586605727672577
+   },
+   "compose:label-d4": {
+    "val": 0.5260902643203735,
+    "test": 0.5257405042648315
+   },
+   "compose:hybrid-d3": {
+    "val": 0.4427770674228668,
+    "test": 0.4479019045829773
+   },
+   "compose:merge": {
+    "val": 0.22750324010849,
+    "test": 0.23430576920509338
+   }
+  },
+  "b": {
+   "local_x2_val_rmse": 1.0045262575149536,
+   "local_x2_const_rmse": 1.0,
+   "local_x2_act_sd": 0.05879639834165573,
+   "local_x2_concepts": 7441,
+   "compose:funnel": {
+    "val": 1.0524941682815552,
+    "test": 1.0659688711166382
+   },
+   "compose:label-d2": {
+    "val": 1.199262022972107,
+    "test": 1.1977852582931519
+   },
+   "compose:label-d3": {
+    "val": 1.0812554359436035,
+    "test": 1.0784807205200195
+   },
+   "compose:label-d4": {
+    "val": 1.1165183782577515,
+    "test": 1.1078300476074219
+   },
+   "compose:hybrid-d3": {
+    "val": 1.0628281831741333,
+    "test": 1.0570412874221802
+   },
+   "compose:merge": {
+    "val": 1.0219357013702393,
+    "test": 1.012640118598938
+   }
+  }
+ }
+}
