@@ -7,6 +7,8 @@ Designs (each tree learns online with ifit; the class is a discrete attribute):
   act      16 patch trees that model the class jointly pass their predicted class
            distributions (activations) to an output tree over the 160 values and the class
   hybrid   16 class-modelling patch trees pass labels and activations
+  cross    16 patch trees that never see the class predict the centre pixels of their
+           neighbouring patches (perceptual prediction) and pass those activations
 
     python experiments/mnist.py --N 5000 --seed 0 --methods single,label,act,hybrid,mlp,kan
 """
@@ -37,13 +39,23 @@ def design(mode, pv, depth, max_nodes):
     for i, idx in enumerate(patches()):
         name = f"p{i}"
         names.append(name)
+        if mode == "cross":
+            # perceptual prediction: the tree never sees the class; it predicts the centre
+            # pixels of the neighbouring patches (a cross-view outcome, Def. cognitive task)
+            r, c = divmod(i, 4)
+            nb = [(r + dr, c + dc) for dr, dc in ((-1, 0), (1, 0), (0, -1), (0, 1))
+                  if 0 <= r + dr < 4 and 0 <= c + dc < 4]
+            outs = [(r2 * 7 + 3) * 28 + (c2 * 7 + 3) for r2, c2 in nb]
+            specs.append(TreeSpec(name, raw=idx, task="raw:" + "+".join(map(str, outs)),
+                                  emits=["act"], prior_var=pv, **kw))
+            continue
         if mode == "label":
             specs.append(TreeSpec(name, raw=idx, emits=["label"], label_depth=depth, prior_var=pv, **kw))
         else:
             specs.append(TreeSpec(name, raw=idx, task="class", prior_var=pv, label_depth=depth,
                                   emits=["act"] if mode == "act" else ["act", "label"], **kw))
     specs.append(TreeSpec("out", task="class", prior_var=pv,
-                          act_from=names if mode in ("act", "hybrid") else [],
+                          act_from=names if mode in ("act", "hybrid", "cross") else [],
                           label_from=names if mode in ("label", "hybrid") else [], **kw))
     return specs
 
@@ -88,7 +100,7 @@ def main():
             best["params"] = B.n_params(model)
         else:
             grid = [dict(pv=pv, depth=dp) for pv in (0.1, 0.3, 1.0)
-                    for dp in ((3,) if m == "single" or m == "act" else (2, 4, 6))]
+                    for dp in ((3,) if m in ("single", "act", "cross") else (2, 4, 6))]
             best = None
             for hp in grid:
                 F = Forest(design(m, hp["pv"], hp["depth"], 200), "out", n_classes=10, raw_scale="global")

@@ -32,8 +32,10 @@ NAN = np.float32(np.nan)
 
 
 def raw_outcome(task):
-    """Index j of a cross-view outcome "raw:j", else None."""
-    return int(task.split(":")[1]) if isinstance(task, str) and task.startswith("raw:") else None
+    """Indices of a cross-view outcome "raw:j" or "raw:j1+j2+...", else None."""
+    if isinstance(task, str) and task.startswith("raw:"):
+        return [int(j) for j in task.split(":", 1)[1].split("+")]
+    return None
 EMPTY = np.zeros(0, dtype=np.float32)
 
 
@@ -79,10 +81,10 @@ class Tree:
         self.n_raw = len(spec.raw)
         self.n_act = len(spec.act_from) if n_act is None else n_act
         self.n_classes = n_classes
-        j = raw_outcome(spec.task)
-        if j is not None and j in list(spec.raw):
-            raise ValueError(f"tree {spec.name}: outcome raw:{j} is also one of its cues")
-        self.y_dim = y_dim if spec.task == "y" else (1 if j is not None else 0)
+        js = raw_outcome(spec.task)
+        if js is not None and set(js) & set(spec.raw):
+            raise ValueError(f"tree {spec.name}: an outcome coordinate is also one of its cues")
+        self.y_dim = y_dim if spec.task == "y" else (len(js) if js is not None else 0)
         self.size = self.n_raw + self.n_act + self.y_dim
         self.tree = CobwebHybridTree(self.size, alpha=spec.alpha, prior_var=spec.prior_var,
                                      cont_weight=spec.cont_weight)
@@ -190,7 +192,7 @@ class Forest:
     def act_dim(self, name):
         task = self.by_name[name].task
         if raw_outcome(task) is not None:
-            return 1
+            return len(raw_outcome(task))
         return self.y_dim if task == "y" else (self.n_classes if task == "class" else 0)
 
     def _topo(self):
@@ -257,14 +259,14 @@ class Forest:
                     k = self.n_classes
                     mu.append(np.full(k, 1.0 / k)); sd.append(np.full(k, np.sqrt((1.0 / k) * (1 - 1.0 / k))))
                 elif raw_outcome(self.by_name[p].task) is not None:
-                    j = raw_outcome(self.by_name[p].task)       # measured in x_j's units
-                    mu.append(xm[[j]]); sd.append(xs[[j]])
+                    js = raw_outcome(self.by_name[p].task)      # measured in the x_j's units
+                    mu.append(xm[js]); sd.append(xs[js])
                 else:
                     mu.append(ym); sd.append(ys)
             if t.y_dim:
-                j = raw_outcome(t.spec.task)
-                if j is not None:
-                    mu.append(xm[[j]]); sd.append(xs[[j]])
+                js = raw_outcome(t.spec.task)
+                if js is not None:
+                    mu.append(xm[js]); sd.append(xs[js])
                 else:
                     mu.append(ym); sd.append(ys)
             if mu:
@@ -318,9 +320,9 @@ class Forest:
             t = self.trees[name]
             xr, xd = row(i)
             inp = self._inputs(name, xr, xd, msgs)
-            j = raw_outcome(t.spec.task)
-            if j is not None:
-                y = xr[j:j + 1]                      # cross-view outcome: a raw coordinate
+            js = raw_outcome(t.spec.task)
+            if js is not None:
+                y = np.asarray(xr)[js]               # cross-view outcome: raw coordinates
             else:
                 y = Y[i] if (Y is not None and t.spec.task == "y") else None
             c = C[i] if (C is not None and t.spec.task == "class") else None
