@@ -75,3 +75,17 @@ def test_uids_unique_and_leaf_stable():
         seen.add(n.uid)
         stack.extend(n.children)
     assert uid in seen
+
+
+def test_leaves_only_budget_counts_leaves():
+    """A leaves-only mixture under a budget must contain leaves even in a deep tree
+    (regression: counting all nodes left 1-D trees of 4000 points with no leaf)."""
+    rng = np.random.default_rng(0)
+    t = CobwebHybridTree(2, alpha=0.1, prior_var=1e-4)
+    t.set_random_seed(0)
+    xs = rng.uniform(-1, 1, 4000).astype(np.float32)
+    for x in xs:
+        t.ifit({}, np.array([x, np.sin(3 * x)], dtype=np.float32))
+    for x in (-0.7, 0.1, 0.55):
+        m = t.predict_mean({}, np.array([x, np.nan], dtype=np.float32), 100, False, "path", True)
+        assert abs(m[1] - np.sin(3 * x)) < 0.05

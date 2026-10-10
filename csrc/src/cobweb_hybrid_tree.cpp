@@ -19,6 +19,17 @@
 #include "cobweb_hybrid_node.h"
 #include "cobweb_hybrid_tree.h"
 
+// With leaves_only the budget ``max_nodes`` counts LEAVES: expansion continues until that
+// many leaves have entered the mixture (the M best leaf concepts), with at most
+// LEAF_BUDGET_FACTOR * max_nodes expansions in total.  Counting all nodes instead can leave
+// the mixture with no leaf at all in deep trees, and the prediction degenerates to zero.
+static const int LEAF_BUDGET_FACTOR = 64;
+static int leaf_budget_cap(int max_nodes)
+{
+    return (max_nodes >= INT_MAX / LEAF_BUDGET_FACTOR) ? INT_MAX : max_nodes * LEAF_BUDGET_FACTOR;
+}
+
+
 CobwebHybridTree::CobwebHybridTree(int size, float alpha, float prior_var, float cont_weight,
                                    bool weight_attr, int depth_max, int branch_max,
                                    std::unordered_map<ATTR_TYPE, double> attr_weights)
@@ -395,8 +406,10 @@ std::tuple<INSTANCE_TYPE, Eigen::VectorXf> CobwebHybridTree::predict(const INSTA
 
     double total_weight = 0.0;
     bool first = true;
+    int leaves = 0;
 
-    this->expand(disc, cont, max_nodes, greedy, weighting, -1.0, -1.0,
+    this->expand(disc, cont, leaves_only ? leaf_budget_cap(max_nodes) : max_nodes, greedy,
+        weighting, -1.0, -1.0,
         [&](double score, double path_ll, CobwebHybridNode *node) {
             (void)path_ll;
             if (leaves_only && !node->children.empty()) return true;
@@ -417,7 +430,7 @@ std::tuple<INSTANCE_TYPE, Eigen::VectorXf> CobwebHybridTree::predict(const INSTA
             if (this->size > 0) {
                 mean_out += static_cast<float>(w) * (node->mean - mean_out);
             }
-            return true;
+            return !(leaves_only && ++leaves >= max_nodes);
         });
 
     return std::make_tuple(out, mean_out);
@@ -430,7 +443,9 @@ Eigen::VectorXf CobwebHybridTree::predict_mean(const INSTANCE_TYPE &disc,
     Eigen::VectorXf mean_out = Eigen::VectorXf::Zero(this->size);
     double total_weight = 0.0;
     bool first = true;
-    this->expand(disc, cont, max_nodes, greedy, weighting, -1.0, -1.0,
+    int leaves = 0;
+    this->expand(disc, cont, leaves_only ? leaf_budget_cap(max_nodes) : max_nodes, greedy,
+        weighting, -1.0, -1.0,
         [&](double score, double path_ll, CobwebHybridNode *node) {
             (void)path_ll;
             if (leaves_only && !node->children.empty()) return true;
@@ -442,8 +457,9 @@ Eigen::VectorXf CobwebHybridTree::predict_mean(const INSTANCE_TYPE &disc,
             }
             double w = std::exp(score - total_weight);
             mean_out += static_cast<float>(w) * (node->mean - mean_out);
-            return true;
+            return !(leaves_only && ++leaves >= max_nodes);
         });
+    if (first) mean_out = this->root->mean;   // no node entered the mixture: the root's mean
     return mean_out;
 }
 
