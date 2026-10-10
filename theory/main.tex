@@ -539,6 +539,20 @@ The label forest of \cref{thm:label} has an output tree with $K^n$ leaves: label
 no metric, so this construction pays for every cell of the product partition.
 Activations carry the metric and allow the fan-in-two construction of \cref{thm:cka}.
 
+\begin{remark}[Two elementary routes to universality]\label{rem:routes}
+There are two short arguments that a single tree can represent any function, and the
+results above make each precise.  The first is retrieval: store an example at every
+input on a fine grid, quantize the inputs, and predict the stored output of the query's
+cell---a nominal tree of grid cells does this, which is the construction of
+\cref{thm:label}.  The second is mixtures: mixtures of enough Gaussians approximate any
+continuous density, and a tree's concepts are such a mixture.  Approximating the joint
+density of $(x,y)$ does not by itself make the \emph{prediction} of $y$ uniformly good,
+because the conditional mean divides by the marginal density of $x$, which can be small;
+\cref{thm:single} therefore proves the regression statement directly, for the mixture
+weights the implementation actually uses, and \cref{prop:prior} shows that two of those
+weightings fail it on a flat tree.
+\end{remark}
+
 \subsection{Interweaving trees}
 
 \begin{proposition}[Merging trees under a common root gives mixtures]\label{prop:interweave}
@@ -1581,6 +1595,36 @@ says where the decision must be taken instead: at the tree that composes the par
 verifying candidate tasks against an observed outcome (\cref{thm:selection}).  The
 locality and selection experiments show both halves.
 
+\paragraph{Rules of thumb for composing trees.}
+The results suggest a small set of rules for building a forest whose trees use one
+another's representations.
+\begin{enumerate}[leftmargin=*,noitemsep]
+\item \emph{Give every tree an observable outcome or none.}  A tree can learn only what
+  it will observe (\cref{def:task,rem:kaobs}); inner functions of a target are not tasks.
+\item \emph{Pass activations where the parts combine monotonically, labels or a merged
+  cue where they interact.}  Funnel activations are sufficient for monotone-additive
+  targets (\cref{prop:suffclass}) and fail on $x_1x_2$ and on parity
+  (\cref{prop:xy,cor:parity}); a positive synergy deficit (\cref{def:operators}) is the
+  measurable sign that two cues must be merged or passed as labels.
+\item \emph{Decide a tree's task where its message is used.}  A tree's own data cannot
+  tell whether its cue matters (\cref{thm:locality}); compare candidate tasks by the
+  held-out or prequential error of the composing tree (\cref{thm:selection}), and always
+  keep the merged tree among the candidates (\cref{proc:induction}).
+\item \emph{Use perceptual prediction only when the target lives in what the views
+  share.}  Cross-view outcomes need no target and are sufficient under that condition
+  (\cref{prop:multiview}); on MNIST, where neighbouring pixels do not carry the class, they
+  were the weakest design (\cref{tab:mnist}).
+\item \emph{Keep categories few and let them sharpen with experience.}  Label cells must
+  shrink and stay few compared with the data (\cref{thm:labelcons}); a fixed label depth
+  does neither.
+\item \emph{Keep forests shallow.}  Two inputs per tree suffice in principle
+  (\cref{thm:cka}), but every level of composition adds error that the next level reads
+  as noise (\cref{tab:diag100}).
+\item \emph{Predict with counts and train predict-then-learn.}  Count-blind mixtures fail
+  on repeated instances (\cref{rem:counts}); messages computed in-sample leak the target
+  (\cref{def:forestlearn}).
+\end{enumerate}
+
 \paragraph{Limitations.}
 \Cref{thm:ideal} covers the split protocol with full expansion, exact matching and the
 count-weighted leaves-only mixture; the experiments use the online protocol, a leaf
@@ -1610,9 +1654,28 @@ definitions, with the code's scores and mixtures.
 \IfFileExists{tables/verification.tex}{\begin{center}\small\input{tables/verification}\end{center}}{}
 
 \paragraph{Adversarial review.}
-Each statement is also checked by an independent reviewer instructed to break it; the
-reviewer is calibrated beforehand on a copy of this document with planted errors.  The
-protocol and its results are in \texttt{verification/REVIEW.md}.
+Each statement is also checked by an independent reviewer---a fresh language-model agent
+for every round---instructed to break it, to settle questions by computation, and to
+read nothing but this document, its tables and the two C++ files it formalises
+(\texttt{verification/REVIEW\_PROMPT.md}).  The reviewer was calibrated before it was
+trusted: on a copy of an earlier draft with eight planted errors (three of them real
+mistakes of that draft) it found all eight with correct diagnoses, and every other flag it
+raised was a genuine error, which we fixed.  The same prompt was then run on successive
+drafts:
+
+\begin{center}\small
+\begin{tabular}{@{}lp{11.5cm}@{}}\toprule
+round & outcome\\\midrule
+calibration & 8/8 planted errors found; extra findings (label consistency with atoms, exact matching, crossover exponents) fixed\\
+2 & no statement false under its hypotheses; experiments text contradicting tables, overstated remarks and summaries; fixed\\
+3 & no statement false under its hypotheses; prior/posterior weightings on hierarchies (verified by check C19), branch-and-bound repair, minor gaps; fixed\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The reports, the drafts they reviewed and the reviewers' own scripts are in
+\texttt{verification/reviews/}; how each finding was resolved is in
+\texttt{verification/REVIEW.md}.
 
 \bibliographystyle{plainnat}
 \bibliography{refs}
