@@ -94,4 +94,38 @@ Every finding was addressed in v4:
 
 ### Round 3 (real draft v4)
 
+**No critical or major error.** The reviewer found no numbered theorem, lemma or corollary false under its hypotheses. It recomputed every inequality, and checked `thm:labelcons`'s per-cell bound in 3000 random trials.
+
+**Most consequential finding (minor).** The account of the `prior` and `posterior` weightings generalised an artefact of the depth-one tree. In a hierarchy each level carries O(1) mass:
+- `prior` over all concepts converges, slowly (about 1/depth, i.e. 1/log N);
+- `posterior` keeps a floor even when restricted to leaves.
+
+**Verified independently** before rewriting the text. The new executable check C19 uses constructed balanced binary trees:
+- `prior` (all concepts): 0.172 → 0.127 → 0.103 → 0.086 at depth 5, 7, 9, 11;
+- `posterior` (leaves only): stays at 0.044;
+- `lik` (leaves only) control: 3e-6.
+
+**v5 changes:**
+- `prop:prior` is retitled to the flat tree, and a new `rem:hierarchy` covers hierarchical trees. The abstract, contributions and figure caption are corrected.
+- **Other theory fixes:**
+  - `rem:structure`: a sound pruning bound, π_c + ℓ_max.
+  - `thm:ideal` Step 1: tolerance τ(1+ln N).
+  - `prop:suffclass`: compact support.
+  - `rem:crossover`: interior rates plus a boundary-layer note.
+  - Task induction: the consistency claim is scoped to candidates covered by the theorems.
+  - Smaller corrections: nominal-proportion matching, "1/2 as α→0", per-tree tie-break streams, the McShane sup-norm bound, and joint outcomes in `thm:locality`.
+- **Experiments text, items E1–E12 of the report:**
+  - The plateau claims are corrected to slow decay (`prior`) and a floor (`posterior`).
+  - Factors versus MLP/KAN are stated (7–11× and 16–34×).
+  - The crossover slopes run opposite to the bounds' exponents, and the text now says so.
+  - diag100 gives both κ values.
+  - The selection runs are described as testing the rule rather than instantiating the theorem.
+  - The rooms–bedrooms deficit varies between splits (−0.01 to 0.25); verified from the result files.
+  - Multi-view predicts the sign of the deficit, not its size.
+  - MNIST at N = 20000 is a tie.
+  - The cross-view explanation is marked untested.
+  - OWT now distinguishes the funnel and unsupervised label forests.
+
+### Round 4 (real draft v5)
+
 (Pending.)

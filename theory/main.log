@@ -454,30 +454,30 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 \openout4 = `main.toc'.
 
  [2] [3] [4]
-LaTeX Font Info:    Trying to load font information for U+euf on input line 278
+LaTeX Font Info:    Trying to load font information for U+euf on input line 282
 .
  (ueuf.fd
 File: ueuf.fd 2013/01/14 v3.01 Euler Fraktur
 ) [5]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 348.
+(Font)              using `TU/lmr/m/scsl' instead on input line 352.
 
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 348.
+(Font)              using `TU/lmr/m/scsl' instead on input line 352.
 
 [6]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 404.
+(Font)              using `TU/lmr/m/scsl' instead on input line 410.
 
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 412.
+(Font)              using `TU/lmr/m/scsl' instead on input line 418.
 
 
-Overfull \hbox (1.54419pt too wide) in paragraph at lines 416--425
+Overfull \hbox (1.54419pt too wide) in paragraph at lines 422--431
 []\TU/lmr/m/n/10.95 Leaf $\OML/cmm/m/it/10.95 ^^M$ \TU/lmr/m/n/10.95 has prior 
 $\OT1/cmr/m/n/10.95 1\OML/cmm/m/it/10.95 =G$\TU/lmr/m/n/10.95 , so the leaves’ 
 mass is $\OML/cmm/m/it/10.95 ^^R[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x\OT1
@@ -489,59 +489,62 @@ mm/m/it/10.95 ^^L[]\OT1/cmr/m/n/10.95 (2\OML/cmm/m/it/10.95 ^^Y\OT1/cmr/m/n/10.
 [7]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 508.
+(Font)              using `TU/lmr/m/scsl' instead on input line 521.
 
 [8]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 535.
+(Font)              using `TU/lmr/m/scsl' instead on input line 548.
 
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 535.
+(Font)              using `TU/lmr/m/scsl' instead on input line 548.
 
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 540.
+(Font)              using `TU/lmr/m/scsl' instead on input line 553.
 
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 541.
+(Font)              using `TU/lmr/m/scsl' instead on input line 554.
 
 [9]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 598.
+(Font)              using `TU/lmr/m/scsl' instead on input line 611.
 
-[10] [11] [12] [13] [14] [15] [16] [17]
+[10] [11] [12] [13] [14] [15] [16] [17] [18]
 File: figs/weighting_sin.pdf Graphic file (type pdf)
 <use figs/weighting_sin.pdf>
 File: figs/weighting_j0.pdf Graphic file (type pdf)
 <use figs/weighting_j0.pdf>
- (tables/weighting) [18]
+ (tables/weighting)
 File: figs/toys.pdf Graphic file (type pdf)
 <use figs/toys.pdf>
- (tables/toys)
-[19] (tables/diag100) (tables/locality) (tables/selection) [20]
+ [19]
+(tables/toys) (tables/diag100) [20] (tables/locality) (tables/selection)
+[21]
 File: figs/synergy.pdf Graphic file (type pdf)
 <use figs/synergy.pdf>
- (tables/induce) [21]
+ (tables/induce) [22]
 File: figs/multiview.pdf Graphic file (type pdf)
 <use figs/multiview.pdf>
 File: figs/continual.pdf Graphic file (type pdf)
 <use figs/continual.pdf>
- [22] (tables/continual)
+ (tables/continual)
 File: figs/interpret.pdf Graphic file (type pdf)
 <use figs/interpret.pdf>
+ [23]
 File: figs/label_cells.pdf Graphic file (type pdf)
 <use figs/label_cells.pdf>
- (tables/feynman_N4000) (tables/housing)
-(tables/mnist) (tables/owt) [23] [24] [25] (tables/verification) [26]
-Overfull \vbox (37.64914pt too high) has occurred while \output is active []
+ (tables/feynman_N4000)
+(tables/housing) (tables/mnist) (tables/owt) [24] [25] [26]
+(tables/verification) [27]
+Overfull \vbox (200.76735pt too high) has occurred while \output is active []
 
 
-[27] (main.bbl [28] [29] [30]) [31] (main.aux)
+[28] (main.bbl [29] [30]) [31] (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 24DEB4ED838B5E2249E908C06BAA1E90;4358.
  )
-Output written on main.xdv (31 pages, 908628 bytes).
+Output written on main.xdv (31 pages, 937344 bytes).

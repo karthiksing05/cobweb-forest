@@ -710,3 +710,41 @@ def check_count_weighting(seed=0):
 
 
 ALL += [check_count_weighting]
+
+
+# ---------------------------------------------------------------------------------------
+# C19 Weightings on a hierarchy (found by the round-3 reviewer): on a balanced binary tree over
+#     a grid, the PRIOR all-concept mixture converges (slowly, each level carrying O(1) mass),
+#     unlike on the depth-one tree of Prop prior; the POSTERIOR mixture keeps a floor even
+#     restricted to leaves.
+# ---------------------------------------------------------------------------------------
+def _binary(points):
+    if len(points) == 1:
+        return points[0]
+    m = len(points) // 2
+    return [_binary(points[:m]), _binary(points[m:])]
+
+
+def check_hierarchy_weightings(seed=0):
+    g = lambda x: math.sin(math.pi * (2 * x - 1))
+    xs = np.linspace(0.3, 0.7, 41)                      # interior queries
+    rows = []
+    for D in (5, 7, 9, 11):
+        G = 2 ** D
+        grid = (np.arange(G) + 0.5) / G
+        t = build(_binary([({}, np.array([x, g(x)])) for x in grid]), 2, prior_var=(1.0 / G) ** 2)
+        err = {}
+        for key, w, lo in (("prior_all", "prior", False), ("posterior_leaves", "posterior", True),
+                           ("lik_leaves", "likelihood", True)):
+            e = [float(t.predict_mean({}, _q(x, np.nan), BIG, False, w, lo)[1]) - g(x) for x in xs]
+            err[key] = float(np.sqrt(np.mean(np.square(e))))
+        rows.append(dict(D=D, G=G, **err))
+    prior = [r["prior_all"] for r in rows]
+    post = [r["posterior_leaves"] for r in rows]
+    ok = (all(b < a for a, b in zip(prior, prior[1:]))           # prior all-concept keeps falling
+          and post[-1] > 0.5 * post[0] and post[-1] > 0.01       # posterior leaves-only: a floor
+          and rows[-1]["lik_leaves"] < 0.01)                      # control: lik leaves-only converges
+    return dict(label="prop:prior (hierarchy)", passed=bool(ok), rows=rows)
+
+
+ALL += [check_hierarchy_weightings]

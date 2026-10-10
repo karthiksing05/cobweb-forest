@@ -26,6 +26,7 @@ TITLES = {
     "thm:selection": "Validation at the output never selects the funnel forest on $xy$",
     "app:verify (provenance)": "Every reported result comes from the fixed build or a path the bug cannot reach",
     "thm:consistency+thm:labelcons (counts)": "Count-weighted leaves = Nadaraya--Watson and partitioning estimate with repeats; count-blind leaves fail",
+    "prop:prior (hierarchy)": "Binary grid tree: prior (all concepts) keeps falling, posterior (leaves) has a floor, lik (leaves) converges",
 }
 
 
