@@ -26,8 +26,7 @@ TITLES = {
     "thm:selection": "Validation at the output never selects the funnel forest on $xy$",
     "app:verify (provenance)": "Every reported result comes from the fixed build or a path the bug cannot reach",
     "thm:consistency+thm:labelcons (counts)": "Count-weighted leaves = Nadaraya--Watson and partitioning estimate with repeats; count-blind leaves fail",
-    "lean": "Lean~4 (Mathlib): every formalised statement builds, with no \\texttt{sorry} and no added axiom",
-    "sec:cues": "Cue suite: associative, contextual, blocked and irrelevant cues recovered; the selected forest reads only kept cues",
+    "app:verify (Lean)": "Lean~4 (Mathlib): every formalised statement builds, with no \\texttt{sorry} and no added axiom",
     "prop:prior (hierarchy)": "Binary grid tree: prior (all concepts) keeps falling, posterior (leaves) has a floor, lik (leaves) converges",
 }
 
@@ -50,8 +49,15 @@ def main():
     os.makedirs("theory/tables", exist_ok=True)
     with open("theory/verification.json", "w", encoding="utf-8") as fh:
         json.dump(out, fh, indent=1, default=str)
+    write_table(out)
+
+
+def write_table(out):
+    """Paper table; checks of tools outside the paper (label "tool:...") are left out."""
     rows = [r"\begin{tabular}{@{}llp{9.2cm}@{}}\toprule", r"result & statement & check\\\midrule"]
     for r in out["checks"]:
+        if r["label"].startswith("tool:"):
+            continue
         lab = r["label"].split(" ")[0]
         refs = ", ".join(r"\cref{" + x + "}" for x in lab.split("+"))
         rows.append(("pass" if r["passed"] else r"\textbf{fail}") + f" & {refs} & {TITLES.get(r['label'], r['label'])}\\\\")
@@ -61,4 +67,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if sys.argv[1:] == ["--table"]:                 # rebuild the table from the stored results
+        write_table(json.load(open("theory/verification.json", encoding="utf-8")))
+    else:
+        main()

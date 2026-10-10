@@ -780,7 +780,7 @@ def check_lean(root="lean"):
     banned = re.findall(r"\b(sorry|admit|axiom)\b", re.sub(r"/-.*?-/|--[^\n]*", "", src, flags=re.S))
     ok = (b.returncode == 0 and a.returncode == 0 and set(deps) == set(LEAN_THEOREMS)
           and not any("sorryAx" in v for v in deps.values()) and not banned)
-    return dict(label="lean", passed=bool(ok), theorems=len(deps), axioms=deps, banned=banned,
+    return dict(label="app:verify (Lean)", passed=bool(ok), theorems=len(deps), axioms=deps, banned=banned,
                 build_tail=b.stdout[-300:] + b.stderr[-300:], audit_err=a.stderr[-300:])
 
 
@@ -808,7 +808,7 @@ def check_cues(seed=0, N=3000):
     best, F, cols, scores = cues.cue_forest(X, y, Xv, yv, rep)
     ok = (kinds_ok and abs(rep.v(1)) < 0.05 and abs(rep.v(2)) < 0.05 and rep.v(1, 2) > 0.3
           and 3 not in cols and scores[best] < scores["single-all"])
-    return dict(label="sec:cues", passed=bool(ok), kinds={rep.names[i]: k for i, k in rep.kind.items()},
+    return dict(label="tool:cues", passed=bool(ok), kinds={rep.names[i]: k for i, k in rep.kind.items()},
                 v={",".join(map(str, k)): round(v, 3) for k, v in rep.validity.items()},
                 chosen=best, cols=cols, scores=scores)
 

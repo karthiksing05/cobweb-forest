@@ -448,7 +448,7 @@
    "check": "check_hierarchy_weightings"
   },
   {
-   "label": "lean",
+   "label": "app:verify (Lean)",
    "passed": true,
    "theorems": 12,
    "axioms": {
@@ -472,7 +472,7 @@
    "check": "check_lean"
   },
   {
-   "label": "sec:cues",
+   "label": "tool:cues",
    "passed": true,
    "kinds": {
     "copy": "associative",

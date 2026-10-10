@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb,amsthm,mathtools,bm}
-\usepackage{enumitem,booktabs,graphicx,xcolor}
+\usepackage{enumitem,booktabs,graphicx,xcolor,tikz}
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
 \usepackage[capitalise]{cleveref}
@@ -33,161 +33,474 @@
 \newcommand{\Var}{\operatorname{Var}}
 \newcommand{\lean}[1]{\textup{\small[Lean:~\texttt{\detokenize{#1}}]}}
 
-\title{Cobweb Forests:\\ A Kolmogorov--Arnold Theory of Networks of Concept Hierarchies}
-\author{Draft --- Karthik Singaravadivelan et al.\ (working notes)}
+
+\title{Cobweb Forests:\\ Kolmogorov--Arnold Networks Without Gradients}
+\author{Draft --- working notes}
 \date{\today}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-The Kolmogorov--Arnold (KA) representation theorem states that every continuous
-function of $n$ variables is a finite superposition of continuous functions of one
-variable and addition, and Kolmogorov--Arnold Networks (KANs) turn that statement into
-an architecture with learnable univariate functions on its edges.  We ask the two
-analogous questions for Cobweb, the incremental concept-formation system whose
-category utility measures the information its concepts carry about the features.
-\emph{Representation:} is there a set of Cobweb trees that represents an arbitrary
-continuous function?  \emph{Learnability:} does Cobweb's own learning
-procedure---category utility and its four operators, with no gradients---learn it?
-We formalise a \emph{Cobweb forest}: a directed acyclic graph of hybrid Cobweb trees in
-which each tree reads raw features and the \emph{messages} of other trees---their
-\emph{activations} (multi-node predictions of an attribute) and their \emph{labels}
-(the concepts an input sorts to)---and one designated tree produces the output.
-On representation we prove that a single tree is a universal approximator under the
-implementation's prediction rules---all four weightings restricted to the leaves, and two
-of them over all concepts (on a flat tree the other two keep a fixed bias, which a
-hierarchy removes only slowly or not at all)---a
-Cobweb--Kolmogorov--Arnold theorem (forests of two-input trees passing activations are
-universal with $4n^2+4n$ trees, and one input per tree is not enough), that label forests
-are universal, and that merging trees under a common root yields mixtures, not
-compositions.  On learnability we prove that no Cobweb operator ever deletes a leaf,
-which makes a learned tree, predicting with its count-weighted leaves, a universally
-consistent regressor whatever structure category utility builds, and we introduce \emph{cognitive tasks}: what each tree
-perceives (its \emph{cue}) and what it predicts and later observes (its
-\emph{outcome}).  Under regularity conditions a forest learned by Cobweb converges to the
-\emph{ideal forest} of its task assignment, which equals the target exactly when the assignment is
-\emph{sufficient}; predicting the target at every tree is sufficient for
-monotone-additive targets, predicting another view of the input is sufficient in a
-Gaussian multi-view model whose target depends only on what the views share, and
-categorization is sufficient whenever its cells shrink and stay few compared with the
-sample and its smoothing vanishes fast enough, a requirement that grows with the dimension.  Tasks cannot be inferred locally---a sign construction makes a tree's
-own data identical whether its input is necessary or irrelevant---but they can be
-inferred consistently by verifying candidate tasks at the tree that composes them.  A cue
-calculus maps associative, contextual, blocked and self-generated cues onto validities
-of forest quantities and yields a procedure that designs a forest from held-out errors
-alone.  The discrete cores of the statements are proved in Lean~4, an executable verifier
-tests the statements against the implementation, and an independent reviewer, calibrated
-on a copy with planted errors, audits the proofs.
+Kolmogorov--Arnold Networks (KANs) place learnable one-variable functions on the edges
+of a network and justify the design with the Kolmogorov--Arnold representation theorem.
+We ask whether the same theorem can be realised by Cobweb, an incremental
+concept-formation system that learns without gradients by sorting each example into a
+hierarchy of probabilistic concepts.  A \emph{Cobweb forest} is a network of Cobweb trees
+in which the predictions or concept labels of some trees are the inputs of others.  We
+prove three things.  \emph{Representation:} one Cobweb tree approximates any continuous
+function, and a forest of $4n^2+4n$ two-input trees realises the Kolmogorov--Arnold
+representation of any continuous function of $n$ variables; one input per tree is not
+enough.  \emph{Learning:} Cobweb never deletes what it has stored, so a learned tree is a
+consistent regressor whatever hierarchy it builds, and a learned forest converges to the
+forest in which every tree predicts the expectation of its outcome given its inputs.
+\emph{Tasks:} without back-propagation a tree can only learn to predict what it will
+observe, so the forest must give each tree an observable outcome.  Predicting the final
+target works when the parts combine monotonically and fails on interactions such as
+$x_1x_2$; categorizing works for every target but pays for every cell it distinguishes; and no tree can tell its
+role from its own data, so the choice must be verified where trees are composed.
+Following the KAN paper's experiments, Cobweb forests do not forget in continual
+learning and their trees can be plotted like KAN edges, while on smooth targets
+gradient-trained KANs and MLPs are far more accurate.  The discrete cores of the
+statements are proved in Lean~4 and the rest are checked against the implementation.
 \end{abstract}
 
 \tableofcontents
 
 %=====================================================================
-\section{Introduction}
+\section{Introduction}\label{sec:intro}
 %=====================================================================
 
-\paragraph{Kolmogorov--Arnold.}
-For every $n\ge 2$ there are continuous functions $\varphi_{q,p}:[0,1]\to\R$
-($q=0,\dots,2n$, $p=1,\dots,n$) such that every $f\in C([0,1]^n)$ can be written as
+The Kolmogorov--Arnold (KA) representation theorem
+\citep{kolmogorov1957,arnold1957,lorentz1966,sprecher1965} says that every continuous
+$f:[0,1]^n\to\R$ can be written as
 \begin{equation}\label{eq:ka}
-  f(x_1,\dots,x_n)=\sum_{q=0}^{2n}\Phi_q\Bigl(\sum_{p=1}^{n}\varphi_{q,p}(x_p)\Bigr)
+  f(x_1,\dots,x_n)=\sum_{q=0}^{2n}\Phi_q\Bigl(\sum_{p=1}^{n}\varphi_{q,p}(x_p)\Bigr),
 \end{equation}
-with continuous outer functions $\Phi_q:\R\to\R$ that depend on~$f$
-\citep{kolmogorov1957,arnold1957,lorentz1966,sprecher1965}.  The only genuinely
-multivariate operation is addition.  The functions in \eqref{eq:ka} need not be
-smooth---the inner functions can be chosen monotone, but in general the representation
-cannot be made continuously differentiable---which long made \eqref{eq:ka} look
-irrelevant to learning \citep{girosi1989}.  Kolmogorov--Arnold Networks \citep{liu2024kan} stack layers of
-learnable univariate functions (B-splines on edges, sums at nodes) and prove an
-approximation theorem whose rate does not depend on $n$ when $f$ has a \emph{smooth}
-KA-type representation \citep[Thm.~2.1]{liu2024kan}.
+with continuous one-variable functions $\varphi_{q,p}$ (independent of $f$) and $\Phi_q$.
+The only operation on several variables is addition.  Kolmogorov--Arnold Networks
+\citep{liu2024kan} turn \eqref{eq:ka} into an architecture: learnable splines on the
+edges, sums at the nodes, trained by back-propagation.
 
-\paragraph{Cobweb.}
-Cobweb \citep{fisher1987} sorts each instance down a hierarchy of probabilistic
-concepts and, at every node, applies whichever of four operators---add to the best
-child, create a new child, merge the two best children, split the best child---most
-increases category utility, which in its information-theoretic form measures the
-information the concepts carry about the features \citep{corter1992}, and which the
-rational account reads as the mutual information between features and concepts
-\citep{maclellan2026rational}.
-Concepts store sufficient statistics (attribute--value counts for nominal attributes,
-a mean and variance for each continuous one), so learning is closed-form, incremental
-and does not forget.  Prediction expands concepts best-first and mixes their
-predictions \citep{maclellan2026rational}.
-
-Several recent systems use Cobweb trees as \emph{modules} whose representations become
-the inputs of other trees: Convolutional Cobweb \citep{maclellan2021conv} sorts image
-patches into a filter hierarchy and describes each image by the patches' filter labels
-for a second, classification hierarchy; TRELLIS \citep{singaravadivelan2026trellis}
-describes composites by bags of concept identifiers drawn from another hierarchy; and a
-Cobweb language model passes each tree's prediction for a position to the trees above
-it.  We call such a network a \emph{Cobweb forest} and ask what it can represent and
-learn.
-
-\paragraph{Questions.}
-\begin{enumerate}[label=\textbf{Q\arabic*.},leftmargin=*]
-\item \emph{Representation.} For every continuous $f$ and $\varepsilon>0$, is there a
-  Cobweb forest whose output is uniformly within $\varepsilon$ of $f$?  How few trees,
-  and how few inputs per tree, suffice?
-\item \emph{Learnability.} If every tree learns only with Cobweb's own procedure, does
-  the forest's output converge to $f$?  What must each tree be asked to predict, and can
-  that be inferred from data?
+Cobweb \citep{fisher1987} is a different kind of learner.  It sorts each example down a
+tree of probabilistic concepts and, at every node, takes whichever of four operators
+(add to the best child, create a child, merge two children, split a child) most
+increases \emph{category utility}, the information the concepts carry about the features
+\citep{corter1992,maclellan2026rational}.  It learns one example at a time, in closed
+form, with no gradient, and it does not forget.  Several systems already wire Cobweb
+trees together: Convolutional Cobweb \citep{maclellan2021conv} feeds the concept labels
+of patch trees to a classification tree, TRELLIS \citep{singaravadivelan2026trellis}
+describes composites by concept identifiers from another tree, and a Cobweb language
+model passes each tree's prediction to the trees above it.  We call such a network a
+\emph{Cobweb forest} and ask the two questions the KAN paper answers for KANs:
+\begin{enumerate}[label=\textbf{Q\arabic*.},leftmargin=*,noitemsep]
+\item \emph{Representation.} Can a Cobweb forest represent any continuous function, and
+  with how many trees?
+\item \emph{Learning.} If every tree learns only by Cobweb's own procedure, does the
+  forest learn the function?
 \end{enumerate}
 
-\paragraph{Representation is not learnability.}
-The constructions that answer Q1 choose what every tree holds knowing $f$: the trees of
-the KA construction hold the values $\varphi_{q,p}(x_p)$ and $\Phi_q(u)$.  A learner never
-observes these values; it observes its inputs and, eventually, outcomes.  A KAN recovers
-the individual terms of a sum from the error of the sum by back-propagation.  A Cobweb
-tree has no gradient: it can only learn to predict what it will observe.  Q2 is
-therefore a question about \emph{tasks}---what each tree perceives and what it
-predicts---and the central objects of the second half of the paper are \emph{cognitive
-tasks} (\cref{sec:tasks}) and their inference (\cref{sec:infer}).
+\Cref{tab:analogy} lines the three architectures up.  The answer to Q1 is the same as
+for KANs: a forest shaped like \eqref{eq:ka} represents $f$ (\cref{sec:repr-main}).  Q2 has a
+twist.  A KAN learns its inner functions from the error of their sum.  A Cobweb tree
+receives no error; it can only learn to predict something it will \emph{observe}.  The
+values $\Phi_q(\cdot)$ are never observed, so the KA forest cannot be learned as it
+stands.  What a learned forest can do depends on what each tree is asked to predict, its
+\emph{task}, and \cref{sec:learn-main} shows which tasks work.
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}p{3.1cm}p{3.3cm}p{3.6cm}p{4.6cm}@{}}\toprule
+ & MLP & KAN & Cobweb forest\\\midrule
+theorem & universal approximation & Kolmogorov--Arnold & Kolmogorov--Arnold (\cref{thm:main-cka})\\
+unit & weights, fixed activation & learnable spline on an edge & a Cobweb tree (concept hierarchy)\\
+summation & free, at nodes & free, at nodes & a two-input tree\\
+what a unit passes & a number & a number & a prediction or a concept label\\
+learning & back-propagation & back-propagation & sort and restructure; each tree predicts an observable outcome\\
+forgetting & catastrophic & local & none: no stored example is deleted (\cref{thm:main-learn})\\
+interpretability & low & plot each edge & plot each tree\\
+\bottomrule
+\end{tabular}
+\caption{MLPs, KANs and Cobweb forests.}
+\label{tab:analogy}
+\end{table}
 
 \paragraph{Contributions.}
-\begin{itemize}[leftmargin=*]
-\item A formal model of the hybrid Cobweb tree as implemented in
-  \texttt{cobweb\_hybrid}, including its four prediction weightings, and of Cobweb
-  forests with activation and label messages (\cref{sec:model}).  An executable verifier
-  checks that the model equals the code (\cref{app:verify}).
-\item Representation (\cref{sec:repr}): single-tree universality with an explicit
-  rate (\cref{thm:single}); a fixed bias of the prior- and posterior-weighted
-  all-concept mixtures on a flat tree, and what a hierarchy changes (\cref{prop:prior},
-  \cref{rem:hierarchy}); the Cobweb--Kolmogorov--Arnold theorem (\cref{thm:cka}) and the
-  necessity of fan-in two (\cref{prop:fanin}); universality of label forests
-  (\cref{thm:label}); merging trees gives mixtures (\cref{prop:interweave}).
-\item One learned tree (\cref{sec:learn}): no operator deletes a leaf
-  (\cref{lem:leaves}), so a learned tree is universally consistent whatever structure
-  category utility builds (\cref{thm:consistency}).
-\item Cognitive tasks (\cref{sec:tasks}): tasks as cue--outcome pairs with observable
-  outcomes (\cref{def:task}); a learned forest converges to the ideal forest of its tasks
-  (\cref{thm:ideal}) and is consistent if and only if the tasks are sufficient
-  (\cref{cor:iff}); funnel tasks are sufficient for monotone-additive targets
-  (\cref{prop:suffclass}) but not for $x_1x_2$ with symmetric inputs (\cref{prop:xy});
-  cross-view tasks are sufficient in a Gaussian multi-view model (\cref{prop:multiview});
-  categorization is sufficient whenever its cells shrink, stay few compared with the
-  sample, and its smoothing vanishes fast enough (\cref{thm:labelcons}).
-\item Inferring tasks (\cref{sec:infer}): no rule that looks at a tree's own data can
-  infer its task (\cref{thm:locality}, \cref{cor:parity}); verifying candidate tasks at
-  the composing tree selects a sufficient assignment with probability tending to one
-  (\cref{thm:selection}); this yields task operators chosen like Cobweb's own
-  (\cref{proc:induction}).
-\item A cue calculus (\cref{sec:cues}) that maps the kinds of cue studied in memory
-  research---associative, contextual, retrieval, self-generated, instructional, and
-  blocked cues---onto validities of forest quantities, proves what each kind requires
-  (\cref{prop:cues}: a contextual cue passes nothing through an activation and must be
-  merged or passed as a label; a redundant cue is blocked), and turns this into a
-  procedure that designs a forest from held-out errors of Cobweb trees alone
-  (\cref{proc:cues}).
-\item Experiments (\cref{sec:experiments}) that test each statement and repeat the KAN
-  paper's battery, and a three-layer verification (\cref{app:verify}): Lean~4 proofs of
-  the discrete cores, an executable check of each testable statement against the
-  implementation, and an adversarial reviewer calibrated on planted errors.
+\begin{itemize}[leftmargin=*,noitemsep]
+\item One Cobweb tree is a universal approximator with an explicit rate, and a forest of
+  $4n^2+4n$ two-input trees realises \eqref{eq:ka}; one input per tree is not enough
+  (\cref{sec:repr-main}).
+\item Cobweb never deletes a stored example, so a learned tree is a consistent regressor
+  whatever hierarchy category utility builds, and a learned forest converges to the forest
+  of conditional expectations its tasks define (\cref{sec:learn-main}).
+\item Which tasks recover $f$: predicting the target, predicting another part of the
+  input, or categorizing; and why a tree's task must be chosen where trees are composed
+  (\cref{sec:tasks-main}).
+\item The KAN paper's experiments repeated for Cobweb forests, plus housing, MNIST and
+  text (\cref{sec:exp}); a short cognitive reading (\cref{sec:cog}); and verification by
+  Lean proofs, executable checks and an adversarial review (\cref{app:verify}).
 \end{itemize}
 
 %=====================================================================
-\section{The model}\label{sec:model}
+\section{Cobweb trees and forests}\label{sec:forests}
+%=====================================================================
+
+\paragraph{A tree as a function.}
+A Cobweb tree stores examples $(x,y)$.  Every concept $c$ keeps the count $n_c$ of the
+examples below it and their mean $\mu_c=(\mu_{c,x},\mu_{c,y})$ and variance; the leaves
+hold the examples themselves.  To predict $y$ at a new $x$, the tree mixes the means of
+its leaves, weighting each by how many examples it holds and how well it explains $x$:
+\begin{equation}\label{eq:tree}
+  \hy(x)=\frac{\sum_{c\text{ leaf}}n_c\,\N(x;\mu_{c,x},h^2)\,\mu_{c,y}}
+              {\sum_{c\text{ leaf}}n_c\,\N(x;\mu_{c,x},h^2)},
+\end{equation}
+where the variance floor $h^2$ plays the role of a bandwidth.  This is the
+\emph{count-weighted leaf mixture}.  The implementation also mixes over internal concepts and
+offers four weightings; \cref{app:model} defines all of them, and the results below say
+which ones they cover.
+
+\paragraph{Forests.}
+A \emph{Cobweb forest} is a directed acyclic graph of Cobweb trees with one output tree.
+An edge $\sigma\to\tau$ carries one of two \emph{messages} from $\sigma$ into $\tau$'s
+examples: its \emph{activation}, the prediction \eqref{eq:tree} of $\sigma$'s outcome,
+or its \emph{label}, the identifier of the concept the input sorts to.  A tree may also
+read raw coordinates of $x$.  Every tree learns with Cobweb's own procedure on the
+examples made of its inputs and its outcome.  In the \emph{online} protocol each tree
+first emits its message for a new observation and then learns it, as Cobweb's
+predict-then-learn loop does; this keeps a tree's training messages out of sample
+(\cref{def:forestlearn}).
+
+%=====================================================================
+\section{Representation: a Cobweb--Kolmogorov--Arnold theorem}\label{sec:repr-main}
+%=====================================================================
+
+\begin{theorem}[One tree is a universal approximator; \cref{thm:single}]\label{thm:main-single}
+Let $g$ be continuous on a compact $K\subset\R^d$.  For every $\varepsilon>0$ there is a
+Cobweb tree whose prediction is within $\varepsilon$ of $g$ on all of $K$.  If $g$ is
+$L$-Lipschitz, a tree with $G$ leaves achieves error at most
+$C_d\,L\,\mathrm{diam}(K)\,G^{-1/d}+C_d\|g\|_\infty G^{-1}$.
+\end{theorem}
+
+\emph{Idea.}  Put one leaf at each point of a fine grid, holding $(\gamma,g(\gamma))$.
+With a variance floor at the grid spacing, \eqref{eq:tree} is a Gaussian average of
+$g$ over the grid points near $x$, and the root's share of the mixture is of order $1/G$.
+The same holds for two of the implementation's all-concept weightings, while the other
+two keep a fixed bias on such a flat tree (\cref{prop:prior}).
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[x=0.85cm,y=0.9cm,
+  tree/.style={draw,rounded corners=2pt,minimum width=0.8cm,minimum height=0.5cm,font=\scriptsize,fill=blue!6},
+  add/.style={draw,rounded corners=2pt,minimum width=0.8cm,minimum height=0.5cm,font=\scriptsize,fill=orange!12},
+  >=latex]
+\node (x1) at (2.2,0) {$x_1$};
+\node (x2) at (6.6,0) {$x_2$};
+\foreach \q/\xx in {0/0,1/2.2,2/4.4,3/6.6,4/8.8} {
+  \node[tree] (a\q) at (\xx-0.5,1.2) {$\varphi_{\q1}$};
+  \node[tree] (b\q) at (\xx+0.5,1.2) {$\varphi_{\q2}$};
+  \draw[->] (x1) -- (a\q); \draw[->] (x2) -- (b\q);
+  \node[add] (s\q) at (\xx,2.3) {$+$};
+  \draw[->] (a\q) -- (s\q); \draw[->] (b\q) -- (s\q);
+  \node[tree] (P\q) at (\xx,3.3) {$\Phi_{\q}$};
+  \draw[->] (s\q) -- (P\q);
+}
+\node[add] (o1) at (1.1,4.4) {$+$}; \draw[->] (P0) -- (o1); \draw[->] (P1) -- (o1);
+\node[add] (o2) at (5.5,4.4) {$+$}; \draw[->] (P2) -- (o2); \draw[->] (P3) -- (o2);
+\node[add] (o3) at (3.3,5.4) {$+$}; \draw[->] (o1) -- (o3); \draw[->] (o2) -- (o3);
+\node[add] (o4) at (6.0,6.3) {$+$}; \draw[->] (o3) -- (o4); \draw[->] (P4) -- (o4);
+\node (f) at (6.0,7.1) {$f(x_1,x_2)$}; \draw[->] (o4) -- (f);
+\end{tikzpicture}
+\caption{The Cobweb--Kolmogorov--Arnold forest for $n=2$: every box is a Cobweb tree that
+passes its activation.  Blue trees have one input and realise the functions of
+\eqref{eq:ka}; orange trees have two inputs and realise the sums.  There are
+$4n^2+4n=24$ trees.}
+\label{fig:cka}
+\end{figure}
+
+\begin{theorem}[Cobweb--Kolmogorov--Arnold; \cref{thm:cka,prop:fanin}]\label{thm:main-cka}
+For every continuous $f$ on $[0,1]^n$ and every $\varepsilon>0$ there is a Cobweb forest
+of $4n^2+4n$ trees, each with at most two inputs and passing activations, whose output
+is within $\varepsilon$ of $f$ (\cref{fig:cka}).  A forest in which every tree has one
+input computes a function of a single coordinate, so two inputs per tree are necessary.
+\end{theorem}
+
+\emph{Idea.}  Read \eqref{eq:ka} as a graph of one- and two-variable maps:
+$n(2n+1)$ inner functions, $(2n+1)(n-1)$ additions for the inner sums, $2n+1$ outer
+functions and $2n$ additions for the outer sum.  Replace every map by a tree from
+\cref{thm:main-single}.  Errors pass through continuous maps, so choosing each tree's
+accuracy backwards from the output keeps the total error below $\varepsilon$
+(\cref{lem:dag}).
+
+Three remarks place the theorem.  First, as for KANs, the useful statement assumes
+structure: if $f$ is a composition of maps with at most $k$ inputs each, a forest with
+$G$ leaves per tree has error of order $G^{-1/k}$, set by the fan-in and not by $n$,
+while a single tree pays $G^{-1/n}$ (\cref{rem:rates}).  Second, labels are universal
+too: trees that categorize each coordinate and pass their labels to a lookup tree
+approximate any $f$, but the lookup tree needs one leaf per cell, $K^n$ in all, because
+labels carry no metric (\cref{thm:label}).  Third, merging trees under one common root
+does not compose them: the merged tree predicts a mixture of their predictions
+(\cref{prop:interweave}).  Composition is what a forest adds to a tree.
+
+%=====================================================================
+\section{Learning without gradients}\label{sec:learn-main}
+%=====================================================================
+
+\subsection{One tree}
+
+\begin{theorem}[Cobweb never forgets, so a learned tree is consistent;
+\cref{lem:leaves,thm:consistency}]\label{thm:main-learn}
+None of Cobweb's operators deletes a leaf, and every example ends in exactly one leaf.
+Hence, whatever hierarchy category utility builds and in whatever order the examples
+arrive, the count-weighted leaf mixture \eqref{eq:tree} of a learned tree equals the
+Nadaraya--Watson kernel regression on all examples seen.  With exact matching, if
+$h\to0$ and $Nh^d\to\infty$, the learned tree's prediction converges to $\E[Y\mid X]$
+(almost surely, in $L_1$) for every distribution of $(X,Y)$ with bounded $Y$.
+\end{theorem}
+
+The hierarchy plays no role in consistency; it matters for search under a budget, for
+the default \textsc{path} weighting, and for the labels a tree passes on
+(\cref{rem:structure}).  The weights must count examples: a count-blind mixture averages
+distinct stored values instead of samples and fails when examples repeat
+(\cref{rem:counts}).
+
+\subsection{A forest learns conditional expectations}
+
+Give every tree $\tau$ a \emph{task}: its inputs $U_\tau$ (raw coordinates and parents'
+messages) and an \emph{outcome} $V_\tau$ it will observe.  By \cref{thm:main-learn} each
+tree learns $\E[V_\tau\mid U_\tau]$, so the forest has a natural limit, the \emph{ideal
+forest}: in topological order, every tree emits $m_\tau=\E[V_\tau\mid U_\tau]$, where
+$U_\tau$ is built from the ideal messages of its parents.
+
+\begin{theorem}[A learned forest converges to its ideal forest;
+\cref{thm:ideal,cor:iff}]\label{thm:main-forest}
+Under regularity conditions (bounded outcomes, inputs with densities, variance floors
+that shrink slowly enough, \cref{ass:regular}), the output of a forest learned by Cobweb
+converges uniformly, in probability, to the output $F$ of its ideal forest.  It therefore learns
+$f=\E[Y\mid X]$ if and only if $F=f$, i.e.\ if and only if its tasks are
+\emph{sufficient}.
+\end{theorem}
+
+\Cref{thm:main-forest} separates what Cobweb's learning does from what the tasks
+determine.  Every tree learns exactly the conditional expectation of its outcome given
+its inputs; whether these compose to $f$ is a property of the tasks alone.
+
+\subsection{What should each tree predict?}\label{sec:tasks-main}
+
+In the KA forest the tree for $\Phi_q$ must hold $\Phi_q(u_q)$, a quantity no one ever
+observes; only the sum $f$ is observed (\cref{rem:kaobs}).  A KAN separates the terms of
+the sum by back-propagation.  A Cobweb tree can only predict an observable outcome, and
+there are three natural kinds:
+\emph{funnel} (every tree predicts the target $Y$, as in the Cobweb language model),
+\emph{cross-view} (a tree predicts a part of the input it does not see, such as a
+neighbouring pixel), and \emph{categorization} (no outcome; the tree passes labels, as in
+Convolutional Cobweb).
+
+\begin{proposition}[Which tasks are sufficient; \cref{sec:tasks}]\label{prop:main-tasks}
+\leavevmode
+\begin{enumerate}[label=(\alph*),leftmargin=*,noitemsep]
+\item \emph{Funnel tasks work when the parts combine monotonically}: if
+  $Y=\Phi\bigl(\sum_jg_j(X_{B_j})\bigr)+\text{noise}$ with $\Phi$ increasing and
+  independent blocks $X_{B_j}$, a forest in which each tree predicts $Y$ is sufficient
+  (\cref{prop:suffclass}).
+\item \emph{Funnel tasks fail on interactions}: for $Y=X_1X_2$ with symmetric inputs, a
+  tree that sees only $X_1$ predicts $\E[Y\mid X_1]=0$, so the funnel forest learns
+  nothing (\cref{prop:xy}).
+\item \emph{Categorization works for every target, at a price}: label forests are
+  consistent whenever their cells shrink and stay few compared with the data, conditions
+  that do not depend on $f$; filling $n$ dimensions takes a number of cells exponential
+  in $n$ (\cref{thm:labelcons}).
+\item \emph{Cross-view tasks work when the target lives in what the views share}, as in a
+  Gaussian multi-view model (\cref{prop:multiview}).
+\end{enumerate}
+\end{proposition}
+
+Can a tree find out by itself whether its task is right?  No.
+
+\begin{proposition}[A tree cannot tell its role from its own data;
+\cref{thm:locality,cor:parity}]\label{prop:main-local}
+Let $X_1,X_2,X_3$ be uniform on $[-1,1]$ and compare $Y=\operatorname{sign}(X_1X_2)$ with
+$Y=\operatorname{sign}(X_1X_3)$, observing only $X_1,X_2,Y$.  In the first world $X_2$
+is essential; in the second it is irrelevant.  Yet the pair $(X_2,Y)$ has the same
+distribution in both, so a tree that sees $X_2$, whatever it predicts, receives the same
+data, and every rule based on its own data that decides whether to keep it errs with
+probability at least $1/2$ in one of the two worlds.  The same holds
+for the parity of any number of signs.
+\end{proposition}
+
+The information a tree carries can be synergistic: it exists only together with another
+tree's input.  Back-propagation solves this by sending the error of the composition to
+every module.  A Cobweb forest must instead decide at the tree that composes the parts.
+Choosing among candidate
+task assignments by the validation error of the output is
+consistent: if every candidate forest converges and one of them is sufficient, the
+choice is sufficient with probability tending to one (\cref{thm:selection}).  This gives a simple recipe
+(\cref{proc:induction}): merge the pairs of inputs whose combination the activations lose
+(those with a positive \emph{synergy deficit}, \cref{def:operators}), compose the groups
+with two-input trees, and choose each tree's message by validation, always keeping the
+single merged tree among the candidates.
+
+%=====================================================================
+\section{Experiments}\label{sec:exp}
+%=====================================================================
+
+We repeat the KAN paper's experiments \citep{liu2024kan} and add tabular data, images and
+text.  Trees use the implementation's defaults (the \textsc{path} weighting over leaves, a
+budget of 300 leaves, the online protocol), which lie outside the hypotheses of the
+convergence theorems; the experiments test the theorems' predictions rather than
+instantiate them.  Errors are test RMSE divided by the standard deviation of $f$, averaged
+over three seeds unless stated.  The full setup and further experiments are in
+\cref{app:experiments}.  We do not claim that Cobweb forests are competitive regressors:
+a Cobweb tree is a nonparametric smoother, and on smooth targets the gradient-trained
+MLP and KAN are far more accurate.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figs/toys.pdf}
+\caption{Test RMSE$/\mathrm{sd}(f)$ against $N$ on the KAN paper's toy functions.  Forests
+are drawn with their best graph (dotted: the univariate graph of the 4-D target).}
+\label{fig:toys}
+\end{figure}
+
+\begin{table}[t]
+\centering\small
+\resizebox{\linewidth}{!}{\input{tables/toys}}
+\caption{Toy functions: test RMSE$/\mathrm{sd}(f)$, mean of three seeds.  ``activations''
+is the funnel forest; for the 4-D target the forests use the pairs graph (superscript
+$u$: univariate graph).}
+\label{tab:toys}
+\end{table}
+
+\paragraph{Toy functions (\cref{fig:toys,tab:toys}).}
+One tree's error falls with $N$ on every target of dimension up to four, as
+\cref{thm:main-learn} predicts; on $\sin(\pi x)$ and $\exp(\sin\pi x_1+x_2^2)$ at
+$N=16000$ it is 7 to 11 times behind the MLP and 16 to 34 times behind the KAN, and on
+$J_0(20x)$ it beats the KAN, whose grid limits it.  On $x_1x_2$ the funnel forest stays at
+the error of a constant ($0.99$ to $1.02$), as \cref{prop:main-tasks}(b) predicts,
+while label ($0.22$) and hybrid ($0.19$) forests learn.  On the 4-D target
+$\exp\bigl(\tfrac12(\sin\pi(x_1^2+x_2^2)+\sin\pi(x_3^2+x_4^2))\bigr)$ the funnel forest over
+the two pairs, which is sufficient by \cref{prop:main-tasks}(a), beats the single tree at
+small $N$ ($0.46$ against $0.57$ at $N=1000$) and loses at $N=16000$ ($0.33$ against
+$0.28$).  On the 100-D target no Cobweb design gets below $0.95$, while the KAN reaches
+$0.002$: each univariate tree must estimate a weak signal, and its errors compound
+through the levels (\cref{tab:diag100}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\linewidth]{figs/continual.pdf}
+\caption{Continual learning on the KAN paper's five-peak task
+\citep[Fig.~3.4]{liu2024kan}; one region per phase (shaded), target in grey.}
+\label{fig:continual}
+\end{figure}
+
+\paragraph{Continual learning (\cref{fig:continual}).}
+\Cref{thm:main-learn} says that a tree never deletes what it has learned.  On the KAN
+paper's continual task the tree's error on all data seen so far stays between $0.037$ and
+$0.048$ through all five phases; the MLP forgets (its error reaches $10.8$) and the KAN
+with a fine grid forgets partly ($0.17$; \cref{tab:continual}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figs/interpret.pdf}
+\caption{What the trees of a funnel forest learn on $\exp(\sin\pi x_1+x_2^2)$
+($N=4000$).  Left and centre: each univariate tree's activation against the exact
+$\E[f\mid x_i]$.  Right: the output tree as a function of the two activations.}
+\label{fig:interpret}
+\end{figure}
+
+\paragraph{Interpretability (\cref{fig:interpret}).}
+Like a KAN's edges, a forest's trees can be plotted.  On $\exp(\sin\pi x_1+x_2^2)$ the
+univariate trees learn $c_1e^{\sin\pi x_1}$ and $c_2e^{x_2^2}$, the inner functions of the
+target up to monotone maps, without gradients.
+
+\paragraph{Choosing tasks.}
+The sign worlds of \cref{prop:main-local} behave as predicted (\cref{tab:locality}): the
+tree that sees $x_2$ has the same error and the same flat activation in both worlds,
+while the composing tree separates them.  Choosing among candidate forests by the
+output's validation error never selects the funnel forest on $x_1x_2$ or on the sign
+target, and the selected forest is within one percent of the best candidate in every
+setting (\cref{tab:selection}).  On Feynman equations the recipe of
+\cref{sec:tasks-main} finds the structure of the formula---in $q(E_f+Bv\sin\theta)$ it
+groups $B$, $v$ and $\theta$---and it recovers the two blocks of the 4-D target
+(\cref{tab:induce}).
+
+\begin{table}[t]
+\centering\small
+\input{tables/mnist}
+\caption{MNIST accuracy (\%, three seeds); one tree per $7\times7$ patch.  ``label'': patch
+trees categorize (Convolutional Cobweb); ``cross'': they predict the centre pixels of the
+neighbouring patches; ``act'': they predict the class and pass its distribution;
+``hybrid'': ``act'' plus labels.}
+\label{tab:mnist}
+\end{table}
+
+\paragraph{Real data.}
+On California housing the funnel forest over natural feature pairs
+(longitude--latitude, \dots) beats the single tree at every $N$ ($0.276$ against $0.303$
+at $N=16000$, \cref{tab:housing}); MLP and KAN are better still.  On MNIST
+(\cref{tab:mnist}) patch trees that predict the class and pass their predicted
+distributions reach $94.4\%$, and the hybrid forest $94.9\%$ at $N=20000$, level with the
+KAN ($94.5\%$) and below the MLP ($96.8\%$).  Categorizing patch trees reach $86\%$ and
+cross-view patch trees $37$--$52\%$: neighbouring pixels do not carry the class, so
+\cref{prop:main-tasks}(d) does not apply.  On next-word prediction from four words
+(\cref{tab:owt}) generic forests barely improve on one tree; a Cobweb language model
+needs its own architecture.
+
+%=====================================================================
+\section{A cognitive reading}\label{sec:cog}
+%=====================================================================
+
+The three tasks of \cref{sec:tasks-main} are three things a learner can do with what it
+perceives: \emph{categorize} it, as in Cobweb's original concept formation;
+\emph{predict an outcome} from it, as in associative learning \citep{rescorla1972}; or
+\emph{predict another part} of it, as in predictive-processing accounts of perception
+\citep{clark2013}.  The theory says when each suffices.  Categories must grow finer with
+experience, and so must the trees' acuity, the variance floor $h$; both are forms of
+perceptual learning \citep{goldstone1998}.  Outcome prediction compresses a percept to what
+matters for the outcome, which works when parts combine monotonically and fails on
+interactions.  Perceptual prediction never needs the outcome and works when the outcome
+lives in what the views share.  Two further properties have a cognitive flavour.  Cobweb
+stores and does not overwrite, which is why a tree does not forget
+(\cref{thm:main-learn}).  And \cref{prop:main-local} is a precise form of the
+credit-assignment problem \citep{minsky1961}: a module cannot learn its role from what it
+alone sees; the decision belongs where the parts are combined and checked against an
+observed outcome.
+
+%=====================================================================
+\section{Discussion}\label{sec:discussion}
+%=====================================================================
+
+\paragraph{Cobweb forest or KAN?}
+Use a KAN or an MLP when the target is smooth, the data are plentiful and offline, and
+accuracy is what matters: back-propagation fits the inner functions of \eqref{eq:ka}
+directly, and no Cobweb design comes close on smooth targets.  A Cobweb forest is the
+choice when learning must be incremental, gradient-free and free of forgetting, when the
+units should be inspectable concept hierarchies, or when the inputs are symbolic and the
+messages should be concepts.
+
+\paragraph{Rules of thumb for composing trees.}
+\begin{enumerate}[leftmargin=*,noitemsep]
+\item Give every tree an observable outcome, or none (\cref{sec:tasks-main}).
+\item Pass activations where parts combine monotonically; merge inputs, or pass labels,
+  where they interact (\cref{prop:main-tasks}).
+\item Choose a tree's task where its message is used, by the output's validation error,
+  and keep the merged tree among the candidates (\cref{prop:main-local}).
+\item Keep forests shallow: two inputs per tree suffice in principle, but each level adds
+  error that the next level reads as noise (\cref{tab:diag100}).
+\item Predict with counts and train predict-then-learn (\cref{rem:counts,def:forestlearn}).
+\end{enumerate}
+
+\paragraph{Limitations.}
+The convergence theorems assume the split protocol, full expansion, exact matching and
+the count-weighted leaf mixture; the experiments use the implementation's defaults.  One
+step of \cref{thm:ideal} relies on a standard uniform law for kernel sums, the label-cell
+conditions of \cref{thm:labelcons} are not derived from category utility, and the task
+recipe is greedy.  The rates are those of nonparametric smoothing.
+
+\appendix
+\numberwithin{theorem}{section}
+
+%=====================================================================
+\section{The model in full}\label{app:model}\label{sec:model}
 %=====================================================================
 
 \subsection{Concepts and trees}
@@ -326,7 +639,7 @@ language model, and the split protocol avoid this.
 \end{remark}
 
 %=====================================================================
-\section{Representation}\label{sec:repr}
+\section{Representation: statements and proofs}\label{sec:repr}
 %=====================================================================
 
 Throughout, a tree that \emph{represents} $g:K\to\R$ ($K\subset\R^d$ compact) is a tree
@@ -595,7 +908,7 @@ convex combinations; it never composes them.  Composition---one tree reading ano
 representation---is what forests add.
 
 %=====================================================================
-\section{Learnability of one tree}\label{sec:learn}
+\section{Learning one tree: statements and proofs}\label{sec:learn}
 %=====================================================================
 
 \begin{lemma}[Leaf preservation]\label{lem:leaves}
@@ -654,7 +967,7 @@ for the boxed-kernel version in $L_2$.
 \begin{remark}[Counts matter]\label{rem:counts}
 The leaves-only \textsc{lik} mixture ignores counts.  It equals the count-weighted mixture
 when every leaf stores one instance---for instance when $X$ has a density and matching is
-exact---but not when instances repeat, exactly (atoms in a nominal cue or in the target)
+exact---but not when instances repeat, exactly (atoms in a nominal input or in the target)
 or within the implementation's tolerance $\tau=10^{-5}$: it then averages the distinct
 stored values instead of the samples.  For a Bernoulli target whose copies share one leaf
 per value in each cell it gives $1/2$ in every cell as $\alpha\to0$, whatever the cell's
@@ -692,7 +1005,7 @@ has $\pi_c+\ell_{\max}$ below the best score found so far can be pruned.
 \end{remark}
 
 %=====================================================================
-\section{Cognitive tasks}\label{sec:tasks}
+\section{Tasks: statements and proofs}\label{sec:tasks}
 %=====================================================================
 
 A Cobweb tree is unsupervised: it models the joint distribution of whatever its
@@ -700,17 +1013,17 @@ instances contain and predicts any attribute that is missing from a query.  What
 \emph{passes on} is therefore fixed by what its instances contain.  We make this the
 central object.
 
-\subsection{Tasks as cues and outcomes}
+\subsection{Tasks as inputs and outcomes}
 
 \begin{definition}[Cognitive task]\label{def:task}
 Let the stream consist of i.i.d.\ observations $(X,Y)$, $X\in\R^n$ the raw input and
 $Y$ the target.  A \emph{cognitive task} for a tree $\tau$ is a pair $(C_\tau,V_\tau)$:
 \begin{itemize}[leftmargin=*]
-\item the \emph{cue} $C_\tau$, what the tree perceives: its raw coordinates
+\item the \emph{input} $C_\tau$, what the tree perceives: its raw coordinates
   $X_{S_\tau}$ and the messages of its parents;
 \item the \emph{outcome} $V_\tau$, what the tree predicts and later observes: either
   nothing ($V_\tau=\varnothing$) or an \emph{observable} variable, i.e.\ coordinates of
-  the observation that the cue does not contain---the target $Y$, or raw coordinates
+  the observation that the input does not contain---the target $Y$, or raw coordinates
   $X_J$ with $J\cap S_\tau=\emptyset$.
 \end{itemize}
 The tree learns the instances $(C_\tau,V_\tau)$ with \texttt{ifit} and is queried with
@@ -724,9 +1037,9 @@ hierarchy of Convolutional Cobweb does.  \emph{Funnel} ($V_\tau=Y$): every tree 
 the final target, as every tree of the Cobweb language model predicts the next word.
 \emph{Cross-view} ($V_\tau=X_j$, $j\notin S_\tau$): the tree predicts a part of the input
 it does not perceive---a neighbouring pixel, the next token, the context of a chunk, as
-TRELLIS's content hierarchy models its context.  The cue--outcome reading is the one of
+TRELLIS's content hierarchy models its context.  The input--outcome reading is the one of
 associative learning, in which an organism learns to predict an outcome it will observe
-from the cues it perceives \citep{rescorla1972}; the online protocol of
+from the inputs it perceives \citep{rescorla1972}; the online protocol of
 \cref{def:forestlearn} is literally ``predict, then observe, then learn''.
 
 Observability is the constraint that separates learnable from representable forests.
@@ -745,7 +1058,7 @@ of this section asks which \emph{observable} tasks recover $f$ anyway.
 
 \begin{definition}[Ideal forest, sufficiency, deficit]\label{def:ideal}
 Let $A$ be a task assignment of an activation forest.  Define, in topological order,
-the \emph{ideal cue} and \emph{ideal message} of each tree,
+the \emph{ideal input} and \emph{ideal message} of each tree,
 \[
   U_\tau=\bigl(X_{S_\tau},(m_\sigma(X))_{\sigma\to\tau}\bigr),\qquad
   m_\tau(X)=\E[V_\tau\mid U_\tau]=\psi_\tau(U_\tau),
@@ -762,7 +1075,7 @@ $\Var(Y\mid U_o)=\E[\Var(Y\mid X)\mid U_o]+\Var(f(X)\mid U_o)$.
 
 \begin{assumption}[Regularity]\label{ass:regular}
 (A1) The observations are i.i.d., $X$ has compact support, and every outcome is
-bounded, $|V_\tau|\le B$.  (A2) For every tree, the ideal cue
+bounded, $|V_\tau|\le B$.  (A2) For every tree, the ideal input
 $U_\tau\in\R^{k_\tau}$ has a density bounded away from zero and infinity on its support
 $D_\tau$, a compact set with Lipschitz boundary, and $\psi_\tau$ extends to a uniformly
 continuous function on a neighbourhood of $D_\tau$.  (A3) Every tree matches instances exactly
@@ -789,7 +1102,7 @@ satisfies $\sup_x|\hat F_N(x)-F_A(x)|\to0$ in probability.
 \begin{proof}
 Induction over the levels of the DAG.  Fix a tree $\tau$ at level $\ell$ and condition on
 the chunks of the earlier levels, on which its parents were trained and frozen.  Write
-$\hat u_\tau(x)=(x_{S_\tau},(\hat m_\sigma(x))_\sigma)$ for its learned cue map and
+$\hat u_\tau(x)=(x_{S_\tau},(\hat m_\sigma(x))_\sigma)$ for its learned input map and
 $u_\tau(x)$ for the ideal one, so $\|\hat u_\tau-u_\tau\|_\infty\le\varepsilon:=
 \sqrt{k_\tau}\max_\sigma\varepsilon_{\sigma,N}$.
 
@@ -797,14 +1110,14 @@ $u_\tau(x)$ for the ideal one, so $\|\hat u_\tau-u_\tau\|_\infty\le\varepsilon:=
 $(\hat U_i,V_i)=(\hat u_\tau(X_i),V_{\tau,i})$ of chunk $\ell$, which are i.i.d.\ given
 the earlier chunks.  By \cref{lem:leaves} its leaves store copies of single instances,
 with zero spread, and, as in the proof of \cref{thm:consistency}, its count-weighted
-leaves-only activation at a cue $u$ is the Nadaraya--Watson estimate
+leaves-only activation at a input $u$ is the Nadaraya--Watson estimate
 $\hat\psi(u)=\sum_iK_h(u-\hat U_i)V_i/\sum_iK_h(u-\hat U_i)$ over the instances of the
 chunk, with the Gaussian kernel of bandwidth $h=h_{\tau,N}$.  (With the implementation's
-tolerance the stored cues move by at most about $\tau(1+\ln N)$ (\cref{rem:counts}), a
+tolerance the stored inputs move by at most about $\tau(1+\ln N)$ (\cref{rem:counts}), a
 perturbation that Step~2 absorbs when $\tau\ln N=o(h)$.)
 
 \emph{Step 2: the perturbed design does not matter.}  Let $\check\psi$ be the same
-estimate built on the ideal cues $U_i=u_\tau(X_i)$.  We take as given the uniform Nadaraya--Watson law that, under (A1)--(A3),
+estimate built on the ideal inputs $U_i=u_\tau(X_i)$.  We take as given the uniform Nadaraya--Watson law that, under (A1)--(A3),
 $\check\psi\to\psi_\tau$ uniformly on the $\delta$-neighbourhood of $D_\tau$ for any
 $\delta=o(h)$, in probability.  The cited results \citep{devroye1978,mack1982} state it on
 interior compact sets; up to a Lipschitz boundary and for the Gaussian kernel it follows from
@@ -826,7 +1139,7 @@ Hence $\sup_u|\hat\psi(u)-\check\psi(u)|\le2B\bigl(e^{2\eta}-1+C'e^{-R^2/16}\big
 tends to zero in probability when $R=R_N\to\infty$ slowly enough that
 $R\varepsilon/h\to0$, possible by (A4).
 
-\emph{Step 3: the test-time cue.}  At test time the tree is queried at $\hat u_\tau(x)$,
+\emph{Step 3: the test-time input.}  At test time the tree is queried at $\hat u_\tau(x)$,
 so $|\hat m_\tau(x)-m_\tau(x)|\le\sup_{D_\tau^{(\varepsilon)}}|\hat\psi-\psi_\tau|+
 \omega_{\psi_\tau}(\varepsilon)$, where $D_\tau^{(\varepsilon)}$ is the
 $\varepsilon$-neighbourhood of $D_\tau$; both terms tend to zero in probability by
@@ -844,7 +1157,7 @@ $\E(\hat F_N-F_A)^2\to0$, and $\E(\hat F_N-f)^2\to\E(F_A-f)^2=\Delta(A)$.
 \end{proof}
 
 \Cref{thm:ideal} separates what Cobweb's learning does from what the tasks determine:
-every tree learns the conditional expectation of its outcome given its cue, nothing more
+every tree learns the conditional expectation of its outcome given its input, nothing more
 and nothing less; whether the composition of these conditional expectations is $f$ is a
 property of the task assignment alone.
 
@@ -860,7 +1173,7 @@ parents' $\E[Y\mid X_{R(\sigma)}]$ and of $X_{S_\tau}$.
 Let $X$ have compact support and consist of independent blocks $X_{B_1},\dots,X_{B_m}$, and let
 $Y=\Phi\bigl(\sum_jg_j(X_{B_j})\bigr)+\xi$ with $\Phi$ continuous and strictly increasing,
 $g_j$ continuous, and $\xi$ centred and independent of $X$.  Then every funnel
-activation forest whose graph is a rooted tree in which each block is the raw cue of
+activation forest whose graph is a rooted tree in which each block is the raw input of
 exactly one tree is sufficient.
 \end{proposition}
 \begin{proof}
@@ -870,7 +1183,7 @@ of $X_S$; $H_S$ is continuous and strictly increasing because $\Phi$ is.  A tree
 children cover the disjoint block sets $S_1,\dots,S_k$ and which reads the raw blocks $S_0$
 has $s_S=\sum_iH_{S_i}^{-1}(m_{S_i})+\sum_{j\in S_0}g_j(X_{B_j})$, so its
 $\E[Y\mid X_S]=H_S(s_S)$ is a continuous function of its parents' messages and its raw
-cue.
+input.
 \end{proof}
 
 The KAN examples $\exp(\sin\pi x_1+x_2^2)$, $\exp\bigl(\tfrac1{100}\sum_i\sin^2(\pi x_i/2)\bigr)$
@@ -888,10 +1201,10 @@ the learned output converges uniformly in probability to $\E Y=0$: in the limit 
 forest learns nothing, whatever structure its trees build.
 \end{proposition}
 \begin{proof}
-$\E[X_1X_2\mid X_1]=X_1\E X_2=0$, and likewise for $X_2$, so the output tree's ideal cue
+$\E[X_1X_2\mid X_1]=X_1\E X_2=0$, and likewise for $X_2$, so the output tree's ideal input
 is the constant $u_0=(0,0)$.  The source trees satisfy \cref{ass:regular}, so their
 activations converge to $0$ uniformly (Steps~1--3 of the proof of \cref{thm:ideal}).  The
-output tree therefore learns and is queried at cues within $\varepsilon\to0$ of $u_0$;
+output tree therefore learns and is queried at inputs within $\varepsilon\to0$ of $u_0$;
 all its kernel weights lie within the factor $e^{-2\varepsilon^2/h^2}\to1$ of one another,
 so its prediction converges to the mean of $Y$ over its chunk, and that mean to $\E Y=0$.
 At finite $N$ the activations are noisy functions of the coordinates and can carry a
@@ -909,9 +1222,9 @@ Let $Z\in\R^r$ be latent and $X=(X^{(1)},\dots,X^{(m)})$ consist of $m\ge2$ view
 $(Z,X)$ jointly Gaussian and centred, $X^{(v)}=\Lambda_vZ+E_v$, $\operatorname{Cov}(Z)$ and
 every $\operatorname{Cov}(E_v)$ nonsingular, the noises $E_v$ independent of each other and
 of $Z$.  Let $Y=g(Z)+\xi$ with $\E|g(Z)|<\infty$ and $\xi$
-centred and independent of $(Z,X)$.  Give the tree of view $v$ the cue $X^{(v)}$ and as
+centred and independent of $(Z,X)$.  Give the tree of view $v$ the input $X^{(v)}$ and as
 outcome $r$ coordinates $W_v$ of other views whose loading matrix $\Lambda_{W_v}\in\R^{r\times r}$
-is invertible, and let the output tree have the activations of the $m$ view trees as cue
+is invertible, and let the output tree have the activations of the $m$ view trees as input
 and $Y$ as outcome.  This assignment is sufficient, and no tree but the output tree
 perceives $Y$.
 \end{proposition}
@@ -1010,14 +1323,14 @@ noise-free $C^2$ target on an i.i.d.\ design, a single Nadaraya--Watson tree's i
 error is of order $N^{-1}$ for $n=1$, $N^{-1/2}$ for $n=2$ and $N^{-2/(n+2)}$ for $n\ge3$ (the
 design itself fluctuates; on a compact support the $O(h)$ bias in a boundary layer of width
 $O(h)$ lowers every exponent but leaves the comparison below unchanged); each tree of a funnel forest regresses an outcome that is noisy given
-its own cue (the coordinates it does not perceive act as noise, of variance
+its own input (the coordinates it does not perceive act as noise, of variance
 $\Var(Y\mid X_{R(\tau)})$), with error of order $N^{-2/(k+4)}$.  The bounds favour the
 forest only when $n>k+2$.  For a noisy target the single tree's bound is $N^{-2/(n+4)}$
 and the comparison favours the forest as soon as $n>k$.
 \end{remark}
 
 %=====================================================================
-\section{Inferring tasks}\label{sec:infer}
+\section{Choosing tasks: statements and proofs}\label{sec:infer}
 %=====================================================================
 
 \Cref{cor:iff} reduces learnability to choosing a sufficient task assignment.  The
@@ -1044,7 +1357,7 @@ and consider the two worlds
 \]
 (i) For $j\in\{1,2\}$, the pair $(X_j,Y)$ has the same law under $P_a$ and $P_b$: $X_j$
 and $Y$ are independent and $Y$ is uniform on $\{-1,1\}$.  Hence, for every candidate
-outcome, the training stream of a tree with cue $X_j$ has the same law in both worlds,
+outcome, the training stream of a tree with input $X_j$ has the same law in both worlds,
 and so does the output of every local task rule.  (ii) Under $P_a$, $f(X)=Y$ and
 discarding $X_2$ loses everything ($\E\Var(Y\mid X_1)=1$ while $\E\Var(Y\mid X)=0$);
 under $P_b$, $X_2$ is irrelevant ($f(X)=\E[Y\mid X_1]=0$).  Consequently every local
@@ -1059,7 +1372,7 @@ over $(X_1,X_2)$ are sufficient.
 factor $\operatorname{sign}(X_1)$ is uniform on $\{-1,1\}$ and independent of $X_2$, so
 $Y$ is uniform and independent of $X_2$; by symmetry the same holds for $X_1$.  Under
 $P_b$, $Y=\operatorname{sign}(X_1)\operatorname{sign}(X_3)$ is independent of $X_2$
-outright and, by the same argument, of $X_1$.  The stream of a tree with cue $X_j$ is an
+outright and, by the same argument, of $X_1$.  The stream of a tree with input $X_j$ is an
 i.i.d.\ sample of $(X_j,V)$ with $V\in\{Y,\varnothing\}$ (or another observable whose
 joint law with $X_j$ is the same in both worlds, such as $X_{3-j}$), so it has the same
 law in both worlds, and so does any measurable function of it.  (\Cref{def:task} lets an
@@ -1076,20 +1389,20 @@ $P_a$ and $p$ under $P_b$.  (iii) $\E[Y\mid X_j]=0$ for $j=1,2$ by (i), so
 Let $X_1,\dots,X_n$ be independent and uniform on $[-1,1]$ and
 $Y=\prod_{j\in J}\operatorname{sign}(X_j)$.  For every $S$ that does not contain $J$,
 $Y$ is independent of $X_S$.  Hence no tree whose upstream raw set $R(\tau)$ misses a coordinate of $J$, and no rule
-using the streams of any set of trees whose cues and outcomes together are functions of
+using the streams of any set of trees whose inputs and outcomes together are functions of
 $X_S$ with $J\not\subseteq S$, can detect the dependence; every funnel activation of a tree
 with $J\not\subseteq R(\tau)$ vanishes; and the ideal output of an activation forest whose outcomes are $Y$ or raw
-coordinates equals $f$ only if the raw cue of some tree contains $J$ (a merged cue).
-Labels, which pass a tree's cue rather than a prediction, are the other way to bring all
+coordinates equals $f$ only if the raw input of some tree contains $J$ (a merged input).
+Labels, which pass a tree's input rather than a prediction, are the other way to bring all
 of $J$ to one tree; for learned forests these statements hold in the limit of
 \cref{thm:ideal}.
 \end{corollary}
 \begin{proof}
 For $j\in J\setminus S$, $\operatorname{sign}(X_j)$ is uniform on $\{-1,1\}$ and
 independent of $X_S$ and of the other factors, so $Y$ is uniform and independent of $X_S$.
-For the last claim, suppose no tree's raw cue contains $J$ and argue by induction in
+For the last claim, suppose no tree's raw input contains $J$ and argue by induction in
 topological order that every ideal activation is constant.  If a tree's parents' ideal
-activations are constant, its ideal cue is a function of $X_{S_\tau}$ and its ideal
+activations are constant, its ideal input is a function of $X_{S_\tau}$ and its ideal
 message is $\E[V_\tau\mid X_{S_\tau}]$.  For $V_\tau=Y$ this is $\E Y$, because $J\not\subseteq
 S_\tau$; for $V_\tau=X_j$ with $j\notin S_\tau$ it is $\E X_j$, because the coordinates are
 independent.  Hence the output's ideal value is $\E[Y\mid X_{S_o}]=\E Y=0$, while
@@ -1139,7 +1452,7 @@ $I(Y;U_o)$; proving this needs the convergence of the trees' predictive distribu
 not only of their means, which we leave open.  Category utility measures the same kind of
 quantity---the information a partition carries about an attribute---when Cobweb chooses
 among its operators; task selection evaluates it one level up, for the outcome and the
-composing tree's cue.  In
+composing tree's input.  In
 the online protocol the prequential error $\frac1N\sum_i(Y_i-\hat F_{A,i-1}(X_i))^2$
 plays the role of the validation error \citep{dawid1984}; it converges to the same limit
 whenever the online forest's risk tends to that of $F_A$, by a Ces\`aro argument.
@@ -1147,7 +1460,7 @@ whenever the online forest's risk tends to that of $F_A$, by a Ces\`aro argument
 \subsection{Task operators}
 
 \begin{definition}[Task operators and synergy deficit]\label{def:operators}
-Let a tree with outcome $V$ compose two subtrees $\sigma_1,\sigma_2$ with cues
+Let a tree with outcome $V$ compose two subtrees $\sigma_1,\sigma_2$ with inputs
 $C_1,C_2$.  The \emph{task operators} at this composition are
 \begin{itemize}[leftmargin=*,noitemsep]
 \item \textsc{act}: $\sigma_j$ gets the outcome $V$ and passes its activation;
@@ -1155,20 +1468,20 @@ $C_1,C_2$.  The \emph{task operators} at this composition are
 \item \textsc{hybrid}: $\sigma_j$ gets the outcome $V$ and passes its activation and label;
 \item \textsc{cross}: $\sigma_j$ gets a coordinate of $C_{3-j}$ as outcome and passes its
   activation;
-\item \textsc{merge}: $\sigma_1,\sigma_2$ are replaced by one tree with cue $C_1\cup C_2$.
+\item \textsc{merge}: $\sigma_1,\sigma_2$ are replaced by one tree with input $C_1\cup C_2$.
 \end{itemize}
 The \emph{synergy deficit} of the pair is
 $\Delta_{\textsc{act}}(\sigma_1,\sigma_2)=\E\Var(V\mid a_1,a_2)-\E\Var(V\mid C_1,C_2)\ge0$,
 with $a_j=\E[V\mid C_j]$; it is zero exactly when \textsc{act} loses nothing at this
 composition, and it is estimated by the difference of the validation errors of
 \textsc{act} and \textsc{merge}.  It is zero whenever both activations are injective
-functions of their cues---then $(a_1,a_2)$ determines $(C_1,C_2)$---whatever the
+functions of their inputs---then $(a_1,a_2)$ determines $(C_1,C_2)$---whatever the
 interaction, so it detects the interactions that activations lose, not all
 interactions.
 \end{definition}
 
 \textsc{merge} and its inverse mirror Cobweb's own merge and split one level up: they
-decide whether two cues are perceived by one concept hierarchy or by two.
+decide whether two inputs are perceived by one concept hierarchy or by two.
 
 \begin{procedure}[Task induction by verification]\label{proc:induction}
 \leavevmode
@@ -1195,120 +1508,11 @@ include the merged tree or a label forest, on which the selection can fall back.
 Every tree still learns only with \texttt{ifit}: the procedure chooses \emph{what} a tree
 predicts---which observable it will see---never how it learns.
 
-\subsection{A cue calculus: what a forest perceives and what it creates}\label{sec:cues}
-
-Cognitive psychology sorts the cues that drive recall and prediction into kinds:
-\emph{associative} cues predict an outcome by themselves; \emph{contextual} cues (the room,
-the mood, the surrounding words) help only together with an item, as in encoding
-specificity \citep{tulving1973} and context-dependent memory \citep{godden1975};
-\emph{retrieval} cues are the partial patterns presented at recall, and priming and
-state-dependence make some of them more effective; \emph{self-generated} cues are produced by
-the learner; \emph{instructional} or attentional cues direct which cues are attended.  Cue
-competition is equally classical: a cue that adds nothing to an established one is
-\emph{blocked} \citep{kamin1969,rescorla1972}, and a cue's predictive value is its
-\emph{validity} \citep{brunswik1956}.  A Cobweb forest both perceives cues (a tree's cue
-$C_\tau$) and creates them (its messages become the cues of the trees below it), so each
-kind has a precise counterpart.
-
-\begin{definition}[Validity]\label{def:validity}
-For an outcome $V$ with $\E V^2<\infty$ and cues $A,C$ (any measurable functions of the
-observation: raw coordinates, labels, activations, tuples of these), the \emph{validity}
-of $A$ is $v(A)=\Var\E[V\mid A]=\Var V-\E\Var(V\mid A)$ and the \emph{conditional validity}
-of $A$ given $C$ is $v(A\mid C)=v(A,C)-v(C)=\E\Var(V\mid C)-\E\Var(V\mid A,C)\ge0$.
-A cue $A$ is
-\begin{itemize}[leftmargin=*,noitemsep]
-\item \emph{associative} if $v(A)>0$;
-\item \emph{contextual} for $C$ if $v(A)=0$ and $v(A\mid C)>0$;
-\item \emph{blocked} by a kept cue $C$ if $v(A)>0$ and $v(A\mid C)=0$;
-\item \emph{irrelevant} if $v(A\mid C)=0$ for every cue $C$ considered.
-\end{itemize}
-\end{definition}
-
-$v(A)$ is the reduction of squared error obtained by the ideal tree with cue $A$ and outcome
-$V$ (\cref{def:ideal}); the deficit of \cref{def:ideal} and the synergy deficit of
-\cref{def:operators} are differences of validities.
-
-\begin{proposition}[What each kind of cue requires]\label{prop:cues}
-Let $V$ be the outcome of a composing tree and $\Omega$ finite in (a)--(b).
-\begin{enumerate}[label=(\alph*),leftmargin=*]
-\item $v(A)\ge0$, and $v(A)=0$ if and only if the activation $a_A=\E[V\mid A]$ is constant
-  on the support. \lean{validity_nonneg}, \lean{condExp_const_of_validity_zero}
-\item If $A=f(C)$ then $\E[V\mid A,C]=\E[V\mid C]$, hence $v(A\mid C)=0$: a cue that is a
-  function of a kept cue is blocked. \lean{condExp_blocked}, \lean{conditional_validity_blocked}
-\item If $A$ is contextual for $C$, every composition that passes $A$'s activation
-  loses at least $v(A\mid C)$: $\Delta_{\textsc{act}}\ge v(A\mid C)>0$.  The cue must
-  share a tree with $C$ (\textsc{merge}) or pass a label.
-\item A contextual cue cannot be recognised from its own stream: in the sign worlds of
-  \cref{thm:locality} the law of $(x_2,Y)$ is the same whether $x_2$ is contextual for
-  $x_1$ or irrelevant. \lean{sign_worlds_local_law}, \lean{sign_worlds_differ}
-\end{enumerate}
-\end{proposition}
-
-\begin{proof}
-(a) $v(A)$ is a variance.  If it is zero, the expected squared deviation of $a_A$ from its
-mean is zero, so every point of positive mass has $a_A$ equal to the mean; the converse is
-immediate.  (b) The fibres of $(f(C),C)$ are the fibres of $C$, so the two conditional
-expectations are averages over the same sets.  (c) By (a) $a_A$ is constant, so
-$\sigma(a_A,a_C)=\sigma(a_C)\subseteq\sigma(C)$ and, by the tower property and conditional
-Jensen, $\Var\E[V\mid a_A,a_C]=\Var\E[V\mid a_C]\le\Var\E[V\mid C]=v(C)$.  Hence
-$\Delta_{\textsc{act}}=v(A,C)-\Var\E[V\mid a_A,a_C]\ge v(A,C)-v(C)=v(A\mid C)$.
-(d) is \cref{thm:locality}(i)--(ii).
-\end{proof}
-
-Lean~4 with Mathlib checks, on finite spaces, the forward direction of (a), all of (b),
-and the sign skeleton of (d): the uniform world on $\{\pm1\}^3$ of the three signs, to which
-(d) reduces because the magnitudes $|X_j|$ are independent of the signs and of $Y$
-(\cref{app:verify}); (c) is proved above.  The remaining kinds are features of the model,
-not theorems.
-\begin{itemize}[leftmargin=*]
-\item \emph{Retrieval cues} are queries: a partial instance with the outcome missing,
-  categorized and completed by the tree (\cref{def:messages}).  \emph{Priming} corresponds
-  to the count weighting: concepts seen more often weigh more in the mixture
-  (\cref{rem:counts}); recency is not modelled.  \emph{State-dependent} retrieval is a
-  contextual cue present both at learning and at query: by (c) it changes the prediction
-  only when it is perceived together with the item, as in \citet{godden1975}.
-\item \emph{Self-generated cues} are messages.  An activation is a cue whose validity for
-  the next outcome is inherited from its own outcome; a label is a cue created by
-  categorization with no outcome at all, and by (c) labels are what carries contextual
-  cues across a composition when they cannot be merged.  The forest thus creates the
-  cues it later perceives.
-\item \emph{Instructional} (attention-directing) cues select what each tree perceives,
-  the sets $S_\tau$ of \cref{def:task}.  Given by a teacher, they fix the graph; inferred,
-  they are the classification below.
-\end{itemize}
-
-The calculus turns into a procedure that a practitioner can run on any data set: it reads
-nothing but held-out errors of Cobweb trees.
-
-\begin{procedure}[Cue-driven forest design; \texttt{cobweb\_forest.cues}]\label{proc:cues}
-\leavevmode
-\begin{enumerate}[leftmargin=*,noitemsep]
-\item For every cue $i$ and pair $\{i,j\}$, learn a tree on $(X_i,Y)$ and on
-  $(X_{\{i,j\}},Y)$ with \texttt{ifit}; estimate $v$ by the reduction of held-out squared
-  error relative to the mean predictor, and the funnel validity of the pair by the same
-  reduction for the \textsc{act} composition.
-\item Classify with a tolerance $\tau$: visit the cues by decreasing validity; a valid cue
-  is blocked if some \emph{already kept} cue $C$ has $v(i\mid C)\le\tau$ (blocking is
-  competitive, so of two copies one survives), otherwise associative; a cue of validity
-  $\le\tau$ is contextual if $v(i\mid j)>\tau$ for some $j$, else irrelevant.
-\item Drop blocked and irrelevant cues; merge the kept cues whose pairwise synergy deficit
-  exceeds $\tau$ (union--find); compose the groups with \textsc{act} and \textsc{hybrid}.
-\item Verify at the output (\cref{thm:selection}) against the single tree over the kept
-  cues and over all cues.
-\end{enumerate}
-\end{procedure}
-
-Step~1 estimates $\E\Var(V\mid A)$ from above (by the held-out error of a learned tree), so
-the estimated validities are biased downwards for weak cues and small samples; the
-tolerance absorbs this, and step~4 guards the outcome.  As for \cref{proc:induction}, only
-pairs are examined, so contextual cues of higher order (the parity of \cref{cor:parity})
-are classified irrelevant, and the verified fallback is again the single tree.
-
 %=====================================================================
-\section{Experiments}\label{sec:experiments}
+\section{Experiments in full}\label{app:experiments}\label{sec:experiments}
 %=====================================================================
 
-The experiments probe the statements of \cref{sec:repr,sec:learn,sec:tasks,sec:infer}
+This appendix gives the setup and all results summarised in \cref{sec:exp}.  The experiments probe the statements of \cref{sec:repr,sec:learn,sec:tasks,sec:infer}
 and repeat the KAN paper's battery \citep{liu2024kan}.  Most runs use the
 implementation's defaults, which lie outside the hypotheses of the convergence
 theorems (online protocol, \textsc{path} mixture, a leaf budget, the matching tolerance;
@@ -1326,7 +1530,7 @@ it reproduces the original trees and predictions exactly.  Unless stated otherwi
 tree predicts with the leaves-only \textsc{path} mixture and a budget of 300 leaves,
 every forest is trained with the online protocol (\cref{def:forestlearn}), continuous
 attributes are measured in units of their training standard deviation, and the variance
-floor is $h^2=(\kappa N^{-1/(d+4)})^2$ for a tree with $d$ continuous cues.  $\kappa$
+floor is $h^2=(\kappa N^{-1/(d+4)})^2$ for a tree with $d$ continuous inputs.  $\kappa$
 and the label depth (from $\{2,3,4,6\}$) are chosen on a fresh validation set, except
 in the task experiments of \cref{sec:exp-tasks}, which fix $\kappa=0.25$ so that
 candidates differ only in their tasks.  MLP and KAN (B-spline edges as in
@@ -1374,22 +1578,7 @@ $0.19$ at $N=800$ in the figure)
 
 \subsection{The KAN battery}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figs/toys.pdf}
-\caption{Test RMSE$/\mathrm{sd}(f)$ against $N$.  Forests are drawn with their best
-graph (dotted: the univariate graph of the 4-D target).}
-\label{fig:toys}
-\end{figure}
 
-\begin{table}[t]
-\centering\small
-\resizebox{\linewidth}{!}{\input{tables/toys}}
-\caption{The KAN battery: test RMSE$/\mathrm{sd}(f)$, mean of three seeds.  ``activations''
-is the funnel forest; for the 4-D target the forests use the pairs graph (superscript
-$u$: univariate graph).}
-\label{tab:toys}
-\end{table}
 
 \Cref{fig:toys,tab:toys} show five things.
 (i)~One tree's error falls with $N$ on every target of dimension at most four, the
@@ -1505,7 +1694,7 @@ averages $0.13$ in \cref{fig:synergy} but varies between data splits ($-0.01$ to
 the induction runs of \cref{tab:induce}, which estimate their own deficits, mostly leave
 it below the threshold.  At $N=16000$ every housing pair shows a positive deficit (between $0.03$ and
 $0.22$), so the threshold of step~2 must account for sample size.  The deficit vanishes
-whenever both activations are injective functions of their cues, whatever the
+whenever both activations are injective functions of their inputs, whatever the
 interaction (\cref{def:operators}), so a positive deficit marks an interaction that the
 activations lose, not every interaction.
 
@@ -1562,42 +1751,8 @@ not its size).  The single tree over all four
 coordinates is best in both panels at these sample sizes.  (The Gaussian views are
 unbounded, so \cref{thm:ideal} itself does not cover these runs.)
 
-\paragraph{Cue calculus.}
-\Cref{proc:cues} was run, with the fixed tolerance $\tau=0.02$ and no tuning, on a cue
-suite with known kinds---$Y=\sin(\pi x_0)+\operatorname{sign}(x_1x_2)+\varepsilon$ with
-$x_0$ associative, $(x_1,x_2)$ a purely contextual pair, $x_3$ irrelevant and $x_4$ a copy
-of $x_0$ up to noise of standard deviation $0.01$---and on California housing
-(\cref{tab:cues}, five seeds each).  On the suite every cue is classified correctly on every seed:
-both copies of $x_0$ are valid, exactly one survives and the other is blocked by it,
-the contextual pair has validities within $0.03$ of zero alone and above $0.6$ jointly,
-and the forest built from the classification (one tree for the associative cue, one
-merged tree for the pair) cuts the test RMSE of the single tree over all cues by a
-factor of $2.5$.  On housing the stable part of the classification is the one the
-earlier experiments found by hand: income, rooms, longitude and latitude are associative
-on every seed, longitude and latitude are merged on four of five, and occupancy is
-irrelevant on every seed.  The weak cues (age, bedrooms, population) change kind between
-seeds; their validities are within a few multiples of $\tau$ of zero, where the
-estimator of step~1 cannot separate the kinds.  The cue forest is selected on four seeds, and on those it
-reaches the test RMSE of the hand-designed pairs forest of \cref{tab:housing}
-($0.30$--$0.32$ against $0.29$--$0.30$, same splits) without a designer and without a
-hyperparameter grid; on the fifth the classification yields one group and the single
-tree is kept.  MLP and KAN remain better ($0.26$--$0.28$).
-\begin{table}[h]\centering\small
-\IfFileExists{tables/cues.tex}{\input{tables/cues}}{}
-\caption{\Cref{proc:cues}: modal cue kinds over five seeds, and test RMSE$/\mathrm{sd}(Y)$ of the
-selected model and of one tree over all cues ($\kappa=0.25$, $N=3000$ for the suite and
-$N=4000$ for housing).}\label{tab:cues}
-\end{table}
-
 \subsection{Continual learning, interpretability and labels}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.9\linewidth]{figs/continual.pdf}
-\caption{The continual-learning task of \citet[Fig.~3.4]{liu2024kan}: five peaks, one
-region per phase (shaded).  Grey: target.}
-\label{fig:continual}
-\end{figure}
 
 \begin{table}[t]
 \centering\small
@@ -1612,15 +1767,6 @@ continual task (\cref{fig:continual,tab:continual}) the tree's error on everythi
 so far stays between $0.037$ and $0.048$ through all five phases; the MLP forgets
 (its error reaches $10.8$), and the KAN with a fine grid forgets partly ($0.17$).
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figs/interpret.pdf}
-\caption{What the univariate trees of a funnel forest learn on $\exp(\sin\pi x_1+x_2^2)$
-($N=4000$).  Left and centre: each tree's activation against the exact conditional
-expectation $\E[f\mid x_i]$.  Right: the output tree's prediction as a function of the
-two activations.}
-\label{fig:interpret}
-\end{figure}
 
 \paragraph{Interpretability.}
 A KAN's edges can be plotted, and so can a Cobweb forest's trees.  On
@@ -1664,15 +1810,6 @@ forests use a balanced graph over the inputs in their listed order.}
 \label{tab:housing}
 \end{table}
 
-\begin{table}[t]
-\centering\small
-\input{tables/mnist}
-\caption{MNIST, accuracy (\%, three seeds).  Forests have one tree per $7\times7$
-patch.  ``label'': the patch trees categorize (the Convolutional-Cobweb protocol);
-``cross'': they predict the centre pixels of the neighbouring patches; ``act'': they
-predict the class and pass its distribution; ``hybrid'': ``act'' plus labels.}
-\label{tab:mnist}
-\end{table}
 
 \begin{table}[t]
 \centering\small
@@ -1724,80 +1861,6 @@ model needs the architecture of a dedicated study; we report these numbers as th
 of the generic forest.
 
 %=====================================================================
-\section{Discussion}\label{sec:discussion}
-%=====================================================================
-
-\paragraph{A cognitive reading.}
-The three task families of \cref{def:task} are three things a learner can do with what it
-perceives: \emph{categorize} it, \emph{predict an outcome} of it, or \emph{predict
-another part of it}.  The first is concept formation in Cobweb's original sense; the
-second is cue--outcome learning \citep{rescorla1972}; the third is the perceptual
-prediction of predictive-processing accounts \citep{clark2013}.  Each has a mathematical
-counterpart here.  Categorization is sufficient whenever its cells shrink, stay few compared with the
-sample, and its smoothing vanishes fast enough, and it pays for every cell it distinguishes (\cref{thm:labelcons,rem:tradeoff}):
-its categories must become finer with experience, just as the activations' consistency
-needs the variance floor---the acuity---to shrink, $h_N\to0$; both are perceptual learning
-in the sense of \citet{goldstone1998}.  Outcome prediction
-compresses the cue to what matters for the outcome, which is sufficient when the
-outcome depends on the parts monotone-additively (\cref{prop:suffclass}) and can fail on
-interactions (\cref{prop:xy}).  Perceptual prediction never needs the target and, in a
-Gaussian latent model, is sufficient when the target depends only on what the views
-share (\cref{prop:multiview}).
-
-\paragraph{Credit assignment.}
-\Cref{thm:locality} is a precise form of the credit-assignment problem
-\citep{minsky1961}: a module cannot learn its role from the statistics it sees when the
-information it carries is synergistic.  Back-propagation solves the problem by sending
-the composed error to every module.  A Cobweb forest has no error signal, and the theory
-says where the decision must be taken instead: at the tree that composes the parts, by
-verifying candidate tasks against an observed outcome (\cref{thm:selection}).  The
-locality and selection experiments show both halves.
-
-\paragraph{Rules of thumb for composing trees.}
-The results suggest a small set of rules for building a forest whose trees use one
-another's representations.
-\begin{enumerate}[leftmargin=*,noitemsep]
-\item \emph{Give every tree an observable outcome or none.}  A tree can learn only what
-  it will observe (\cref{def:task,rem:kaobs}); inner functions of a target are not tasks.
-\item \emph{Pass activations where the parts combine monotonically, labels or a merged
-  cue where they interact.}  Funnel activations are sufficient for monotone-additive
-  targets (\cref{prop:suffclass}) and fail on $x_1x_2$ and on parity
-  (\cref{prop:xy,cor:parity}); a positive synergy deficit (\cref{def:operators}) is the
-  measurable sign that two cues must be merged or passed as labels.
-\item \emph{Decide a tree's task where its message is used.}  A tree's own data cannot
-  tell whether its cue matters (\cref{thm:locality}); compare candidate tasks by the
-  held-out or prequential error of the composing tree (\cref{thm:selection}), and always
-  keep the merged tree among the candidates (\cref{proc:induction}).
-\item \emph{Use perceptual prediction only when the target lives in what the views
-  share.}  Cross-view outcomes need no target and are sufficient under that condition
-  (\cref{prop:multiview}); on MNIST, where neighbouring pixels do not carry the class, they
-  were the weakest design (\cref{tab:mnist}).
-\item \emph{Keep categories few and let them sharpen with experience.}  Label cells must
-  shrink and stay few compared with the data (\cref{thm:labelcons}); a fixed label depth
-  does neither.
-\item \emph{Keep forests shallow.}  Two inputs per tree suffice in principle
-  (\cref{thm:cka}), but every level of composition adds error that the next level reads
-  as noise (\cref{tab:diag100}).
-\item \emph{Predict with counts and train predict-then-learn.}  Count-blind mixtures fail
-  on repeated instances (\cref{rem:counts}); messages computed in-sample leak the target
-  (\cref{def:forestlearn}).
-\end{enumerate}
-
-\paragraph{Limitations.}
-\Cref{thm:ideal} covers the split protocol with full expansion, exact matching and the
-count-weighted leaves-only mixture; the experiments use the online protocol, a leaf
-budget, the implementation's tolerance and the \textsc{path} mixture, which the theory
-does not cover (\cref{rem:counts,rem:structure}).  Step~2 of the proof of
-\cref{thm:ideal} relies on standard uniform laws for kernel sums rather than a full
-derivation, the conditions of \cref{thm:labelcons} on the label cells are not derived
-from category utility, and the hybrid case is a conjecture (\cref{conj:hybrid}).
-\Cref{proc:induction} is greedy and its thresholds are not calibrated.  Finally, the
-rates are those of nonparametric smoothing: on smooth targets gradient-trained models
-are far more accurate, and in high dimension a funnel forest's errors compound through
-its levels (\cref{tab:diag100}).
-
-\appendix
-%=====================================================================
 \section{Verification}\label{app:verify}
 %=====================================================================
 
@@ -1819,10 +1882,9 @@ fails if any depends on \texttt{sorryAx} or if a source file contains \texttt{so
 \texttt{admit} or a new \texttt{axiom}; every theorem uses only Lean's standard axioms
 (\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}).
 \begin{center}\small
-\begin{tabular}{@{}lp{5.6cm}p{6.2cm}@{}}\toprule
+\begin{tabular}{@{}p{3.3cm}p{5.4cm}p{6.4cm}@{}}\toprule
 statement & Lean theorem & scope\\\midrule
-\cref{prop:cues}(a) & \texttt{validity\_nonneg}, \texttt{condExp\_const\_of\_validity\_zero} & any finite distribution and cue\\
-\cref{prop:cues}(b) & \texttt{condExp\_blocked}, \texttt{conditional\_validity\_blocked} & any finite distribution, any $f$\\
+\cref{prop:xy}, \cref{cor:parity} (constant messages) & \texttt{validity\_nonneg}, \texttt{condExp\_const\_of\_validity\_zero} & a tree whose input carries no information about its outcome emits a constant message (any finite distribution)\\
 \cref{thm:locality}(i)--(ii) & \texttt{sign\_worlds\_local\_law}, \texttt{local\_rule\_same}, \texttt{sign\_worlds\_differ} & the sign skeleton on $\{\pm1\}^3$\\
 \cref{cor:parity} & \texttt{parity\_fibre\_balanced} & parity of all $n$ bits ($J=[n]$, signs as bits), every $S$ missing a bit\\
 \cref{prop:interweave} & \texttt{merged\_prediction}, \texttt{merged\_weights} & the mixture identity, $m$ subtrees\\
@@ -1838,7 +1900,7 @@ checks and the review below carry the verification.
 Each statement is also checked by an independent reviewer---a fresh language-model agent
 for every round---instructed to break it, to settle questions by computation, and to
 read nothing but this document, its tables and the two C++ files it formalises
-(\texttt{verification/REVIEW\_PROMPT.md}).  The reviewer was calibrated before it was
+(\nolinkurl{verification/REVIEW_PROMPT.md}).  The reviewer was calibrated before it was
 trusted: on a copy of an earlier draft with eight planted errors (three of them real
 mistakes of that draft) it found all eight with correct diagnoses, and every other flag it
 raised was a genuine error, which we fixed.  The same prompt was then run on successive
