@@ -238,7 +238,7 @@ def check_single_tree(seed=0):
                     root_w[key] = max(root_w[key], rw) if key != "prior" else min(root_w[key], rw)
             G = G_side ** d
             rows.append(dict(G=G, h=h, sup_err=errs, max_root_w=root_w,
-                             bound_shape=Ls * G ** (-1 / d) * math.sqrt(math.log(G))))
+                             bound_shape=Ls * G ** (-1 / d)))
         out[f"d{d}"] = rows
     ok = True
     for rows in out.values():
@@ -652,3 +652,51 @@ def check_provenance(root="results"):
 
 
 ALL += [check_provenance]
+
+
+# ---------------------------------------------------------------------------------------
+# C18 Count-weighted leaves (leaves-only PRIOR) = Nadaraya-Watson with multiplicities,
+#     also when instances repeat (atoms), where the count-blind LIK mixture fails.
+#     (Found by the calibrated reviewer: Thm labelcons fails for targets with atoms.)
+# ---------------------------------------------------------------------------------------
+def check_count_weighting(seed=0):
+    rng = _rng(seed)
+    # (a) a learned tree on data with exact repeats: leaves-only PRIOR = NW with multiplicities
+    h = 0.2
+    t = CobwebHybridTree(2, alpha=0.5, prior_var=h * h)
+    t.set_random_seed(seed)
+    base = rng.uniform(-1, 1, 60)
+    X = rng.choice(base, 600).astype(F32)                     # each x repeats ~10 times
+    Y = (rng.random(600) < 0.5 + 0.4 * np.sin(2 * X)).astype(F32)   # Bernoulli: atoms in y
+    for x, y in zip(X, Y):
+        t.ifit({}, _q(x, y))
+    worst_prior, worst_lik = 0.0, 0.0
+    for x in np.linspace(-0.9, 0.9, 25):
+        k = np.exp(-(X - x) ** 2 / (2 * h * h))
+        nw = float(np.sum(k * Y) / np.sum(k))
+        pr = float(t.predict_mean({}, _q(x, np.nan), BIG, False, "prior", True)[1])
+        lk = float(t.predict_mean({}, _q(x, np.nan), BIG, False, "likelihood", True)[1])
+        worst_prior, worst_lik = max(worst_prior, abs(pr - nw)), max(worst_lik, abs(lk - nw))
+    # (b) the label-forest construction with a Bernoulli target: per cell, PRIOR leaves give
+    #     the partitioning estimate, LIK leaves give the average of the distinct y values
+    K = 5
+    cells = rng.integers(0, K, 1500)
+    p = 0.2 + 0.6 * (cells + 0.5) / K
+    Yc = (rng.random(1500) < p).astype(F32)
+    out = CobwebHybridTree(1, alpha=1e-4, prior_var=1e-3)
+    out.set_random_seed(seed)
+    for c, y in zip(cells, Yc):
+        out.ifit({0: {int(c): 1.0}}, _q(y))
+    gap_prior, gap_lik = 0.0, 0.0
+    for c in range(K):
+        part = float(Yc[cells == c].mean())
+        pr = float(out.predict_mean({0: {c: 1.0}}, _q(np.nan), BIG, False, "prior", True)[0])
+        lk = float(out.predict_mean({0: {c: 1.0}}, _q(np.nan), BIG, False, "likelihood", True)[0])
+        gap_prior, gap_lik = max(gap_prior, abs(pr - part)), max(gap_lik, abs(lk - part))
+    ok = worst_prior < 1e-3 and gap_prior < 0.01 and worst_lik > 0.02 and gap_lik > 0.05
+    return dict(label="thm:consistency+thm:labelcons (counts)", passed=bool(ok),
+                prior_vs_nw=worst_prior, lik_vs_nw=worst_lik,
+                prior_vs_partitioning=gap_prior, lik_vs_partitioning=gap_lik)
+
+
+ALL += [check_count_weighting]
