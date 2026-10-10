@@ -1,0 +1,82 @@
+{
+ "task": "synth",
+ "seed": 3,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "fe769eb7e085",
+  "cobweb_forest/cues.py": "3ce152125459",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "5f1e17c3f8a4",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "438dbfa",
+  "host": "asimo.cc.gatech.edu"
+ },
+ "var_y": 1.5213373899459839,
+ "kinds": {
+  "assoc": "associative",
+  "copy": "blocked",
+  "ctx2": "contextual",
+  "ctx1": "contextual",
+  "noise": "irrelevant"
+ },
+ "blocked_by": {
+  "copy": "assoc"
+ },
+ "validity": {
+  "assoc": 0.3103265745957534,
+  "ctx1": -0.010939927275024899,
+  "ctx2": -0.008074976589560993,
+  "noise": -0.022605327230301953,
+  "copy": 0.30941179451730894,
+  "assoc+ctx1": 0.24970122997977595,
+  "assoc+ctx2": 0.2556768771996393,
+  "assoc+noise": 0.2557534722399335,
+  "assoc+copy": 0.27200914467445625,
+  "ctx1+ctx2": 0.5997245622605788,
+  "ctx1+noise": -0.09324627551474582,
+  "ctx1+copy": 0.2742150982892897,
+  "ctx2+noise": -0.10555824949974636,
+  "ctx2+copy": 0.25477814012104155,
+  "noise+copy": 0.2578448212456048
+ },
+ "synergy": {
+  "assoc+ctx1": -0.05490268316292923,
+  "assoc+ctx2": -0.04015776768321144,
+  "assoc+noise": -0.04145494706056868,
+  "assoc+copy": 0.033774216908268734,
+  "ctx1+ctx2": 0.625775432227211,
+  "ctx1+noise": 0.04433182715617506,
+  "ctx1+copy": -0.0320319471249052,
+  "ctx2+noise": 0.03611707078846162,
+  "ctx2+copy": -0.0339754537166036,
+  "noise+copy": -0.04792652865518365
+ },
+ "groups": [
+  [
+   "assoc"
+  ],
+  [
+   "ctx2",
+   "ctx1"
+  ]
+ ],
+ "chosen": "cue-forest-hybrid",
+ "cols": [
+  "assoc",
+  "ctx1",
+  "ctx2"
+ ],
+ "val": {
+  "cue-forest-act": 0.03731409087777138,
+  "cue-forest-hybrid": 0.03338653966784477,
+  "single-kept": 0.10654880851507187,
+  "single-all": 0.3076995313167572
+ },
+ "test": {
+  "cue-forest-hybrid": 0.03888654708862305,
+  "single-all": 0.2775525748729706
+ },
+ "seconds": 74.03956723213196
+}

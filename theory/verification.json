@@ -4,10 +4,11 @@
   "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
   "cobweb_forest/baselines.py": "deaeb941c753",
   "cobweb_forest/construct.py": "fe769eb7e085",
+  "cobweb_forest/cues.py": "3ce152125459",
   "cobweb_forest/designs.py": "0d9a94dff886",
   "cobweb_forest/forest.py": "5f1e17c3f8a4",
   "cobweb_forest/provenance.py": "16cf21396b12",
-  "git": "b8ca741",
+  "git": "438dbfa",
   "host": "asimo.cc.gatech.edu"
  },
  "checks": [
@@ -57,7 +58,7 @@
    "label": "lem:bias",
    "passed": true,
    "max_violation": -0.08133380734341995,
-   "seconds": 1.0,
+   "seconds": 1.1,
    "check": "check_bias_certificate"
   },
   {
@@ -199,7 +200,7 @@
      }
     ]
    },
-   "seconds": 0.5,
+   "seconds": 0.6,
    "check": "check_single_tree"
   },
   {
@@ -280,7 +281,7 @@
    "label_d2_N4000": 0.34477847814559937,
    "label_d4_N1000": 0.8685956597328186,
    "label_d4_N4000": 0.4959430396556854,
-   "seconds": 6.3,
+   "seconds": 6.6,
    "check": "check_xy"
   },
   {
@@ -300,7 +301,7 @@
     "b:act": 1.0036273002624512,
     "b:label": 1.072304368019104
    },
-   "seconds": 10.9,
+   "seconds": 12.1,
    "check": "check_locality"
   },
   {
@@ -334,7 +335,7 @@
     "1000": 0.1467680037021637,
     "8000": 0.10447001457214355
    },
-   "seconds": 7.6,
+   "seconds": 7.9,
    "check": "check_suffclass"
   },
   {
@@ -350,7 +351,7 @@
     "act": 1.1466623544692993,
     "label": 0.6891968846321106
    },
-   "seconds": 17.5,
+   "seconds": 18.1,
    "check": "check_parity"
   },
   {
@@ -361,7 +362,7 @@
     "6000": 0.3599050045013428,
     "24000": 0.2613029479980469
    },
-   "seconds": 68.8,
+   "seconds": 73.9,
    "check": "check_ideal"
   },
   {
@@ -372,7 +373,7 @@
     "merge",
     "merge"
    ],
-   "seconds": 8.4,
+   "seconds": 9.1,
    "check": "check_selection"
   },
   {
@@ -381,10 +382,11 @@
    "files": {
     "toys": 156,
     "tasks": 113,
+    "cues": 10,
     "weighting": 6,
     "induce": 39,
     "housing": 9,
-    "owt": 12,
+    "owt": 13,
     "label_cells": 3,
     "feynman": 60,
     "continual": 3,
@@ -406,7 +408,7 @@
    "lik_vs_nw": 0.26819416253167083,
    "prior_vs_partitioning": 2.2351741790771484e-07,
    "lik_vs_partitioning": 0.27742788195610046,
-   "seconds": 0.1,
+   "seconds": 0.0,
    "check": "check_count_weighting"
   },
   {
@@ -432,18 +434,84 @@
      "G": 512,
      "prior_all": 0.1029217161082854,
      "posterior_leaves": 0.044633603779483035,
-     "lik_leaves": 4.7404594858350975e-05
+     "lik_leaves": 4.7404594858351015e-05
     },
     {
      "D": 11,
      "G": 2048,
      "prior_all": 0.08637802705418916,
      "posterior_leaves": 0.04397325317711124,
-     "lik_leaves": 2.9859780956101108e-06
+     "lik_leaves": 2.985978095610104e-06
     }
    ],
    "seconds": 0.5,
    "check": "check_hierarchy_weightings"
+  },
+  {
+   "label": "lean",
+   "passed": true,
+   "theorems": 12,
+   "axioms": {
+    "validity_nonneg": "propext, Classical.choice, Quot.sound",
+    "condExp_const_of_validity_zero": "propext, Classical.choice, Quot.sound",
+    "condExp_blocked": "propext, Classical.choice, Quot.sound",
+    "conditional_validity_blocked": "propext, Classical.choice, Quot.sound",
+    "Chain.fanin_one": "propext, Classical.choice, Quot.sound",
+    "ka_tree_count": "propext, Quot.sound",
+    "sign_worlds_local_law": "propext, Classical.choice, Quot.sound",
+    "local_rule_same": "propext, Classical.choice, Quot.sound",
+    "sign_worlds_differ": "propext",
+    "parity_fibre_balanced": "propext, Classical.choice, Quot.sound",
+    "merged_prediction": "propext, Classical.choice, Quot.sound",
+    "merged_weights": "propext, Classical.choice, Quot.sound"
+   },
+   "banned": [],
+   "build_tail": "`module` to the start of this file\n\u26a0 [9023/9025] Replayed CobwebForest.Mixture\nwarning: CobwebForest/Mixture.lean: imports `Mathlib` from package `mathlib`, which is designed for use with the module system; consider adding `module` to the start of this file\nBuild completed successfully (9025 jobs).\n",
+   "audit_err": "",
+   "seconds": 102.4,
+   "check": "check_lean"
+  },
+  {
+   "label": "sec:cues",
+   "passed": true,
+   "kinds": {
+    "copy": "associative",
+    "assoc": "blocked",
+    "noise": "irrelevant",
+    "ctx2": "contextual",
+    "ctx1": "contextual"
+   },
+   "v": {
+    "0": 0.315,
+    "1": -0.021,
+    "2": -0.013,
+    "3": -0.009,
+    "4": 0.335,
+    "0,1": 0.275,
+    "0,2": 0.295,
+    "0,3": 0.298,
+    "0,4": 0.276,
+    "1,2": 0.623,
+    "1,3": -0.085,
+    "1,4": 0.278,
+    "2,3": -0.084,
+    "2,4": 0.301,
+    "3,4": 0.296
+   },
+   "chosen": "cue-forest-hybrid",
+   "cols": [
+    1,
+    2,
+    4
+   ],
+   "scores": {
+    "cue-forest-act": 0.05361377075314522,
+    "cue-forest-hybrid": 0.05036251246929169,
+    "single-kept": 0.1434091180562973,
+    "single-all": 0.33589407801628113
+   },
+   "seconds": 58.5,
+   "check": "check_cues"
   }
  ]
 }

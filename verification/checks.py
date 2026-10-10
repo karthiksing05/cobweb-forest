@@ -748,3 +748,69 @@ def check_hierarchy_weightings(seed=0):
 
 
 ALL += [check_hierarchy_weightings]
+
+
+# ---------------------------------------------------------------------------------------
+# Cue calculus: the Lean proofs (lean/) and their empirical counterpart (cobweb_forest.cues)
+# ---------------------------------------------------------------------------------------
+LEAN_THEOREMS = [
+    "validity_nonneg", "condExp_const_of_validity_zero", "condExp_blocked",
+    "conditional_validity_blocked", "Chain.fanin_one", "ka_tree_count", "sign_worlds_local_law",
+    "local_rule_same", "sign_worlds_differ", "parity_fibre_balanced", "merged_prediction",
+    "merged_weights",
+]
+
+
+def check_lean(root="lean"):
+    """`lake build` succeeds, every listed theorem exists, none depends on `sorryAx`, and no
+    source file contains `sorry`/`admit`/`axiom`."""
+    import glob
+    import os
+    import re
+    import subprocess
+    env = dict(os.environ)
+    elan = env.get("ELAN_HOME", "/coc/flash10/ksingara3/.elan")
+    env.update(ELAN_HOME=elan, PATH=os.path.join(elan, "bin") + ":" + env.get("PATH", ""))
+    b = subprocess.run(["lake", "build"], cwd=root, env=env, capture_output=True, text=True)
+    audit = "import CobwebForest\n" + "".join(f"#print axioms CobwebForest.{t}\n" for t in LEAN_THEOREMS)
+    a = subprocess.run(["lake", "env", "lean", "--stdin"], cwd=root, env=env, input=audit,
+                       capture_output=True, text=True)
+    deps = dict(re.findall(r"'CobwebForest\.(\S+)' depends on axioms: \[(.*?)\]", a.stdout))
+    src = "\n".join(open(f, encoding="utf-8").read() for f in glob.glob(f"{root}/CobwebForest/*.lean"))
+    banned = re.findall(r"\b(sorry|admit|axiom)\b", re.sub(r"/-.*?-/|--[^\n]*", "", src, flags=re.S))
+    ok = (b.returncode == 0 and a.returncode == 0 and set(deps) == set(LEAN_THEOREMS)
+          and not any("sorryAx" in v for v in deps.values()) and not banned)
+    return dict(label="lean", passed=bool(ok), theorems=len(deps), axioms=deps, banned=banned,
+                build_tail=b.stdout[-300:] + b.stderr[-300:], audit_err=a.stderr[-300:])
+
+
+def check_cues(seed=0, N=3000):
+    """Synthetic cue suite with known kinds: x0 associative, (x1, x2) a purely contextual pair
+    (Y depends on sign(x1) sign(x2)), x3 irrelevant, x4 a noisy copy of x0 (blocked by it).
+    The estimator classifies every cue; the contextual cue's own activation is near-constant
+    (empirical side of `condExp_const_of_validity_zero`); the selected forest reads only kept
+    cues and beats the single tree over all cues."""
+    from cobweb_forest import cues
+    r = _rng(seed)
+
+    def draw(n):
+        X = r.uniform(-1, 1, size=(n, 5))
+        X[:, 4] = X[:, 0] + 0.01 * r.standard_normal(n)
+        y = np.sin(np.pi * X[:, 0]) + np.sign(X[:, 1] * X[:, 2]) + 0.05 * r.standard_normal(n)
+        return X.astype(F32), y[:, None].astype(F32)
+    X, y = draw(N)
+    Xv, yv = draw(N // 2)
+    rep = cues.estimate(X, y, Xv, yv, names=["assoc", "ctx1", "ctx2", "noise", "copy"])
+    want = {0: {"associative", "blocked"}, 1: {"contextual"}, 2: {"contextual"},
+            3: {"irrelevant"}, 4: {"blocked", "associative"}}
+    kinds_ok = all(rep.kind[i] in w for i, w in want.items()) and \
+        ("blocked" in (rep.kind[0], rep.kind[4]))                   # exactly one copy is blocked
+    best, F, cols, scores = cues.cue_forest(X, y, Xv, yv, rep)
+    ok = (kinds_ok and abs(rep.v(1)) < 0.05 and abs(rep.v(2)) < 0.05 and rep.v(1, 2) > 0.3
+          and 3 not in cols and scores[best] < scores["single-all"])
+    return dict(label="sec:cues", passed=bool(ok), kinds={rep.names[i]: k for i, k in rep.kind.items()},
+                v={",".join(map(str, k)): round(v, 3) for k, v in rep.validity.items()},
+                chosen=best, cols=cols, scores=scores)
+
+
+ALL += [check_lean, check_cues]

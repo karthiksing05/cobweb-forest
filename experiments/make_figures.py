@@ -475,6 +475,34 @@ def tab_weighting():
     open(f"{TAB}/weighting.tex", "w", encoding="utf-8").write("\n".join(lines))
 
 
+def tab_cues():
+    """Cue calculus (proc:cues): modal classification over seeds, groups, and test RMSE/sd of
+    the selected forest and of the single tree over all cues."""
+    rows = []
+    for task, label in (("synth", "cue suite"), ("housing", "housing")):
+        R = load(f"results/cues/{task}_s*.json")
+        if not R:
+            continue
+        kinds = collections.defaultdict(collections.Counter)
+        for r in R:
+            for c, k in r["kinds"].items():
+                kinds[k][c] += 1
+        AB = dict(associative="assoc.", contextual="context.", blocked="blocked", irrelevant="irrel.")
+        desc = "; ".join(AB[k] + " " + ", ".join(f"{c}" + (f"$^{{{n}}}$" if n < len(R) else "")
+                                                   for c, n in kinds[k].most_common())
+                         for k in ("associative", "contextual", "blocked", "irrelevant") if kinds[k])
+        sel = [np.sqrt(r["test"][r["chosen"]] / r["var_y"]) for r in R]
+        one = [np.sqrt(r["test"]["single-all"] / r["var_y"]) for r in R]
+        forest = sum(r["chosen"].startswith("cue-forest") for r in R)
+        rows.append(f"{label} & {desc} & {np.mean(sel):.3f} & {np.mean(one):.3f} & {forest}/{len(R)}\\\\")
+    if not rows:
+        return
+    lines = [r"\begin{tabular}{@{}lp{7.6cm}rrr@{}}\toprule",
+             r"data & cue kinds (superscript: seeds out of all, when not all) & selected & one tree & forest chosen\\\midrule"]
+    lines += rows + [r"\bottomrule\end{tabular}"]
+    open(f"{TAB}/cues.tex", "w", encoding="utf-8").write("\n".join(lines))
+
+
 def main():
     fig_weighting()
     tab_weighting()
@@ -491,6 +519,7 @@ def main():
     fig_multiview()
     tab_diag100()
     tab_induce()
+    tab_cues()
     print("== toys (RMSE / sd(f), mean over seeds)")
     for fn in ["sin", "j0", "expsin", "xy", "nested4", "exp100"]:
         for N in sorted({k[1] for k in T if k[0] == fn}):

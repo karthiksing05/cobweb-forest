@@ -26,6 +26,8 @@ TITLES = {
     "thm:selection": "Validation at the output never selects the funnel forest on $xy$",
     "app:verify (provenance)": "Every reported result comes from the fixed build or a path the bug cannot reach",
     "thm:consistency+thm:labelcons (counts)": "Count-weighted leaves = Nadaraya--Watson and partitioning estimate with repeats; count-blind leaves fail",
+    "lean": "Lean~4 (Mathlib): every formalised statement builds, with no \\texttt{sorry} and no added axiom",
+    "sec:cues": "Cue suite: associative, contextual, blocked and irrelevant cues recovered; the selected forest reads only kept cues",
     "prop:prior (hierarchy)": "Binary grid tree: prior (all concepts) keeps falling, posterior (leaves) has a floor, lik (leaves) converges",
 }
 

@@ -31,6 +31,7 @@
 \newcommand{\diam}{\operatorname{diam}}
 \newcommand{\tr}{\operatorname{tr}}
 \newcommand{\Var}{\operatorname{Var}}
+\newcommand{\lean}[1]{\textup{\small[Lean:~\texttt{\detokenize{#1}}]}}
 
 \title{Cobweb Forests:\\ A Kolmogorov--Arnold Theory of Networks of Concept Hierarchies}
 \author{Draft --- Karthik Singaravadivelan et al.\ (working notes)}
@@ -72,9 +73,12 @@ Gaussian multi-view model whose target depends only on what the views share, and
 categorization is sufficient whenever its cells shrink and stay few compared with the
 sample and its smoothing vanishes fast enough, a requirement that grows with the dimension.  Tasks cannot be inferred locally---a sign construction makes a tree's
 own data identical whether its input is necessary or irrelevant---but they can be
-inferred consistently by verifying candidate tasks at the tree that composes them.  An
-executable verifier tests the statements against the implementation, and an independent
-reviewer, calibrated on a copy with planted errors, audits the proofs.
+inferred consistently by verifying candidate tasks at the tree that composes them.  A cue
+calculus maps associative, contextual, blocked and self-generated cues onto validities
+of forest quantities and yields a procedure that designs a forest from held-out errors
+alone.  The discrete cores of the statements are proved in Lean~4, an executable verifier
+tests the statements against the implementation, and an independent reviewer, calibrated
+on a copy with planted errors, audits the proofs.
 \end{abstract}
 
 \tableofcontents
@@ -169,10 +173,17 @@ tasks} (\cref{sec:tasks}) and their inference (\cref{sec:infer}).
   the composing tree selects a sufficient assignment with probability tending to one
   (\cref{thm:selection}); this yields task operators chosen like Cobweb's own
   (\cref{proc:induction}).
+\item A cue calculus (\cref{sec:cues}) that maps the kinds of cue studied in memory
+  research---associative, contextual, retrieval, self-generated, instructional, and
+  blocked cues---onto validities of forest quantities, proves what each kind requires
+  (\cref{prop:cues}: a contextual cue passes nothing through an activation and must be
+  merged or passed as a label; a redundant cue is blocked), and turns this into a
+  procedure that designs a forest from held-out errors of Cobweb trees alone
+  (\cref{proc:cues}).
 \item Experiments (\cref{sec:experiments}) that test each statement and repeat the KAN
-  paper's battery, and a two-layer verification (\cref{app:verify}): an executable check
-  of each testable statement against the implementation, and an adversarial reviewer
-  calibrated on planted errors.
+  paper's battery, and a three-layer verification (\cref{app:verify}): Lean~4 proofs of
+  the discrete cores, an executable check of each testable statement against the
+  implementation, and an adversarial reviewer calibrated on planted errors.
 \end{itemize}
 
 %=====================================================================
@@ -1184,6 +1195,115 @@ include the merged tree or a label forest, on which the selection can fall back.
 Every tree still learns only with \texttt{ifit}: the procedure chooses \emph{what} a tree
 predicts---which observable it will see---never how it learns.
 
+\subsection{A cue calculus: what a forest perceives and what it creates}\label{sec:cues}
+
+Cognitive psychology sorts the cues that drive recall and prediction into kinds:
+\emph{associative} cues predict an outcome by themselves; \emph{contextual} cues (the room,
+the mood, the surrounding words) help only together with an item, as in encoding
+specificity \citep{tulving1973} and context-dependent memory \citep{godden1975};
+\emph{retrieval} cues are the partial patterns presented at recall, and priming and
+state-dependence make some of them more effective; \emph{self-generated} cues are produced by
+the learner; \emph{instructional} or attentional cues direct which cues are attended.  Cue
+competition is equally classical: a cue that adds nothing to an established one is
+\emph{blocked} \citep{kamin1969,rescorla1972}, and a cue's predictive value is its
+\emph{validity} \citep{brunswik1956}.  A Cobweb forest both perceives cues (a tree's cue
+$C_\tau$) and creates them (its messages become the cues of the trees below it), so each
+kind has a precise counterpart.
+
+\begin{definition}[Validity]\label{def:validity}
+For an outcome $V$ with $\E V^2<\infty$ and cues $A,C$ (any measurable functions of the
+observation: raw coordinates, labels, activations, tuples of these), the \emph{validity}
+of $A$ is $v(A)=\Var\E[V\mid A]=\Var V-\E\Var(V\mid A)$ and the \emph{conditional validity}
+of $A$ given $C$ is $v(A\mid C)=v(A,C)-v(C)=\E\Var(V\mid C)-\E\Var(V\mid A,C)\ge0$.
+A cue $A$ is
+\begin{itemize}[leftmargin=*,noitemsep]
+\item \emph{associative} if $v(A)>0$;
+\item \emph{contextual} for $C$ if $v(A)=0$ and $v(A\mid C)>0$;
+\item \emph{blocked} by a kept cue $C$ if $v(A)>0$ and $v(A\mid C)=0$;
+\item \emph{irrelevant} if $v(A\mid C)=0$ for every cue $C$ considered.
+\end{itemize}
+\end{definition}
+
+$v(A)$ is the reduction of squared error obtained by the ideal tree with cue $A$ and outcome
+$V$ (\cref{def:ideal}); the deficit of \cref{def:ideal} and the synergy deficit of
+\cref{def:operators} are differences of validities.
+
+\begin{proposition}[What each kind of cue requires]\label{prop:cues}
+Let $V$ be the outcome of a composing tree and $\Omega$ finite in (a)--(b).
+\begin{enumerate}[label=(\alph*),leftmargin=*]
+\item $v(A)\ge0$, and $v(A)=0$ if and only if the activation $a_A=\E[V\mid A]$ is constant
+  on the support. \lean{validity_nonneg}, \lean{condExp_const_of_validity_zero}
+\item If $A=f(C)$ then $\E[V\mid A,C]=\E[V\mid C]$, hence $v(A\mid C)=0$: a cue that is a
+  function of a kept cue is blocked. \lean{condExp_blocked}, \lean{conditional_validity_blocked}
+\item If $A$ is contextual for $C$, every composition that passes $A$'s activation
+  loses at least $v(A\mid C)$: $\Delta_{\textsc{act}}\ge v(A\mid C)>0$.  The cue must
+  share a tree with $C$ (\textsc{merge}) or pass a label.
+\item A contextual cue cannot be recognised from its own stream: in the sign worlds of
+  \cref{thm:locality} the law of $(x_2,Y)$ is the same whether $x_2$ is contextual for
+  $x_1$ or irrelevant. \lean{sign_worlds_local_law}, \lean{sign_worlds_differ}
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}
+(a) $v(A)$ is a variance.  If it is zero, the expected squared deviation of $a_A$ from its
+mean is zero, so every point of positive mass has $a_A$ equal to the mean; the converse is
+immediate.  (b) The fibres of $(f(C),C)$ are the fibres of $C$, so the two conditional
+expectations are averages over the same sets.  (c) By (a) $a_A$ is constant, so
+$\sigma(a_A,a_C)=\sigma(a_C)\subseteq\sigma(C)$ and, by the tower property and conditional
+Jensen, $\Var\E[V\mid a_A,a_C]=\Var\E[V\mid a_C]\le\Var\E[V\mid C]=v(C)$.  Hence
+$\Delta_{\textsc{act}}=v(A,C)-\Var\E[V\mid a_A,a_C]\ge v(A,C)-v(C)=v(A\mid C)$.
+(d) is \cref{thm:locality}(i)--(ii).
+\end{proof}
+
+Lean~4 with Mathlib checks, on finite spaces, the forward direction of (a), all of (b),
+and the sign skeleton of (d): the uniform world on $\{\pm1\}^3$ of the three signs, to which
+(d) reduces because the magnitudes $|X_j|$ are independent of the signs and of $Y$
+(\cref{app:verify}); (c) is proved above.  The remaining kinds are features of the model,
+not theorems.
+\begin{itemize}[leftmargin=*]
+\item \emph{Retrieval cues} are queries: a partial instance with the outcome missing,
+  categorized and completed by the tree (\cref{def:messages}).  \emph{Priming} corresponds
+  to the count weighting: concepts seen more often weigh more in the mixture
+  (\cref{rem:counts}); recency is not modelled.  \emph{State-dependent} retrieval is a
+  contextual cue present both at learning and at query: by (c) it changes the prediction
+  only when it is perceived together with the item, as in \citet{godden1975}.
+\item \emph{Self-generated cues} are messages.  An activation is a cue whose validity for
+  the next outcome is inherited from its own outcome; a label is a cue created by
+  categorization with no outcome at all, and by (c) labels are what carries contextual
+  cues across a composition when they cannot be merged.  The forest thus creates the
+  cues it later perceives.
+\item \emph{Instructional} (attention-directing) cues select what each tree perceives,
+  the sets $S_\tau$ of \cref{def:task}.  Given by a teacher, they fix the graph; inferred,
+  they are the classification below.
+\end{itemize}
+
+The calculus turns into a procedure that a practitioner can run on any data set: it reads
+nothing but held-out errors of Cobweb trees.
+
+\begin{procedure}[Cue-driven forest design; \texttt{cobweb\_forest.cues}]\label{proc:cues}
+\leavevmode
+\begin{enumerate}[leftmargin=*,noitemsep]
+\item For every cue $i$ and pair $\{i,j\}$, learn a tree on $(X_i,Y)$ and on
+  $(X_{\{i,j\}},Y)$ with \texttt{ifit}; estimate $v$ by the reduction of held-out squared
+  error relative to the mean predictor, and the funnel validity of the pair by the same
+  reduction for the \textsc{act} composition.
+\item Classify with a tolerance $\tau$: visit the cues by decreasing validity; a valid cue
+  is blocked if some \emph{already kept} cue $C$ has $v(i\mid C)\le\tau$ (blocking is
+  competitive, so of two copies one survives), otherwise associative; a cue of validity
+  $\le\tau$ is contextual if $v(i\mid j)>\tau$ for some $j$, else irrelevant.
+\item Drop blocked and irrelevant cues; merge the kept cues whose pairwise synergy deficit
+  exceeds $\tau$ (union--find); compose the groups with \textsc{act} and \textsc{hybrid}.
+\item Verify at the output (\cref{thm:selection}) against the single tree over the kept
+  cues and over all cues.
+\end{enumerate}
+\end{procedure}
+
+Step~1 estimates $\E\Var(V\mid A)$ from above (by the held-out error of a learned tree), so
+the estimated validities are biased downwards for weak cues and small samples; the
+tolerance absorbs this, and step~4 guards the outcome.  As for \cref{proc:induction}, only
+pairs are examined, so contextual cues of higher order (the parity of \cref{cor:parity})
+are classified irrelevant, and the verified fallback is again the single tree.
+
 %=====================================================================
 \section{Experiments}\label{sec:experiments}
 %=====================================================================
@@ -1442,6 +1562,33 @@ not its size).  The single tree over all four
 coordinates is best in both panels at these sample sizes.  (The Gaussian views are
 unbounded, so \cref{thm:ideal} itself does not cover these runs.)
 
+\paragraph{Cue calculus.}
+\Cref{proc:cues} was run, with the fixed tolerance $\tau=0.02$ and no tuning, on a cue
+suite with known kinds---$Y=\sin(\pi x_0)+\operatorname{sign}(x_1x_2)+\varepsilon$ with
+$x_0$ associative, $(x_1,x_2)$ a purely contextual pair, $x_3$ irrelevant and $x_4$ a copy
+of $x_0$ up to noise of standard deviation $0.01$---and on California housing
+(\cref{tab:cues}, five seeds each).  On the suite every cue is classified correctly on every seed:
+both copies of $x_0$ are valid, exactly one survives and the other is blocked by it,
+the contextual pair has validities within $0.03$ of zero alone and above $0.6$ jointly,
+and the forest built from the classification (one tree for the associative cue, one
+merged tree for the pair) cuts the test RMSE of the single tree over all cues by a
+factor of $2.5$.  On housing the stable part of the classification is the one the
+earlier experiments found by hand: income, rooms, longitude and latitude are associative
+on every seed, longitude and latitude are merged on four of five, and occupancy is
+irrelevant on every seed.  The weak cues (age, bedrooms, population) change kind between
+seeds; their validities are within a few multiples of $\tau$ of zero, where the
+estimator of step~1 cannot separate the kinds.  The cue forest is selected on four seeds, and on those it
+reaches the test RMSE of the hand-designed pairs forest of \cref{tab:housing}
+($0.30$--$0.32$ against $0.29$--$0.30$, same splits) without a designer and without a
+hyperparameter grid; on the fifth the classification yields one group and the single
+tree is kept.  MLP and KAN remain better ($0.26$--$0.28$).
+\begin{table}[h]\centering\small
+\IfFileExists{tables/cues.tex}{\input{tables/cues}}{}
+\caption{\Cref{proc:cues}: modal cue kinds over five seeds, and test RMSE$/\mathrm{sd}(Y)$ of the
+selected model and of one tree over all cues ($\kappa=0.25$, $N=3000$ for the suite and
+$N=4000$ for housing).}\label{tab:cues}
+\end{table}
+
 \subsection{Continual learning, interpretability and labels}
 
 \begin{figure}[t]
@@ -1663,6 +1810,29 @@ The first check compares \cref{def:predict} and \cref{def:concept}, implemented 
 definitions, with the code's scores and mixtures.
 
 \IfFileExists{tables/verification.tex}{\begin{center}\small\input{tables/verification}\end{center}}{}
+
+\paragraph{Formal proofs.}
+The discrete cores of the statements below are proved in Lean~4 with Mathlib
+\citep{moura2021lean4,mathlib2020} (\texttt{lean/}, built by \texttt{lake build}).  The
+check \texttt{check\_lean} rebuilds the project, prints the axioms of every listed theorem and
+fails if any depends on \texttt{sorryAx} or if a source file contains \texttt{sorry},
+\texttt{admit} or a new \texttt{axiom}; every theorem uses only Lean's standard axioms
+(\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}).
+\begin{center}\small
+\begin{tabular}{@{}lp{5.6cm}p{6.2cm}@{}}\toprule
+statement & Lean theorem & scope\\\midrule
+\cref{prop:cues}(a) & \texttt{validity\_nonneg}, \texttt{condExp\_const\_of\_validity\_zero} & any finite distribution and cue\\
+\cref{prop:cues}(b) & \texttt{condExp\_blocked}, \texttt{conditional\_validity\_blocked} & any finite distribution, any $f$\\
+\cref{thm:locality}(i)--(ii) & \texttt{sign\_worlds\_local\_law}, \texttt{local\_rule\_same}, \texttt{sign\_worlds\_differ} & the sign skeleton on $\{\pm1\}^3$\\
+\cref{cor:parity} & \texttt{parity\_fibre\_balanced} & parity of all $n$ bits ($J=[n]$, signs as bits), every $S$ missing a bit\\
+\cref{prop:interweave} & \texttt{merged\_prediction}, \texttt{merged\_weights} & the mixture identity, $m$ subtrees\\
+\cref{prop:fanin} & \texttt{Chain.fanin\_one} & every fan-in-one forest\\
+\cref{thm:cka} (count) & \texttt{ka\_tree\_count} & $4n^2+4n$ trees, $n\ge1$\\
+\bottomrule
+\end{tabular}
+\end{center}
+Analytic statements (rates, consistency) are not formalised; for them the executable
+checks and the review below carry the verification.
 
 \paragraph{Adversarial review.}
 Each statement is also checked by an independent reviewer---a fresh language-model agent

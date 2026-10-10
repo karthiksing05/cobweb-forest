@@ -1,0 +1,131 @@
+{
+ "task": "housing",
+ "seed": 0,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "fe769eb7e085",
+  "cobweb_forest/cues.py": "3ce152125459",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "5f1e17c3f8a4",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "438dbfa",
+  "host": "eva.cc.gatech.edu"
+ },
+ "var_y": 0.3230781555175781,
+ "kinds": {
+  "income": "associative",
+  "lat": "associative",
+  "lon": "associative",
+  "rooms": "associative",
+  "bedrooms": "blocked",
+  "age": "blocked",
+  "pop": "contextual",
+  "occup": "irrelevant"
+ },
+ "blocked_by": {
+  "bedrooms": "income",
+  "age": "income"
+ },
+ "validity": {
+  "lon": 0.2968183851353943,
+  "lat": 0.30793062606467264,
+  "age": 0.024980126722771317,
+  "rooms": 0.0925856111048808,
+  "bedrooms": 0.02931003248553532,
+  "pop": 0.013733072382045606,
+  "occup": 0.00916226450556516,
+  "income": 0.5288599814509961,
+  "lon+lat": 0.6169595822234246,
+  "lon+age": 0.2434677441705818,
+  "lon+rooms": 0.3537170324310226,
+  "lon+bedrooms": 0.20624800051245615,
+  "lon+pop": 0.32599920231574386,
+  "lon+occup": 0.2266750313998698,
+  "lon+income": 0.6104761033362694,
+  "lat+age": 0.3015972865520089,
+  "lat+rooms": 0.3501525529842403,
+  "lat+bedrooms": 0.2678615839777427,
+  "lat+pop": 0.35103237338964965,
+  "lat+occup": 0.2652934297871747,
+  "lat+income": 0.6007476500342953,
+  "age+rooms": 0.020591027869208415,
+  "age+bedrooms": -0.028511155190334696,
+  "age+pop": -0.0026055054897232534,
+  "age+occup": -0.05877213156247184,
+  "age+income": 0.5266723608278663,
+  "rooms+bedrooms": 0.157316054946606,
+  "rooms+pop": 0.04476319184563323,
+  "rooms+occup": 0.0702683475179557,
+  "rooms+income": 0.5563856405087045,
+  "bedrooms+pop": -0.0702032810041938,
+  "bedrooms+occup": -0.09585206022240818,
+  "bedrooms+income": 0.47634469724431844,
+  "pop+occup": -0.06315342977616202,
+  "pop+income": 0.5483523580233068,
+  "occup+income": 0.508253489960393
+ },
+ "synergy": {
+  "lon+lat": 0.13858162525322248,
+  "lon+age": -0.04738975906301285,
+  "lon+rooms": -0.04726972098120674,
+  "lon+bedrooms": -0.053536433852134,
+  "lon+pop": -0.011040153839630917,
+  "lon+occup": -0.056584786256043434,
+  "lon+income": -0.010546189791220018,
+  "lat+age": -0.010847615693125368,
+  "lat+rooms": -0.0051870125403086775,
+  "lat+bedrooms": -0.0025202031984091766,
+  "lat+pop": 0.0010565737277018483,
+  "lat+occup": -0.046199794393487426,
+  "lat+income": -0.02943761883357121,
+  "age+rooms": -0.0776867560369152,
+  "age+bedrooms": -0.011209611269336641,
+  "age+pop": -0.05646268329897687,
+  "age+occup": -0.052391850552221064,
+  "age+income": -0.011371543375870985,
+  "rooms+bedrooms": 0.05202109072768224,
+  "rooms+pop": -0.07534527926382517,
+  "rooms+occup": -0.042231563004116346,
+  "rooms+income": 0.04199313874071242,
+  "bedrooms+pop": -0.09991775372407136,
+  "bedrooms+occup": -0.02474179423160118,
+  "bedrooms+income": -0.04014452474922775,
+  "pop+occup": -0.07321946724015747,
+  "pop+income": 0.01085114892412653,
+  "occup+income": -0.021193604356317786
+ },
+ "groups": [
+  [
+   "lat",
+   "lon"
+  ],
+  [
+   "pop"
+  ],
+  [
+   "income",
+   "rooms"
+  ]
+ ],
+ "chosen": "cue-forest-act",
+ "cols": [
+  "lon",
+  "lat",
+  "rooms",
+  "pop",
+  "income"
+ ],
+ "val": {
+  "cue-forest-act": 0.07713087648153305,
+  "cue-forest-hybrid": 0.08513006567955017,
+  "single-kept": 0.1093234270811081,
+  "single-all": 0.11971540749073029
+ },
+ "test": {
+  "cue-forest-act": 0.09132153540849686,
+  "single-all": 0.130613774061203
+ },
+ "seconds": 177.9058017730713
+}

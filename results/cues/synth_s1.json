@@ -1,0 +1,82 @@
+{
+ "task": "synth",
+ "seed": 1,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "fe769eb7e085",
+  "cobweb_forest/cues.py": "3ce152125459",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "5f1e17c3f8a4",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "438dbfa",
+  "host": "asimo.cc.gatech.edu"
+ },
+ "var_y": 1.480387806892395,
+ "kinds": {
+  "assoc": "associative",
+  "copy": "blocked",
+  "noise": "irrelevant",
+  "ctx2": "contextual",
+  "ctx1": "contextual"
+ },
+ "blocked_by": {
+  "copy": "assoc"
+ },
+ "validity": {
+  "assoc": 0.3510968502167837,
+  "ctx1": -0.006939840671387514,
+  "ctx2": 0.001032068185634006,
+  "noise": 0.0015090602253760381,
+  "copy": 0.3499656337343091,
+  "assoc+ctx1": 0.3257459809832795,
+  "assoc+ctx2": 0.2960828938401825,
+  "assoc+noise": 0.326549815190661,
+  "assoc+copy": 0.32107104233948625,
+  "ctx1+ctx2": 0.604603189226492,
+  "ctx1+noise": -0.12198079933434071,
+  "ctx1+copy": 0.31849573284248367,
+  "ctx2+noise": -0.051161755701065646,
+  "ctx2+copy": 0.28921967126899945,
+  "noise+copy": 0.31926337985047354
+ },
+ "synergy": {
+  "assoc+ctx1": -0.012999151876981418,
+  "assoc+ctx2": -0.014589768327852026,
+  "assoc+noise": 0.013286411884092297,
+  "assoc+copy": 0.06796264678577424,
+  "ctx1+ctx2": 0.6152452350177279,
+  "ctx1+noise": -0.10357787238402813,
+  "ctx1+copy": 0.007359272688216623,
+  "ctx2+noise": -0.006008541104954912,
+  "ctx2+copy": -0.05198526525139996,
+  "noise+copy": 0.0004681188458613428
+ },
+ "groups": [
+  [
+   "assoc"
+  ],
+  [
+   "ctx2",
+   "ctx1"
+  ]
+ ],
+ "chosen": "cue-forest-act",
+ "cols": [
+  "assoc",
+  "ctx1",
+  "ctx2"
+ ],
+ "val": {
+  "cue-forest-act": 0.038729455322027206,
+  "cue-forest-hybrid": 0.03916940465569496,
+  "single-kept": 0.10327646881341934,
+  "single-all": 0.2430226057767868
+ },
+ "test": {
+  "cue-forest-act": 0.04824346303939819,
+  "single-all": 0.30112358927726746
+ },
+ "seconds": 72.80545330047607
+}
