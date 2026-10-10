@@ -38,6 +38,15 @@ def base(m):
     return m.split(":")[0]
 
 
+def sig(x, digits=2):
+    """Format x with `digits` significant figures, so small errors are not printed as 0.000."""
+    if x == 0 or not np.isfinite(x):
+        return f"{x:.3f}"
+    if abs(x) >= 0.01:
+        return f"{x:.3f}"
+    return f"{x:.{digits}g}" if abs(x) >= 1e-4 else f"{x:.1e}"
+
+
 def msd(v):
     v = np.asarray(v, dtype=float)
     return float(np.mean(v)), float(np.std(v))
@@ -137,7 +146,7 @@ def tab_toys(T):
                     continue
                 k = min(ks, key=lambda k: np.mean(T[k]))     # best graph for this method
                 mu, sd = msd(T[k])
-                cells.append(f"{mu:.3f}" + ("$^{u}$" if k[2].endswith(":uni") and fn.startswith("nested4") else ""))
+                cells.append(sig(mu) + ("$^{u}$" if k[2].endswith(":uni") and fn.startswith("nested4") else ""))
             lines.append(f"{fn.replace('+noise', ' (noisy)')} & {N} & " + " & ".join(cells) + r"\\")
     lines.append(r"\bottomrule\end{tabular}")
     open(f"{TAB}/toys.tex", "w", encoding="utf-8").write("\n".join(lines))
@@ -226,7 +235,7 @@ def tab_real():
         for m, r in d["results"].items():
             M[(d["N"], m)].append(r["test"])
     if M:
-        meths = [m for m in ("single", "label", "act", "hybrid", "mlp", "kan") if any(k[1] == m for k in M)]
+        meths = [m for m in ("single", "label", "cross", "act", "hybrid", "mlp", "kan") if any(k[1] == m for k in M)]
         lines = [r"\begin{tabular}{@{}l" + "r" * len(meths) + r"@{}}\toprule",
                  "N & " + " & ".join(meths) + r"\\\midrule"]
         for N in sorted({k[0] for k in M}):
@@ -309,8 +318,8 @@ def tab_selection():
         S[(d["result"]["target"], d["args"]["N"])].append(d["result"])
     if not S:
         return
-    lines = [r"\begin{tabular}{@{}lrlrr@{}}\toprule",
-             r"target & $N$ & selected (count of 5) & funnel & selected\\\midrule"]
+    lines = [r"\begin{tabular}{@{}lrlrrr@{}}\toprule",
+             r"target & $N$ & selected (count of 5) & funnel & selected & best candidate\\\midrule"]
     for t in ("xy", "sign", "expsin", "nested4"):
         for N in sorted({k[1] for k in S if k[0] == t}):
             rs = S[(t, N)]
@@ -318,7 +327,8 @@ def tab_selection():
             pk = ", ".join(f"{k} ({v})" for k, v in picks.most_common())
             fun = np.mean([x["candidates"]["funnel"]["test"] / x["sd_y"] for x in rs])
             sel = np.mean([x["candidates"][x["pick"]]["test"] / x["sd_y"] for x in rs])
-            lines.append(f"{t} & {N} & {pk} & {fun:.3f} & {sel:.3f}\\\\")
+            best = np.mean([min(c["test"] for c in x["candidates"].values()) / x["sd_y"] for x in rs])
+            lines.append(f"{t} & {N} & {pk} & {fun:.3f} & {sel:.3f} & {best:.3f}\\\\")
     lines.append(r"\bottomrule\end{tabular}")
     open(f"{TAB}/selection.tex", "w", encoding="utf-8").write("\n".join(lines))
 
@@ -419,8 +429,8 @@ def tab_induce():
         by[(r["args"]["target"], r["args"]["N"])].append(r)
     NAMES = {"housing": ["lon", "lat", "age", "rooms", "bedr", "occ", "hh", "inc"]}
     import feynman_names as FN  # noqa: F401  (optional; falls back to indices)
-    lines = [r"\begin{tabular}{@{}lrlrrrr@{}}\toprule",
-             r"target & $N$ & induced groups ($\tau=0.05$) & one tree & balanced & selected & seeds\\\midrule"]
+    lines = [r"\begin{tabular}{@{}lrlrrrrr@{}}\toprule",
+             r"target & $N$ & induced groups ($\tau=0.05$) & one tree & balanced & selected & best & seeds\\\midrule"]
     for (t, N) in sorted(by):
         rs = by[(t, N)]
         grp = collections.Counter(str(r["groups"].get("0.05")) for r in rs).most_common(1)[0][0]
@@ -432,13 +442,42 @@ def tab_induce():
             pass
         v = lambda key: np.mean([r["candidates"][key]["test"] / r["sd_y"] for r in rs]) if key in rs[0]["candidates"] else float("nan")
         sel = np.mean([r["candidates"][r["pick"]]["test"] / r["sd_y"] for r in rs])
-        lines.append(f"{t.replace('feynman:', '')} & {N} & ${grp}$ & {v('single'):.3f} & {v('balanced-act'):.3f} & {sel:.3f} & {len(rs)}\\\\")
+        best = np.mean([min(c["test"] for c in r["candidates"].values()) / r["sd_y"] for r in rs])
+        lines.append(f"{t.replace('feynman:', '')} & {N} & ${grp}$ & {v('single'):.3f} & {v('balanced-act'):.3f} & {sel:.3f} & {best:.3f} & {len(rs)}\\\\")
     lines.append(r"\bottomrule\end{tabular}")
     open(f"{TAB}/induce.tex", "w", encoding="utf-8").write("\n".join(lines))
 
 
+def tab_weighting():
+    """Interior RMSE of one learned tree (interpolation schedule, full expansion), mean of seeds."""
+    rows = []
+    for fn in ("sin", "j0"):
+        R = collections.defaultdict(list)
+        for d in load(f"results/weighting/{fn}_s*.json"):
+            for r in d["rows"]:
+                if r["sched"] == "interpolation":
+                    R[(r["weighting"], r["leaves_only"], r["N"])].append(r["rmse_interior"])
+        if not R:
+            continue
+        Ns = [N for N in (100, 400, 1600, 6400) if ("path", True, N) in R]
+        for w, lo, name in (("likelihood", True, "leaves only"), ("path", False, "path, all"),
+                            ("likelihood", False, "lik, all"), ("prior", False, "prior, all"),
+                            ("posterior", False, "posterior, all")):
+            rows.append((fn, name, [np.mean(R[(w, lo, N)]) for N in Ns], Ns))
+    if not rows:
+        return
+    Ns = rows[0][3]
+    lines = [r"\begin{tabular}{@{}ll" + "r" * len(Ns) + r"@{}}\toprule",
+             "target & mixture & " + " & ".join(f"$N={N}$" for N in Ns) + r"\\\midrule"]
+    for fn, name, vals, _ in rows:
+        lines.append(f"{'$\\sin(\\pi x)$' if fn == 'sin' else '$J_0(20x)$'} & {name} & " + " & ".join(sig(v) for v in vals) + r"\\")
+    lines.append(r"\bottomrule\end{tabular}")
+    open(f"{TAB}/weighting.tex", "w", encoding="utf-8").write("\n".join(lines))
+
+
 def main():
     fig_weighting()
+    tab_weighting()
     T = toy_table()
     if T:
         fig_toys(T)

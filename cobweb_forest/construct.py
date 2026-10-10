@@ -18,12 +18,14 @@ from ._core import CobwebHybridTree
 
 
 def _is_instance(x):
-    return isinstance(x, tuple) and len(x) == 2 and isinstance(x[0], dict)
+    """An instance is (disc, cont) or (disc, cont, count) -- the latter a leaf holding `count`
+    copies of the instance."""
+    return isinstance(x, tuple) and len(x) in (2, 3) and isinstance(x[0], dict)
 
 
 def _instances(node):
     if _is_instance(node):
-        return [node]
+        return [node[:2]] * (node[2] if len(node) == 3 else 1)
     out = []
     for c in node:
         out.extend(_instances(c))

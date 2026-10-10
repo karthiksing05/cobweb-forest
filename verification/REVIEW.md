@@ -59,4 +59,39 @@ The calibration score is recall (planted errors found with a correct diagnosis) 
 
 ### Round 2 (real draft v3)
 
+**No critical or major mathematical error.** The reviewer found no numbered theorem, proposition or lemma false under its own hypotheses. It re-derived every bound, constant and count, and checked the model sections against the two C++ files term by term.
+
+Every finding was addressed in v4:
+
+**Experiments text that contradicted the tables.** The section was rewritten from the tables. Specific fixes:
+- Feynman: "every equation" now names the II.6.15a exception, "orders of magnitude" became factors of about 2 to over 100, and "matches or beats" now names its one exception.
+- MNIST: "no information" is replaced by the actual accuracies.
+- 100-D: "near 1" became "no design below 0.95".
+- "1/7" is corrected to 1/10.
+- The 14/15 selection count and the seed counts are stated.
+- Housing synergy versus the induced groups is reconciled.
+- Small errors are now printed to two significant figures instead of 0.000.
+- New columns give the best candidate in hindsight, and a new table gives the weighting numbers.
+
+**Experiments presented as instances of theorems whose hypotheses they violate.** The section now says so up front, and per paragraph. A scope note after (A2) says that funnel messages with critical points (unbounded densities) are outside `thm:ideal`.
+
+**Remarks with false claims:**
+- `rem:counts`: the tolerance drift is about τ log n_c, not τ, and the regime is pre-asymptotic.
+- `rem:structure`: the branch-and-bound bug is caused by queue order, and it also occurs on nominal-only trees. The reviewer's nominal counterexample is now executable check C12; it returns the root at −2.151 when the best is −0.107.
+
+**Statement gaps:**
+- `conj:hybrid` now carries a variance-floor schedule. The reviewer's simulation shows the conjecture fails without one.
+- `cor:parity` has a correct induction for activation forests.
+- The log-loss claim is now a stated open problem.
+- `thm:selection` assumes |Y| ≤ B.
+- `prop:xy` has full density and bandwidth hypotheses.
+- `prop:multiview` assumes m ≥ 2 and nonsingular covariances, and vector outcomes are allowed in `def:task`.
+- `lem:bias` requires a non-empty mixture.
+- `lem:leaves` states its tolerance test precisely.
+- Online label identifiers can drift.
+- The synergy deficit vanishes for injective activations; this is now stated in `def:operators`.
+- The abstract and discussion no longer claim unproved rates.
+
+### Round 3 (real draft v4)
+
 (Pending.)

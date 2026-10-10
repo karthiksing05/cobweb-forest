@@ -523,7 +523,17 @@ def check_branch_and_bound(seed=0):
                 break
         if found:
             break
-    return dict(label="rem:structure (branch-and-bound)", passed=found is not None, counterexample=found)
+    # nominal-only counterexample (found by the round-2 reviewer): root -> {curr (1 x a=0),
+    # q -> {d (9 x a=0), e (76 x a=1)}}, query a=0.  `curr` is popped first and the stop fires.
+    E0 = np.zeros(0, F32)
+    tn = build([({0: {0: 1.0}}, E0, 1), [({0: {0: 1.0}}, E0, 9), ({0: {1: 1.0}}, E0, 76)]], 0, alpha=0.01)
+    got = tn.categorize({0: {0: 1.0}}, E0, True, False, BIG, "path")
+    scores = {n.uid: s_ for s_, _, n in tn.expanded({0: {0: 1.0}}, E0, BIG, False, "path")}
+    nominal = dict(returned=scores[got.uid], best=max(scores.values()),
+                   returned_is_root=got.uid == tn.root.uid)
+    ok_nominal = scores[got.uid] < max(scores.values()) - 1e-6
+    return dict(label="rem:structure (branch-and-bound)", passed=bool(found is not None and ok_nominal),
+                counterexample_continuous=found, counterexample_nominal=nominal)
 
 
 ALL = [check_model_matches_code, check_leaf_preservation, check_bias_certificate, check_single_tree,

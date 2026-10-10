@@ -1,0 +1,27 @@
+{
+ "N": 5000,
+ "seed": 1,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "5f1e17c3f8a4",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "db842b2",
+  "host": "neo.cc.gatech.edu"
+ },
+ "results": {
+  "cross": {
+   "hp": {
+    "pv": 0.3,
+    "depth": 3
+   },
+   "val": 0.464,
+   "test": 0.4585,
+   "concepts": 88064,
+   "seconds": 312.4793367385864
+  }
+ }
+}

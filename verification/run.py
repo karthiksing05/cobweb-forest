@@ -19,7 +19,7 @@ TITLES = {
     "prop:xy": "$xy$: funnel activations vanish, funnel forest fails; label error falls with $N$ at every depth",
     "thm:locality": "Sign construction: local laws equal; composition separates the worlds",
     "prop:multiview": "Posterior given all views = function of per-view posterior means",
-    "rem:structure (branch-and-bound)": "Branch-and-bound stop returns a sub-optimal concept",
+    "rem:structure (branch-and-bound)": "Branch-and-bound stop returns a sub-optimal concept (continuous and nominal-only trees)",
     "prop:suffclass": "$H_S$ strictly increasing; funnel forest on a monotone-additive target converges",
     "cor:parity": "3-way parity: pairs independent of $Y$; label forest learns it, funnel does not",
     "thm:ideal": "Split protocol: sup error to the ideal forest falls with $N$",
