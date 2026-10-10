@@ -1186,6 +1186,29 @@ cannot represent through activations, which is why the pairs graph wins on housi
 At $N=16000$ every housing pair shows a positive deficit (between $0.03$ and $0.22$),
 so the threshold of step~2 must account for sample size.
 
+\begin{table}[t]
+\centering\small
+\resizebox{\linewidth}{!}{\input{tables/induce}}
+\caption{Task induction end to end (\cref{proc:induction}): the groups that step~2 forms at
+threshold $\tau=0.05$ (most frequent over seeds), and test RMSE$/\mathrm{sd}$ of the single
+tree, of the generic balanced forest over the inputs, and of the forest selected on
+validation data among the single tree, the balanced forest and the induced forests for
+$\tau\in\{0.02,0.05,0.1,0.2\}$ with activation or hybrid messages.}
+\label{tab:induce}
+\end{table}
+
+\paragraph{Task induction.}
+\Cref{tab:induce} runs \cref{proc:induction} end to end.  The groups it forms are the
+interactions of the formulas: in $q(E_f+Bv\sin\theta)$ it merges $B$, $v$ and $\theta$ and
+keeps $q$ and $E_f$ apart; in the Gaussian $I.6.20b$ it merges $\theta$ with $\theta_1$,
+whose difference the formula uses; in $I.29.16$ it merges the two angles; on the 4-D
+target it recovers the two blocks.  The selected forest is never far from the best
+candidate, beats the single tree where the induced structure is real ($0.407$ against
+$0.450$ on the 4-D target at $N=4000$, and on housing), and falls back on the single tree
+where every pair interacts.  The generic balanced forest is the worst design on every
+formula: the forest needs the right graph, and verification at the composing tree finds
+it.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.85\linewidth]{figs/multiview.pdf}
@@ -1302,8 +1325,9 @@ unknown-word token.}
 With a balanced graph over the inputs in their listed order---a graph that ignores the
 structure of each formula---the forests lose to the single tree on every equation
 (\cref{tab:feynman}), and both lose to the MLP and the KAN by one to two orders of
-magnitude.  A forest needs a sufficient graph; \cref{proc:induction} is the way to find
-one, and we have not yet run it on these equations.
+magnitude.  A forest needs a sufficient graph; \cref{tab:induce} shows that
+\cref{proc:induction} finds the structure of the formulas and matches or beats the
+single tree, but no Cobweb design approaches the gradient-trained models here.
 
 \paragraph{Housing.}
 The funnel forest over the natural pairs (longitude--latitude, age--rooms,

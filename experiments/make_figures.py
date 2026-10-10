@@ -408,6 +408,35 @@ def tab_diag100():
     open(f"{TAB}/diag100.tex", "w", encoding="utf-8").write("\n".join(lines))
 
 
+def tab_induce():
+    """Task induction end to end: induced groups (threshold 0.05, most frequent over seeds),
+    and test RMSE/sd of the single tree, the generic balanced forest and the selected forest."""
+    R = load("results/induce/*.json")
+    if not R:
+        return
+    by = collections.defaultdict(list)
+    for r in R:
+        by[(r["args"]["target"], r["args"]["N"])].append(r)
+    NAMES = {"housing": ["lon", "lat", "age", "rooms", "bedr", "occ", "hh", "inc"]}
+    import feynman_names as FN  # noqa: F401  (optional; falls back to indices)
+    lines = [r"\begin{tabular}{@{}lrlrrrr@{}}\toprule",
+             r"target & $N$ & induced groups ($\tau=0.05$) & one tree & balanced & selected & seeds\\\midrule"]
+    for (t, N) in sorted(by):
+        rs = by[(t, N)]
+        grp = collections.Counter(str(r["groups"].get("0.05")) for r in rs).most_common(1)[0][0]
+        names = NAMES.get(t) or FN.names(t)
+        try:
+            G = json.loads(grp)
+            grp = " ".join("\\{" + ",".join(names[i] for i in g) + "\\}" for g in G)
+        except Exception:
+            pass
+        v = lambda key: np.mean([r["candidates"][key]["test"] / r["sd_y"] for r in rs]) if key in rs[0]["candidates"] else float("nan")
+        sel = np.mean([r["candidates"][r["pick"]]["test"] / r["sd_y"] for r in rs])
+        lines.append(f"{t.replace('feynman:', '')} & {N} & ${grp}$ & {v('single'):.3f} & {v('balanced-act'):.3f} & {sel:.3f} & {len(rs)}\\\\")
+    lines.append(r"\bottomrule\end{tabular}")
+    open(f"{TAB}/induce.tex", "w", encoding="utf-8").write("\n".join(lines))
+
+
 def main():
     fig_weighting()
     T = toy_table()
@@ -422,6 +451,7 @@ def main():
     fig_synergy()
     fig_multiview()
     tab_diag100()
+    tab_induce()
     print("== toys (RMSE / sd(f), mean over seeds)")
     for fn in ["sin", "j0", "expsin", "xy", "nested4", "exp100"]:
         for N in sorted({k[1] for k in T if k[0] == fn}):

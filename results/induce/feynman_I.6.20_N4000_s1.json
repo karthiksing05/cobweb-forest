@@ -1,0 +1,77 @@
+{
+ "args": {
+  "target": "feynman:I.6.20",
+  "N": 4000,
+  "seed": 1
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "c9d13002c0fe",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "d51f534",
+  "host": "neo.cc.gatech.edu"
+ },
+ "seconds": 26.718379735946655,
+ "deficits": [
+  [
+   0.0,
+   0.1356088717900544
+  ],
+  [
+   0.1356088717900544,
+   0.0
+  ]
+ ],
+ "groups": {
+  "0.02": [
+   [
+    0,
+    1
+   ]
+  ],
+  "0.05": [
+   [
+    0,
+    1
+   ]
+  ],
+  "0.1": [
+   [
+    0,
+    1
+   ]
+  ],
+  "0.2": [
+   [
+    0
+   ],
+   [
+    1
+   ]
+  ]
+ },
+ "candidates": {
+  "single": {
+   "val": 0.0009536979487165809,
+   "test": 0.0009715635096654296
+  },
+  "balanced-act": {
+   "val": 0.015785932540893555,
+   "test": 0.01624135859310627
+  },
+  "induced-act-tau0.2": {
+   "val": 0.015785932540893555,
+   "test": 0.01624135859310627
+  },
+  "induced-hybrid-tau0.2": {
+   "val": 0.004232761450111866,
+   "test": 0.004292501602321863
+  }
+ },
+ "pick": "single",
+ "sd_y": 0.04237063601613045
+}

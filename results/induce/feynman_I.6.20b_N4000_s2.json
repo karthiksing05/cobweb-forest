@@ -1,0 +1,112 @@
+{
+ "args": {
+  "target": "feynman:I.6.20b",
+  "N": 4000,
+  "seed": 2
+ },
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "392cf3e2c54d",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "c9d13002c0fe",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "d51f534",
+  "host": "johnny5.cc.gatech.edu"
+ },
+ "seconds": 419.81015062332153,
+ "deficits": [
+  [
+   0.0,
+   0.035598350823505515,
+   -0.03282222722074012
+  ],
+  [
+   0.035598350823505515,
+   0.0,
+   0.0733849812707399
+  ],
+  [
+   -0.03282222722074012,
+   0.0733849812707399,
+   0.0
+  ]
+ ],
+ "groups": {
+  "0.02": [
+   [
+    0,
+    1,
+    2
+   ]
+  ],
+  "0.05": [
+   [
+    0
+   ],
+   [
+    1,
+    2
+   ]
+  ],
+  "0.1": [
+   [
+    0
+   ],
+   [
+    1
+   ],
+   [
+    2
+   ]
+  ],
+  "0.2": [
+   [
+    0
+   ],
+   [
+    1
+   ],
+   [
+    2
+   ]
+  ]
+ },
+ "candidates": {
+  "single": {
+   "val": 0.004851228091865778,
+   "test": 0.0045964280143380165
+  },
+  "balanced-act": {
+   "val": 0.03184693679213524,
+   "test": 0.03032286837697029
+  },
+  "induced-act-tau0.05": {
+   "val": 0.0176046472042799,
+   "test": 0.017723707482218742
+  },
+  "induced-hybrid-tau0.05": {
+   "val": 0.015725435689091682,
+   "test": 0.014294534921646118
+  },
+  "induced-act-tau0.1": {
+   "val": 0.03184693679213524,
+   "test": 0.03032286837697029
+  },
+  "induced-hybrid-tau0.1": {
+   "val": 0.03367282450199127,
+   "test": 0.03268183395266533
+  },
+  "induced-act-tau0.2": {
+   "val": 0.03184693679213524,
+   "test": 0.03032286837697029
+  },
+  "induced-hybrid-tau0.2": {
+   "val": 0.03367282450199127,
+   "test": 0.03268183395266533
+  }
+ },
+ "pick": "single",
+ "sd_y": 0.056724146008491516
+}
