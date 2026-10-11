@@ -4,6 +4,7 @@ and theory/verification.json.  Works on partial results.
     PYTHONPATH=experiments:. python experiments/theory_figs.py
 """
 import collections
+import math
 import glob
 import json
 import os
@@ -13,7 +14,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from make_figures import COL, FIG, GRID, INK, TAB, load   # shared style
+from make_figures import COL, FIG, GRID, INK, MUTED, TAB, load   # shared style
+MUTED_GUIDE = MUTED
 
 R = "results/theory"
 DCOL = {1: "#2a78d6", 2: "#eb6834", 3: "#1baf7a", 4: "#eb6834", 8: "#1baf7a"}
@@ -142,6 +144,8 @@ def tab_equiv():
             continue
         for n in ("2", "4", "8"):
             v = r2[n]
+            inr = [r for r in v["forest"] if r.get("inputs_inside_margin", True)]   # in the theorem's regime
+            v = dict(v, measured_slope_forest=slope([r["G_per_tree"] for r in inr], [r["sup_err"] for r in inr]))
             row(r"\cref{thm:compose}" if (n == "2" and key == "r2_lip") else "",
                 f"{name}, $n={n}$: forest / one tree, rate in $G$",
                 (f"$\\le{-0.5:.3f}$ / $\\le{-1 / int(n):.3f}$" if key == "r2" else f"${-0.5:.3f}$ / ${-1 / int(n):.3f}$"),
@@ -181,17 +185,73 @@ def tab_equiv():
             Ns = sorted(N for (x, mm, N) in L2 if x == n and mm == m)
             out.append(slope(Ns, [np.mean(L2[(n, m, N)]) for N in Ns]) if len(Ns) >= 3 else float("nan"))
         if np.isfinite(out).all():
-            row(r"\cref{rem:crossover}" if n == 4 else "", f"learned forest / one tree, $n={n}$: rate in $N$ (heuristic)",
+            row(r"\cref{thm:learn-rate}" if n == 4 else "", f"learned forest / one tree, $n={n}$: rate in $N$",
                 f"${-1 / 3:.3f}$ / ${-2 / (n + 4):.3f}$", f"${out[0]:.3f}$ / ${out[1]:.3f}$")
-    row(r"\cref{prop:local}", "law of $(x_2,Y)$ in the two worlds", "equal", "equal (exact; Lean)")
-    lines = [r"\begin{tabular}{@{}llll@{}}\toprule", r"result & quantity & predicted & measured\\\midrule"]
+    row(r"\cref{prop:local}", "law of $(x_2,Y)$ in the two worlds", "equal", "equal; exact on the sign skeleton (Lean)")
+    lines = [r"\begin{tabular}{@{}llp{2.4cm}p{3.0cm}@{}}\toprule", r"result & quantity & predicted & measured\\\midrule"]
     lines += rows + [r"\bottomrule\end{tabular}"]
     open(f"{TAB}/equivariance.tex", "w", encoding="utf-8").write("\n".join(lines))
     print("\n".join(lines))
+
+
+def fig_bernstein():
+    D = sorted(load("results/cases/bernstein_m*.json"), key=lambda d: d["m"])
+    if not D:
+        return
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.5))
+    cm = plt.get_cmap("viridis")
+    for i, d in enumerate(D):
+        rows = d["rows"]
+        axes[0].loglog([r["leaves"] / d["trees"] for r in rows], [r["err_vs_Bm"] for r in rows], "o-", ms=3,
+                       color=cm(i / max(1, len(D) - 1)), label=f"$m={d['m']}$ ({d['trees']} trees)")
+    axes[0].set_xlabel("leaves per tree"); axes[0].set_ylabel(r"sup $|\hat F-B_mf|$")
+    axes[0].set_title("forest $\\to$ Bernstein polynomial", color=INK); axes[0].legend(fontsize=6)
+    ms = [d["m"] for d in D]
+    axes[1].loglog(ms, [d["bernstein_err"] for d in D], "s--", color=COL["single"], ms=3.5, label=r"$\sup|B_mf-f|$")
+    axes[1].loglog(ms, [d["rows"][-1]["err_vs_f"] for d in D], "o-", color=COL["act"], ms=3.5, label=r"forest, $\sup|\hat F-f|$")
+    guide(axes[1], ms, D[0]["bernstein_err"], -1.0, color=MUTED_GUIDE)
+    axes[1].set_xlabel("$m$"); axes[1].set_title("forest $\\to f$", color=INK); axes[1].legend(fontsize=6)
+    fig.tight_layout()
+    fig.savefig(f"{FIG}/bernstein.pdf"); fig.savefig(f"{FIG}/bernstein.png", dpi=160)
+    plt.close(fig)
+
+
+def tab_feynman_cases():
+    C = one_path("results/cases/constants.json")
+    rows = []
+    for d in sorted(load("results/cases/feynman_*.json"), key=lambda d: d["n"]):
+        F, S = d["forest"], d["single"]
+        fb = F[-1]
+        # the single tree with the fewest leaves that is at least as large as the forest
+        sb = min(S, key=lambda r: abs(math.log(r["leaves"] / fb["leaves"])))
+        k = C.get(d["eq"], {}).get("kappa", float("nan")) if C else float("nan")
+        rows.append((d["eq"], d["n"], d["trees"], k, fb["leaves"], fb["rmse"], sb["leaves"], sb["rmse"], S[-1]["leaves"], S[-1]["rmse"]))
+    if not rows:
+        return
+    lines = [r"\begin{tabular}{@{}lrrrrrrrrr@{}}\toprule",
+             r"formula & $n$ & trees & $\kappa$ & \multicolumn{2}{c}{forest} & \multicolumn{2}{c}{one tree, similar size} & \multicolumn{2}{c}{one tree, largest}\\",
+             r" & & & & leaves & error & leaves & error & leaves & error\\\midrule"]
+    for r in rows:
+        lines.append(f"{r[0]} & {r[1]} & {r[2]} & {r[3]:.0f} & {r[4]} & {r[5]:.3f} & {r[6]} & {r[7]:.3f} & {r[8]} & {r[9]:.3f}\\\\")
+    lines.append(r"\bottomrule\end{tabular}")
+    open(f"{TAB}/feynman_cases.tex", "w", encoding="utf-8").write("\n".join(lines))
+    print("\n".join(lines))
+    if C:
+        ks = np.array([r[3] for r in rows]); es = np.array([r[5] for r in rows])
+        rk = lambda v: np.argsort(np.argsort(v)).astype(float)
+        rho = float(np.corrcoef(rk(ks), rk(es))[0, 1])
+        json.dump(dict(spearman=rho, n=len(rows)), open("results/cases/spearman.json", "w"))
+        print("spearman(kappa, forest error) =", rho)
+
+
+def one_path(p):
+    return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else None
 
 
 if __name__ == "__main__":
     fig_compose()
     fig_learn()
     fig_continual()
+    fig_bernstein()
+    tab_feynman_cases()
     tab_equiv()

@@ -5,31 +5,66 @@
     "G_per_tree": 16,
     "trees": 1,
     "G_total": 16,
-    "sup_err": 0.17095807949276576
+    "sup_err": 0.17095807949276576,
+    "level_err": [
+     0.17095807949276576
+    ],
+    "margins": [
+     0.10015274600983796
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 64,
     "trees": 1,
     "G_total": 64,
-    "sup_err": 0.04110045835189491
+    "sup_err": 0.04110045835189491,
+    "level_err": [
+     0.04110045835189491
+    ],
+    "margins": [
+     0.10015274600983796
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 256,
     "trees": 1,
     "G_total": 256,
-    "sup_err": 0.013427755039799205
+    "sup_err": 0.013427755039799205,
+    "level_err": [
+     0.013427755039799205
+    ],
+    "margins": [
+     0.10015274600983796
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 1024,
     "trees": 1,
     "G_total": 1024,
-    "sup_err": 0.003639282124006993
+    "sup_err": 0.003639282124006993,
+    "level_err": [
+     0.003639282124006993
+    ],
+    "margins": [
+     0.10015274600983796
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 4096,
     "trees": 1,
     "G_total": 4096,
-    "sup_err": 0.0010103789983868516
+    "sup_err": 0.0010103789983868516,
+    "level_err": [
+     0.0010103789983868516
+    ],
+    "margins": [
+     0.10015274600983796
+    ],
+    "inputs_inside_margin": true
    }
   ],
   "single": [
@@ -56,8 +91,8 @@
   ],
   "predicted_slope_forest": -0.5,
   "predicted_slope_single": -0.5,
-  "measured_slope_forest": -0.9151316580099651,
-  "measured_slope_single": -0.6084958636523885
+  "measured_slope_forest": -0.9151316580099653,
+  "measured_slope_single": -0.6084958636523887
  },
  "4": {
   "forest": [
@@ -65,31 +100,76 @@
     "G_per_tree": 16,
     "trees": 3,
     "G_total": 48,
-    "sup_err": 0.13394841082594178
+    "sup_err": 0.13394841082594178,
+    "level_err": [
+     0.15832353333087834,
+     0.13394841082594178
+    ],
+    "margins": [
+     0.10015923702916756,
+     0.09726889226475807
+    ],
+    "inputs_inside_margin": false
    },
    {
     "G_per_tree": 64,
     "trees": 3,
     "G_total": 192,
-    "sup_err": 0.039443333226586774
+    "sup_err": 0.039443333226586774,
+    "level_err": [
+     0.04358077819239703,
+     0.039443333226586774
+    ],
+    "margins": [
+     0.10015923702916756,
+     0.09726889226475807
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 256,
     "trees": 3,
     "G_total": 768,
-    "sup_err": 0.012227989988969457
+    "sup_err": 0.012227989988969457,
+    "level_err": [
+     0.013534107755298508,
+     0.012227989988969457
+    ],
+    "margins": [
+     0.10015923702916756,
+     0.09726889226475807
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 1024,
     "trees": 3,
     "G_total": 3072,
-    "sup_err": 0.0034762297683147425
+    "sup_err": 0.0034762297683147425,
+    "level_err": [
+     0.0043455543893478055,
+     0.0034762297683147425
+    ],
+    "margins": [
+     0.10015923702916756,
+     0.09726889226475807
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 4096,
     "trees": 3,
     "G_total": 12288,
-    "sup_err": 0.001482668181878366
+    "sup_err": 0.001482668181878366,
+    "level_err": [
+     0.00117062827495662,
+     0.001482668181878366
+    ],
+    "margins": [
+     0.10015923702916756,
+     0.09726889226475807
+    ],
+    "inputs_inside_margin": true
    }
   ],
   "single": [
@@ -120,8 +200,8 @@
   ],
   "predicted_slope_forest": -0.5,
   "predicted_slope_single": -0.25,
-  "measured_slope_forest": -0.8249430956149661,
-  "measured_slope_single": -0.2824782845245199
+  "measured_slope_forest": -0.8249430956149663,
+  "measured_slope_single": -0.28247828452451995
  },
  "8": {
   "forest": [
@@ -129,31 +209,86 @@
     "G_per_tree": 16,
     "trees": 7,
     "G_total": 112,
-    "sup_err": 0.09546656279831323
+    "sup_err": 0.09546656279831323,
+    "level_err": [
+     0.12225665156698651,
+     0.12863021681371745,
+     0.09546656279831323
+    ],
+    "margins": [
+     0.10015131007667229,
+     0.0950517255953309,
+     0.0824543369659655
+    ],
+    "inputs_inside_margin": false
    },
    {
     "G_per_tree": 64,
     "trees": 7,
     "G_total": 448,
-    "sup_err": 0.04110749545256842
+    "sup_err": 0.04110749545256842,
+    "level_err": [
+     0.04338372948762226,
+     0.042931552625332436,
+     0.04110749545256842
+    ],
+    "margins": [
+     0.10015131007667229,
+     0.0950517255953309,
+     0.0824543369659655
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 256,
     "trees": 7,
     "G_total": 1792,
-    "sup_err": 0.011132961677303377
+    "sup_err": 0.011132961677303377,
+    "level_err": [
+     0.014093937218884078,
+     0.011770566733935062,
+     0.011132961677303377
+    ],
+    "margins": [
+     0.10015131007667229,
+     0.0950517255953309,
+     0.0824543369659655
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 1024,
     "trees": 7,
     "G_total": 7168,
-    "sup_err": 0.004322859959412617
+    "sup_err": 0.004322859959412617,
+    "level_err": [
+     0.004320627164729807,
+     0.004332532544438661,
+     0.004322859959412617
+    ],
+    "margins": [
+     0.10015131007667229,
+     0.0950517255953309,
+     0.0824543369659655
+    ],
+    "inputs_inside_margin": true
    },
    {
     "G_per_tree": 4096,
     "trees": 7,
     "G_total": 28672,
-    "sup_err": 0.0017600716817284257
+    "sup_err": 0.0017600716817284257,
+    "level_err": [
+     0.0016639624654607443,
+     0.0016788066903903331,
+     0.0017600716817284257
+    ],
+    "margins": [
+     0.10015131007667229,
+     0.0950517255953309,
+     0.0824543369659655
+    ],
+    "inputs_inside_margin": true
    }
   ],
   "single": [
@@ -176,7 +311,7 @@
   ],
   "predicted_slope_forest": -0.5,
   "predicted_slope_single": -0.125,
-  "measured_slope_forest": -0.7385961161040351,
+  "measured_slope_forest": -0.7385961161040352,
   "measured_slope_single": -0.10687131069639395
  },
  "code": {
@@ -188,7 +323,7 @@
   "cobweb_forest/designs.py": "0d9a94dff886",
   "cobweb_forest/forest.py": "5f1e17c3f8a4",
   "cobweb_forest/provenance.py": "16cf21396b12",
-  "git": "1b93f5c",
-  "host": "eva.cc.gatech.edu"
+  "git": "ba3f299",
+  "host": "asimo.cc.gatech.edu"
  }
 }

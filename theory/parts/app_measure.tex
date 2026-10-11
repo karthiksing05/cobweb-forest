@@ -41,5 +41,5 @@ two-view Gaussian model of \cref{prop:multiview} with loadings $(1,0.8)$ and $(0
 noise scales $(0.5,0.6)$ and $(0.6,0.5)$, and the view-specific target $Y=E_{1,1}$; the
 cross-view trees predict one coordinate of the other view.  Every variable is linear in a
 standard Gaussian vector, so $f=\E[Y\mid X]$ and the ideal output $F=\E[Y\mid\mu_1,\mu_2]$
-are linear projections and $\Delta/\Var f=\|f-F\|^2/\|f\|^2$ is computed exactly from the
+are linear projections and $\Delta/\Var f=\|f-F\|^2/\|f\|^2=0.484$ (so $\sqrt{\Delta/\Var f}=0.696$) is computed exactly from the
 coefficient vectors (\texttt{experiments/theory\_suite.py}, \texttt{multiview\_deficit}).

@@ -132,12 +132,20 @@ def run_r2(a):
         for s in (4, 8, 16, 32, 64):
             trees = {k: grid_tree(lambda p: gnode(p[0], p[1]), lo, hi, s)[0] for k, (lo, hi) in boxes.items()}
             err = 0.0
+            lev_err = [0.0] * depth                      # e_l: max error of the values at level l+1
             for x in Q:
                 v = list(x)
+                ex = comp_levels(x)
                 for lev in range(depth):
                     v = [tree_predict(trees[(lev, i)], [v[2 * i], v[2 * i + 1]]) for i in range(len(v) // 2)]
+                    lev_err[lev] = max(lev_err[lev], max(abs(a - b) for a, b in zip(v, ex[lev + 1])))
                 err = max(err, abs(v[0] - f(x)))
-            forest_rows.append(dict(G_per_tree=s * s, trees=len(trees), G_total=s * s * len(trees), sup_err=err))
+            # a-posteriori hypothesis of thm:compose: every input stays in its max-norm margin
+            margins = [min(float(np.min(boxes[(lev, i)][1] - boxes[(lev, i)][0]) * 0.1 / 1.2)
+                           for i in range(len(L[0][lev]) // 2)) for lev in range(depth)]
+            inside = all(lev_err[l - 1] <= margins[l] for l in range(1, depth))
+            forest_rows.append(dict(G_per_tree=s * s, trees=len(trees), G_total=s * s * len(trees), sup_err=err,
+                                    level_err=lev_err, margins=margins, inputs_inside_margin=bool(inside)))
             print("r2 forest", n, s * s, round(err, 5), flush=True)
         single_sides = {2: (4, 8, 16, 32, 64), 4: (3, 4, 6, 8, 10, 12), 8: (2, 3, 4, 5)}[n]
         single_rows = []

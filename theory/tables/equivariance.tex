@@ -1,14 +1,14 @@
-\begin{tabular}{@{}llll@{}}\toprule
+\begin{tabular}{@{}llp{2.4cm}p{3.0cm}@{}}\toprule
 result & quantity & predicted & measured\\\midrule
 \cref{prop:rate} & one constructed tree, $d=1$: rate in $G$ & $-1.000$ & $-1.058$\\
  & one constructed tree, $d=2$: rate in $G$ & $-0.500$ & $-0.511$\\
  & one constructed tree, $d=3$: rate in $G$ & $-0.333$ & $-0.298$\\
 \cref{thm:compose} & Lipschitz maps, $n=2$: forest / one tree, rate in $G$ & $-0.500$ / $-0.500$ & $-0.603$ / $-0.541$\\
- & Lipschitz maps, $n=4$: forest / one tree, rate in $G$ & $-0.500$ / $-0.250$ & $-0.400$ / $-0.229$\\
- & Lipschitz maps, $n=8$: forest / one tree, rate in $G$ & $-0.500$ / $-0.125$ & $-0.487$ / $-0.056$\\
+ & Lipschitz maps, $n=4$: forest / one tree, rate in $G$ & $-0.500$ / $-0.250$ & $-0.470$ / $-0.229$\\
+ & Lipschitz maps, $n=8$: forest / one tree, rate in $G$ & $-0.500$ / $-0.125$ & $-0.545$ / $-0.056$\\
  & smooth maps, $n=2$: forest / one tree, rate in $G$ & $\le-0.500$ / $\le-0.500$ & $-0.915$ / $-0.608$\\
- & smooth maps, $n=4$: forest / one tree, rate in $G$ & $\le-0.500$ / $\le-0.250$ & $-0.825$ / $-0.282$\\
- & smooth maps, $n=8$: forest / one tree, rate in $G$ & $\le-0.500$ / $\le-0.125$ & $-0.739$ / $-0.107$\\
+ & smooth maps, $n=4$: forest / one tree, rate in $G$ & $\le-0.500$ / $\le-0.250$ & $-0.801$ / $-0.282$\\
+ & smooth maps, $n=8$: forest / one tree, rate in $G$ & $\le-0.500$ / $\le-0.125$ & $-0.750$ / $-0.107$\\
 \cref{thm:learn-tree} & learned tree $=$ Nadaraya--Watson: identity & $0$ & $2.9e-07$\\
  & one learned tree, $d=1$: interior rate in $N$ & $-0.400$ & $-0.413$\\
  & one learned tree, $d=2$: interior rate in $N$ & $-0.333$ & $-0.334$\\
@@ -19,7 +19,7 @@ result & quantity & predicted & measured\\\midrule
 \cref{prop:tasks}(c) & label forest on $x_1x_2$: floor ($N=16000$) & $\to0$ & $0.083$\\
 \cref{thm:learn-tree} & one tree on $x_1x_2$ ($N=16000$) & $\to0$ & $0.023$\\
 \cref{prop:tasks}(d) & cross-view forest, view-specific target: floor ($N=16000$) & $0.696$ & $0.716$\\
-\cref{rem:crossover} & learned forest / one tree, $n=4$: rate in $N$ (heuristic) & $-0.333$ / $-0.250$ & $-0.357$ / $-0.324$\\
- & learned forest / one tree, $n=8$: rate in $N$ (heuristic) & $-0.333$ / $-0.167$ & $-0.383$ / $-0.118$\\
-\cref{prop:local} & law of $(x_2,Y)$ in the two worlds & equal & equal (exact; Lean)\\
+\cref{thm:learn-rate} & learned forest / one tree, $n=4$: rate in $N$ & $-0.333$ / $-0.250$ & $-0.357$ / $-0.324$\\
+ & learned forest / one tree, $n=8$: rate in $N$ & $-0.333$ / $-0.167$ & $-0.383$ / $-0.118$\\
+\cref{prop:local} & law of $(x_2,Y)$ in the two worlds & equal & equal; exact on the sign skeleton (Lean)\\
 \bottomrule\end{tabular}

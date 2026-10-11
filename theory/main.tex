@@ -50,8 +50,8 @@ trees are the inputs of others.  (1)~One Cobweb tree is a universal approximator
 (2)~Forests in which every tree reads at most two inputs are universal approximators, and
 one input per tree is not enough.  (3)~Forests exploit composition: if the target is a
 composition of $k$-input maps, a forest whose trees have $G$ leaves each approximates it
-with error of order $G^{-1/k}$, whatever the number $n$ of inputs, while the bound for one
-tree is $G^{-1/n}$.  (4)~Cobweb never deletes what it stores, so the tree it learns is a
+with error of order $G^{-1/k}$, an exponent independent of the number $n$ of inputs,
+while the bound for one tree is $G^{-1/n}$.  (4)~Cobweb never deletes what it stores, so the tree it learns is a
 consistent regressor whatever hierarchy category utility builds, and a learned forest
 converges to the forest of conditional expectations its trees are asked to predict; we
 characterise which of these assignments recover the target.  Every theorem predicts a
@@ -82,17 +82,31 @@ down a tree of probabilistic concepts and, at every node, takes whichever of fou
 operators (add to the best child, create a child, merge two children, split a child) most
 increases \emph{category utility}, the information the concepts carry about the features
 \citep{corter1992,maclellan2026rational}.  It learns incrementally, in closed form, and
-without gradients.  Several systems already wire Cobweb trees together: Convolutional
-Cobweb \citep{maclellan2021conv} feeds the concept labels of patch trees to another tree,
-TRELLIS \citep{singaravadivelan2026trellis} describes composites by concepts of another
-tree, and a Cobweb language model passes each tree's prediction to the trees above it.  We
-call such a network a \emph{Cobweb forest}.  This paper asks:
+without gradients.  Cobweb trees have been wired together informally before, with one
+tree reading what another has learned \citep{maclellan2021conv,singaravadivelan2026trellis};
+we call such a network a \emph{Cobweb forest} and give it a theory.  This paper asks:
 \begin{enumerate}[label=\textbf{Q\arabic*.},leftmargin=*,noitemsep]
 \item Is a Cobweb tree a universal approximator?  Is a Cobweb forest, and with how many
   inputs per tree?
 \item What does composing trees buy?
 \item Does Cobweb's own learning procedure learn the function, for a tree and for a forest?
 \end{enumerate}
+
+\begin{table}[t]
+\centering\small
+\begin{tabular}{@{}p{2.6cm}p{4.0cm}p{4.0cm}p{4.4cm}@{}}\toprule
+ & multilayer perceptron & Kolmogorov--Arnold network & Cobweb forest\\\midrule
+theorem & universal approximation \citep{cybenko1989,hornik1989} & Kolmogorov--Arnold \citep{kolmogorov1957} & \cref{thm:univ-tree,thm:univ-forest,thm:compose}\\
+unit & neuron: fixed activation of a weighted sum & learnable spline on an edge & Cobweb tree: a concept hierarchy over its inputs\\
+composition & layers of sums & sums of one-variable functions & trees reading trees, at most two inputs each\\
+learning & gradient descent & gradient descent & Cobweb's own operators; no gradient (\cref{thm:learn-tree,thm:learn-forest,thm:learn-rate})\\
+$k$-compositions & dimension-free rates for deep nets \citep{poggio2017} & dimension-free rate, smooth case \citep{liu2024kan} & $G^{-1/k}$ (\cref{thm:compose}), learned: $N^{-2/(k+4)}$ (\cref{thm:learn-rate})\\
+\bottomrule
+\end{tabular}
+\caption{Three universal approximators and the theorems behind them.  This paper supplies
+the right-hand column.}
+\label{tab:three}
+\end{table}
 
 \paragraph{Answers.}
 \begin{itemize}[leftmargin=*,noitemsep]
@@ -106,13 +120,15 @@ call such a network a \emph{Cobweb forest}.  This paper asks:
   maps a forest attains error $O(G^{-1/k})$ with $G$ leaves per tree, against the single-tree
   bound $O(G^{-1/n})$.  This is the sense in which tree--tree interactions are worth having.
 \item Cobweb's learning is consistent (\cref{thm:learn-tree}), and a learned forest
-  converges to an explicit limit (\cref{thm:learn-forest}).  Whether the limit is the target
+  converges to an explicit limit (\cref{thm:learn-forest}), at a rate set by its fan-in when
+  each tree's outcome is sufficient (\cref{thm:learn-rate}).  Whether the limit is the target
   depends on what each tree is asked to predict (\cref{prop:tasks}), and no tree can tell from
   its own data what it should predict (\cref{prop:local}).
 \end{itemize}
 Each answer comes with a measurement on real Cobweb trees (\cref{sec:measure},
-\cref{tab:equiv}): the predicted rates, floors and identities are the measured ones.
-\Cref{sec:recipe} turns the theory into a recipe for building a forest.
+\cref{tab:equiv}).  \Cref{sec:recipe} turns the theory into a recipe for building a forest,
+and \cref{sec:cases} executes the proofs on concrete cases: a forest built literally as in
+the proof of universality, and forests compiled from physics formulas.
 
 %=====================================================================
 \section{Cobweb trees and forests}\label{sec:forests}
@@ -182,23 +198,29 @@ positive counts, with $|S|$ replaced by $|S|\max_sn_s/\min_sn_s$.  For a Lipschi
 regular grid gives an explicit rate:
 
 \begin{proposition}[Rate; \cref{thm:single}]\label{prop:rate}
-If $g$ is $L$-Lipschitz and $K$ lies in a cube of side $w$, a depth-one tree with
-$G=m^d$ leaves on a grid, with $h$ proportional to the grid spacing, has
-$\sup_K|\hy-g|\le C_d\,L\,w\,G^{-1/d}$.
+Let $g$ be $L$-Lipschitz on $K$, which lies in a cube $Q$ of side $w$, and let $\tilde g$ be
+its McShane extension to $Q$ (also $L$-Lipschitz).  The depth-one tree whose $G=m^d$ leaves
+hold $(\gamma,\tilde g(\gamma))$ at the cell centres $\gamma$ of an $m^d$ grid on $Q$, with
+variance floor $h=\beta w/m$, predicts with the count-weighted leaf mixture
+\eqref{eq:tree} within $\sup_Q|\hy-\tilde g|\le C_{d,\beta}\,L\,w\,G^{-1/d}$.
 \end{proposition}
 
 The implementation's other prediction rules mix over the root as well as the leaves.
 Two of them (\textsc{lik}, \textsc{path}) are universal by the same construction, because
 the root's weight is of order $1/G$; the other two (\textsc{prior}, \textsc{posterior})
-keep a fixed share on the root of a flat tree and are not (\cref{thm:single,prop:prior}).
+keep a fixed share on the root of a flat tree, so they are not universal by this
+construction (\cref{thm:single,prop:prior}); on deeper trees that share shrinks
+(\cref{rem:hierarchy}).
 
 \subsection{Forests}
 
 \begin{lemma}[Stability of composition; \cref{lem:dag}]\label{lem:stable}
-Let a finite DAG of continuous maps $g_v$ compute $F$ on a compact $K$.  For every
-$\varepsilon>0$ there are $\rho_v,\eta_v>0$ such that replacing every $g_v$ by any map
-$\hat g_v$ with $|\hat g_v-g_v|\le\eta_v$ on the $\rho_v$-neighbourhood of $g_v$'s input set
-changes the output by less than $\varepsilon$ on $K$.
+Let a finite DAG compute $F$ on a compact $K\subset\R^n$, each vertex $v$ applying a map
+$g_v$ that is continuous on an open set containing a closed neighbourhood of its input set
+$B_v$ (the values of its inputs as $x$ ranges over $K$).  For every $\varepsilon>0$ there are
+$\rho_v,\eta_v>0$ such that replacing every $g_v$ by any map $\hat g_v$ with
+$|\hat g_v-g_v|\le\eta_v$ on the closed $\rho_v$-neighbourhood of $B_v$ changes the output by
+at most $\varepsilon$ on $K$.
 \end{lemma}
 
 \begin{theorem}[Forests of two-input trees are universal approximators]\label{thm:univ-forest}
@@ -212,13 +234,16 @@ By the Stone--Weierstrass theorem \citep{stone1948} the polynomials in $x_1,\dot
 are dense in $C(K)$: they form an algebra of continuous functions that contains the
 constants and separates points.  Take a polynomial $p$ with $\max_K|p-f|<\varepsilon/2$.
 Every polynomial is computed by a finite DAG whose sources are the coordinates $x_i$ and
-constants and whose other vertices apply $(a,b)\mapsto a+b$ or $(a,b)\mapsto ab$ (by
-induction on the expression).  By \cref{lem:stable} with tolerance $\varepsilon/2$ there
+constants and whose other vertices apply $(a,b)\mapsto a+b$, $(a,b)\mapsto ab$ or, where
+both arguments are the same value, $a\mapsto a^2$ (by induction on the expression; if $p$ is
+a coordinate or a constant, add one identity vertex).  By \cref{lem:stable} with tolerance $\varepsilon/2$ there
 are $\rho_v,\eta_v$ for this DAG.  Each vertex map is continuous on the compact set
 $K_v^{\rho_v}$, the closed $\rho_v$-neighbourhood of its input set, so by
-\cref{thm:univ-tree} a Cobweb tree with two inputs approximates it within $\eta_v$ there;
+\cref{thm:univ-tree} a Cobweb tree with two inputs (one, for $a\mapsto a^2$) approximates it within $\eta_v$
+there;
 a constant is a tree with no input.  The forest of these trees is within $\varepsilon/2$ of
-$p$, hence within $\varepsilon$ of $f$, on $K$.
+$p$, hence within $\varepsilon$ of $f$, on $K$ (apply \cref{lem:stable} with a tolerance
+slightly below $\varepsilon/2$ to make the inequality strict).
 \end{proof}
 
 \begin{proposition}[One input per tree is not enough; \cref{prop:fanin}]\label{prop:fanin-main}
@@ -249,38 +274,44 @@ forest adds to a tree.
 Universality says nothing about size.  Many functions of interest are compositions of
 functions of few variables, and for them a forest escapes the dimension.  Call $f$ a
 \emph{$k$-composition of depth $D$} if it is computed by a DAG whose sources are the
-coordinates and whose every other vertex $v$ applies a map $g_v$ of at most $k$ of its
-predecessors, the longest path having $D$ such vertices.
+coordinates and whose every other vertex $v$ applies a map $g_v$ of $k_v\le k$ of its
+predecessors.  The \emph{depth} $d(v)$ of a vertex is the number of non-source vertices on the
+longest path from a source to $v$, and $D=\max_vd(v)$.  Neighbourhoods are in the max-norm:
+$B^{r}=\{u:\operatorname{dist}_\infty(u,B)\le r\}$.
 
 \begin{theorem}[Composition beats dimension]\label{thm:compose}
-Let $f$ be a $k$-composition of depth $D$ on a compact $K\subset\R^n$.  Let $B_v$ be the
+Let $f$ be a $k$-composition of depth $D$ on a compact $K\subset\R^n$, let $B_v$ be the
 set of input vectors of $g_v$ as $x$ ranges over $K$, and suppose that, for some $r>0$,
-every $g_v$ is $L$-Lipschitz in the max-norm on the $r$-neighbourhood $B_v^r$ of $B_v$,
-which lies in a cube of side $w$.  For $G=m^k$, $m\in\N$, let $\eta=C_kLwG^{-1/k}$ be the
-bound of \cref{prop:rate}.  If $\eta\sum_{l=0}^{D-1}L^l\le r$, the forest with one tree of $G$
-leaves per vertex, each built by \cref{prop:rate} on $B_v^r$, satisfies
+every $g_v$ is $L$-Lipschitz in the max-norm on $B_v^r$, which lies in a cube $Q_v$ of side
+$w$.  Give every vertex the tree of \cref{prop:rate} for the McShane extension of $g_v$ to
+$Q_v$, with $m^{k_v}\le G=m^k$ leaves, and let $\eta=C\,L\,w/m$ ($C=\max_{j\le k}C_{j,\beta}$)
+be the resulting bound.  If the error of every vertex stays at most $r$---guaranteed when
+$\eta\sum_{l<D}L^l\le r$, and checkable after the fact otherwise---then every vertex has
+error at most $\eta\sum_{l<d(v)}L^l$, so
 \[
-  \sup_K|\hat F-f|\;\le\;C_k\,L\,w\Bigl(\sum_{l=0}^{D-1}L^l\Bigr)G^{-1/k},
+  \sup_K|\hat F-f|\;\le\;C\,L\,w\Bigl(\sum_{l=0}^{D-1}L^l\Bigr)G^{-1/k}.
 \]
-a rate set by the fan-in $k$, not by $n$.  The corresponding bound for one tree over all
-$n$ coordinates is $C_n\,L_f\,\mathrm{diam}(K)\,G^{-1/n}$ (\cref{prop:rate}).
+The exponent is set by the fan-in $k$, not by $n$; the constant grows with the depth, which
+is at least $\log_kn$ when $f$ depends on all $n$ coordinates.  The corresponding bound for
+one tree over all $n$ coordinates is $C_{n,\beta}\,L_f\,w\,G^{-1/n}$ (\cref{prop:rate}).
 \end{theorem}
 
 \begin{proof}
 Write $e_v=\sup_K|\hat u_v-u_v|$ for the error of the value at vertex $v$ ($e=0$ at the
-sources).  Suppose every predecessor of $v$ has error at most $e\le r$.  Then $v$'s
+sources), and $\tilde g_v$ for the extension.  Suppose every predecessor of $v$ has error at
+most $e\le r$.  Then $v$'s
 approximate input vector is within $e$ (in max-norm) of its exact input vector, so it lies
-in $B_v^r$, where the tree is within $\eta$ of $g_v$ and $g_v$ is $L$-Lipschitz:
+in $B_v^r\subseteq Q_v$, where the tree is within $\eta$ of $\tilde g_v$ and $\tilde g_v=g_v$
+is $L$-Lipschitz:
 \[
-  |\hat g_v(\hat u)-g_v(u)|\le|\hat g_v(\hat u)-g_v(\hat u)|+|g_v(\hat u)-g_v(u)|\le\eta+Le.
+  |\hat g_v(\hat u)-g_v(u)|\le|\hat g_v(\hat u)-\tilde g_v(\hat u)|+|\tilde g_v(\hat u)-\tilde g_v(u)|\le\eta+Le.
 \]
-By induction on the depth $l$ of a vertex, $e_v\le\eta\sum_{j<l}L^j$; the hypothesis keeps
-every $e_v\le r$.  At the output, $l\le D$.
+By induction on $d(v)$, $e_v\le\eta\sum_{j<d(v)}L^j$, which is at most $r$ by hypothesis.  At the
+output, $d(v)=D$.
 \end{proof}
 
 The bound for one tree is only an upper bound, so the theorem does not prove that a single
-tree \emph{must} do worse; the measurements of \cref{sec:measure} show that it does, with
-the predicted exponents.  The same dichotomy between compositional and generic targets is
+tree \emph{must} do worse; the measurements of \cref{sec:measure} show that it does.  The same dichotomy between compositional and generic targets is
 known for deep and shallow networks \citep{poggio2017}.
 
 %=====================================================================
@@ -292,16 +323,17 @@ The constructions above place leaves by hand.  We now let Cobweb learn.
 \subsection{One tree}
 
 \begin{theorem}[Cobweb's learning is consistent; \cref{lem:leaves,thm:consistency}]\label{thm:learn-tree}
-None of Cobweb's operators deletes a leaf, and with exact matching (and below the depth
-limit) every example ends in a leaf that holds only copies of it.  Hence, whatever
+None of Cobweb's operators deletes a leaf, and with exact matching and no depth limit
+every example ends in a leaf that holds only copies of it.  Hence, whatever
 hierarchy category utility builds and in whatever order the examples arrive, the
 count-weighted leaf mixture \eqref{eq:tree} of the learned tree \emph{equals} the
-Nadaraya--Watson kernel regression on all examples seen.  Consequently, if $h\to0$ and
-$Nh^d\to\infty$, the learned tree converges to $\E[Y\mid X]$ in $L_1$, almost surely, for
-every distribution with bounded $Y$ \citep{devroye1989}; and if $\E[Y\mid X=x]$ is twice
-differentiable and $X$ has a smooth density bounded below, then with $h\propto
-N^{-1/(d+4)}$ its root-mean-squared error on any compact set interior to the support is
-$O(N^{-2/(d+4)})$ \citep{wand1995}.
+Nadaraya--Watson kernel regression on all examples seen.  Consequently, for i.i.d.\ examples with bounded $Y$:
+if $h\to0$ and $Nh^d\to\infty$, the learned tree converges to $\E[Y\mid X]$ in $L_1$, almost
+surely \citep{devroye1989}; and if, on a neighbourhood of a compact set $I$ interior to the
+support, $\E[Y\mid X=x]$ is twice differentiable with bounded second derivatives and $X$ has a
+continuously differentiable density bounded below, then with $h\propto N^{-1/(d+4)}$ its
+root-mean-squared error on $I$ is $O(N^{-2/(d+4)})$: the bias is $O(h^2)$ and the variance
+$O(1/(Nh^d))$ uniformly on $I$ \citep{wand1995,gyorfi2002}.
 \end{theorem}
 
 The hierarchy plays no role in consistency; it matters for search under a budget, for the
@@ -325,6 +357,53 @@ output converges uniformly, in probability, to $F$, and its mean squared error t
 $\Delta+\E\Var(Y\mid X)$.  It is consistent if and only if $\Delta=0$.
 \end{theorem}
 
+\begin{theorem}[Learned forests converge at the rate of their fan-in]\label{thm:learn-rate}
+Consider a forest trained with the split protocol, with $D$ levels below the output, and
+let $Q$ be the support of $X$.  Write $U_\tau$ and $\hat U_\tau$ for the ideal and learned
+inputs of tree $\tau$ (both functions of the raw coordinates $X_{R(\tau)}$ upstream of
+$\tau$), $m_\tau=\psi_\tau(U_\tau)$ for its ideal message and
+$e_\tau=\sup_{x\in Q}|\hat m_\tau(x)-m_\tau(x)|$ for its error.  Assume:
+\begin{enumerate}[label=(\roman*),leftmargin=*,noitemsep]
+\item (sufficiency) $\E[V_\tau\mid X_{R(\tau)}]=\psi_\tau(U_\tau)$ for every tree;
+\item (smoothness) every $\psi_\tau$ is $L$-Lipschitz in the max-norm on a set containing
+  all ideal and learned inputs;
+\item (single-tree rate) given its frozen parents, every tree is within $r_N$ of
+  $\phi_\tau(\hat u)=\E[V_\tau\mid\hat U_\tau=\hat u]$ uniformly on $\hat U_\tau(Q)$, with
+  probability tending to one.
+\end{enumerate}
+Then, with probability tending to one,
+\[
+  e_{\text{out}}\;\le\;r_N\sum_{l=0}^{D}(2L)^l .
+\]
+In particular the output inherits the rate $r_N$ of one tree with $k$ inputs---$N^{-2/(k+4)}$
+under the conditions of \cref{thm:learn-tree}---whatever the number $n$ of raw inputs.
+Funnel forests on the targets of \cref{prop:tasks}(a) satisfy (i), and (ii) when the
+monotone maps of \cref{prop:suffclass} have derivatives bounded away from zero.
+\end{theorem}
+
+\begin{proof}
+Fix a tree $\tau$ and suppose every parent has error at most $e$, so $\|\hat U_\tau(x)-
+U_\tau(x)\|_\infty\le e$ for every $x\in Q$.  Since $\hat U_\tau$ is a function of $X_{R(\tau)}$
+(the parents are frozen), the tower property and (i) give
+$\phi_\tau(\hat u)=\E[\E[V_\tau\mid X_{R(\tau)}]\mid\hat U_\tau=\hat u]=\E[\psi_\tau(U_\tau)\mid\hat
+U_\tau=\hat u]$, so by (ii) $|\phi_\tau(\hat u)-\psi_\tau(\hat u)|\le Le$.  For $x\in Q$, with
+$\hat u=\hat U_\tau(x)$ and $u=U_\tau(x)$,
+\[
+  |\hat m_\tau(x)-m_\tau(x)|\le|\hat\psi_\tau(\hat u)-\phi_\tau(\hat u)|
+  +|\phi_\tau(\hat u)-\psi_\tau(\hat u)|+|\psi_\tau(\hat u)-\psi_\tau(u)|\le r_N+2Le
+\]
+on the event of (iii).  Trees at the lowest level read only raw coordinates ($e=0$), so by
+induction a tree at level $l$ has error at most $r_N\sum_{j\le l}(2L)^j$; the finitely many
+events of (iii) hold together with probability tending to one.  For (i) on the targets of
+\cref{prop:tasks}(a): the proof of \cref{prop:suffclass} shows
+$\E[Y\mid X_{R(\tau)}]=H_S(s_S)$, a function of the tree's ideal inputs.
+\end{proof}
+
+Hypothesis (iii) is the single-tree rate of \cref{thm:learn-tree} applied to the learned
+inputs, whose law must satisfy that theorem's regularity conditions; we assume it rather than
+derive it.  The factor $(2L)^l$ is the price of depth: errors compound through levels, which
+is why forests should be shallow (\cref{sec:recipe}).
+
 A KAN or a neural network learns inner functions from the error of their composition; a
 Cobweb tree receives no error and can only learn to predict something it will observe.  The
 natural observable outcomes are the target $Y$ (\emph{funnel}), a part of the input the tree
@@ -334,18 +413,21 @@ does not see (\emph{cross-view}), or none, in which case the tree passes labels
 \begin{proposition}[Which outcomes recover the target; \cref{sec:tasks}]\label{prop:tasks}
 \leavevmode
 \begin{enumerate}[label=(\alph*),leftmargin=*,noitemsep]
-\item If $Y=\Phi\bigl(\sum_jg_j(X_{B_j})\bigr)+\xi$ with $\Phi$ continuous and strictly
-  increasing, continuous $g_j$, independent blocks $X_{B_j}$ and independent noise, every
+\item If $X$ has compact support and $Y=\Phi\bigl(\sum_jg_j(X_{B_j})\bigr)+\xi$ with $\Phi$
+  continuous and strictly increasing, continuous $g_j$, independent blocks $X_{B_j}$ and
+  centred integrable noise $\xi$ independent of $X$, every
   funnel forest whose graph is a rooted tree reading each block in exactly one tree has
   $\Delta=0$ (\cref{prop:suffclass}).
-\item If $Y=X_1X_2$ with independent inputs symmetric about $0$, the funnel forest over two
+\item If $Y=X_1X_2$ with independent inputs symmetric about $0$ and of finite variance, the funnel forest over two
   one-input trees has $F\equiv0$ and $\Delta=\Var Y$: it learns nothing (\cref{prop:xy}).
-\item Label forests trained with the split protocol are consistent for every target
-  whenever their cells shrink, stay few compared with the data, and their smoothing
+\item For bounded $Y$, label forests trained with the split protocol, whose output tree
+  matches exactly and predicts with the count-weighted leaf mixture, are consistent for every
+  target whenever their cells shrink, stay few compared with the data, and their smoothing
   vanishes fast enough (\cref{thm:labelcons}).
 \item In a Gaussian two-view model, cross-view forests have $\Delta=0$ when the target
-  depends on what the views share, and an explicitly computable $\Delta>0$ when it does not
-  (\cref{prop:multiview}).
+  depends only on what the views share (\cref{prop:multiview}).  Otherwise $\Delta$ can be
+  positive; in the Gaussian model it is a closed-form projection, computed for one instance in
+  \cref{sec:measure}.
 \end{enumerate}
 \end{proposition}
 
@@ -354,90 +436,13 @@ does not see (\emph{cross-view}), or none, in which case the tree passes labels
 Let $X_1,X_2,X_3$ be independent and uniform on $[-1,1]$, and observe $(X_1,X_2,Y)$ with
 either $Y=\operatorname{sign}(X_1X_2)$ or $Y=\operatorname{sign}(X_1X_3)$.  In the first world
 $X_2$ is essential, in the second irrelevant, yet $(X_2,Y)$ has the same distribution in
-both; any rule that decides from the data of a tree reading $X_2$ whether to keep it errs
-with probability at least $1/2$ in one world.
+both; any rule that decides, from the data of a tree whose only input is $X_2$, whether to
+keep that tree errs with probability at least $1/2$ in one world.
 \end{proposition}
 
 What a tree should predict must therefore be decided where trees are composed: choosing
 among candidate forests by the validation error of the output is consistent
 (\cref{thm:selection}).
-
-%=====================================================================
-\section{Theory meets measurement}\label{sec:measure}
-%=====================================================================
-
-Every result above predicts a number.  \Cref{tab:equiv} lists each prediction next to its
-measurement on real Cobweb trees---constructed exactly where the result is about
-existence, learned with Cobweb's own procedure where it is about learning.  Learned trees
-predict with the count-weighted leaf mixture under full expansion and forests use the split
-protocol, the setting of the theorems; the variance floor follows the schedule of
-\cref{thm:learn-tree} with its constant chosen on validation data.  Rates are least-squares
-slopes in log--log coordinates over the sizes shown in the figures; errors are averaged over
-three seeds.  \Cref{app:measure} gives the details.
-
-\IfFileExists{tables/equivariance.tex}{%
-\begin{table}[t]
-\centering\small
-\input{tables/equivariance}
-\caption{Each prediction of the theory and its measurement.  ``rate'': exponent of the
-error against the number of leaves $G$ or of examples $N$.  ``floor'': limit of the
-error divided by $\mathrm{sd}(f)$.  ``identity'': largest deviation from an identity that
-holds exactly.}
-\label{tab:equiv}
-\end{table}}{}
-
-\IfFileExists{figs/compose.pdf}{%
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figs/compose.pdf}
-\caption{Composition beats dimension (\cref{thm:compose}).  Sup error of constructed
-Cobweb trees and forests on a composition of two-input maps in $n=2,4,8$ dimensions,
-against the total number of leaves.  Dashed: the predicted slopes, $-1/2$ for the forest
-and $-1/n$ for one tree.}
-\label{fig:compose}
-\end{figure}}{}
-
-\IfFileExists{figs/learn.pdf}{%
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figs/learn.pdf}
-\caption{Learning.  Left: one learned tree, interior RMSE against $N$ in $d=1,2,3$
-dimensions; dashed: the predicted slopes $-2/(d+4)$.  Right: learned funnel forest and one
-learned tree on $\Phi(\sum_j g(X_{B_j}))$ with two-dimensional blocks, $n=2,4,8$.}
-\label{fig:learn}
-\end{figure}}{}
-
-\paragraph{Representation.}
-One constructed tree's sup error falls with the predicted exponent $-1/d$
-(measured $-1.06$, $-0.51$, $-0.30$ for $d=1,2,3$).  On the composition of two-input maps
-(\cref{fig:compose}) the forest's exponent stays near $-1/2$ in every dimension ($-0.60$,
-$-0.40$, $-0.49$ for $n=2,4,8$), while the single tree's exponent shrinks with $n$ as
-predicted ($-0.54$ and $-0.23$ against $-0.5$ and $-0.25$; at $n=8$ its grids, with at most five
-points per axis, are still pre-asymptotic: $-0.06$ against $-0.125$).  The difference in size
-is large: in eight dimensions a forest with $28{,}672$ leaves in all has sup error $0.020$, a
-single tree with $390{,}625$ leaves $0.22$.  With smooth maps both converge faster than the
-Lipschitz bound ($-0.74$ to $-0.92$ for the forest), as an upper bound allows.
-
-\paragraph{Learning.}
-A learned tree's count-weighted leaf mixture equals the Nadaraya--Watson
-estimate to within $3\times10^{-7}$, float precision, and its interior error falls at $-0.41$,
-$-0.33$, $-0.31$ for $d=1,2,3$ against the predicted $-0.40$, $-0.33$, $-0.29$.  For learned
-forests we have a limit (\cref{thm:learn-forest}) but no proved rate.  A heuristic
-(\cref{rem:crossover}) says each tree regresses on its own $k=2$ inputs, at
-$N^{-2/(k+4)}=N^{-1/3}$; the forests follow it ($-0.36$ for $n=4$, $-0.38$ for $n=8$).  One tree
-over all inputs converges at least as fast as its exponent $-2/(n+4)$ for $n=4$ ($-0.32$) and
-is still pre-asymptotic for $n=8$ ($-0.12$).  In eight dimensions at $N=16{,}000$ the forest's
-normalised error is $0.25$ and the single tree's $0.74$ (\cref{fig:learn}).
-
-\paragraph{What trees predict.}
-Each kind of outcome behaves as \cref{prop:tasks} says.  On $x_1x_2$ the funnel forest's
-normalised error is $1.00$ at every $N$, the predicted floor: its trees' activations are
-constant.  The label forest, with its smoothing inside condition (c) of \cref{thm:labelcons},
-falls from $0.24$ to $0.13$ to $0.083$ as $N$ grows from $10^3$ to $1.6\times10^4$, and the
-validated label depth grows with $N$ ($3$, $3$, $4$): its cells refine, as the theorem requires.
-(With the default smoothing $\alpha=0.1$, outside condition (c), it stalls near $0.6$.)  On the
-view-specific Gaussian target the cross-view forest approaches its predicted floor $0.696$ from
-above ($0.81$, $0.78$, $0.72$).
 
 %=====================================================================
 \section{A recipe for building a forest}\label{sec:recipe}
@@ -483,6 +488,197 @@ selected forest is within one percent of the best candidate in every case but on
 pair interacts, the recipe returns the single tree.
 
 %=====================================================================
+\section{Theory meets measurement}\label{sec:measure}
+%=====================================================================
+
+Every result above predicts a number.  \Cref{tab:equiv} lists each prediction next to its
+measurement on real Cobweb trees---constructed exactly where the result is about
+existence, learned with Cobweb's own procedure where it is about learning.  Learned trees
+predict with the count-weighted leaf mixture under full expansion and forests use the split
+protocol, the setting of the theorems; the variance floor follows the schedule of
+\cref{thm:learn-tree} with its constant chosen on validation data.  Rates are least-squares
+slopes in log--log coordinates over the sizes shown in the figures; errors are averaged over
+three seeds.  \Cref{app:measure} gives the details.
+
+\IfFileExists{tables/equivariance.tex}{%
+\begin{table}[t]
+\centering\small
+\input{tables/equivariance}
+\caption{Each prediction of the theory and its measurement.  ``rate'': exponent of the
+error against the number of leaves $G$ or of examples $N$.  ``floor'': limit of the
+error divided by $\mathrm{sd}(f)$.  ``identity'': largest deviation from an identity that
+holds exactly.}
+\label{tab:equiv}
+\end{table}}{}
+
+\IfFileExists{figs/compose.pdf}{%
+\begin{figure}[tp]
+\centering
+\includegraphics[width=\linewidth]{figs/compose.pdf}
+\caption{Composition beats dimension (\cref{thm:compose}).  Sup error of constructed
+Cobweb trees and forests on a composition of two-input maps in $n=2,4,8$ dimensions,
+against the total number of leaves.  Dashed: the predicted slopes, $-1/2$ for the forest
+and $-1/n$ for one tree.}
+\label{fig:compose}
+\end{figure}}{}
+
+\IfFileExists{figs/learn.pdf}{%
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figs/learn.pdf}
+\caption{Learning.  Left: one learned tree, interior RMSE against $N$ in $d=1,2,3$
+dimensions; dashed: the predicted slopes $-2/(d+4)$.  Right: learned funnel forest and one
+learned tree on $\Phi(\sum_j g(X_{B_j}))$ with two-dimensional blocks, $n=2,4,8$.}
+\label{fig:learn}
+\end{figure}}{}
+
+\paragraph{Representation.}
+One constructed tree's sup error falls with the predicted exponent $-1/d$
+(measured $-1.06$, $-0.51$, $-0.30$ for $d=1,2,3$).  On the composition of two-input maps
+(\cref{fig:compose}) the forest's exponent does not degrade with the dimension ($-0.60$,
+$-0.47$, $-0.55$ for $n=2,4,8$, against the predicted $-0.5$), while the single tree's exponent shrinks with $n$ as
+predicted ($-0.54$ and $-0.23$ against $-0.5$ and $-0.25$; at $n=8$ its grids, with at most five
+points per axis, are still pre-asymptotic: $-0.06$ against $-0.125$).  The difference in size
+is large: in eight dimensions a forest with $28{,}672$ leaves in all has sup error $0.020$, a
+single tree with $390{,}625$ leaves $0.22$.  With smooth maps the forest converges faster than the Lipschitz bound ($-0.74$ to
+$-0.92$), as an upper bound allows; the single tree at $n=8$ is again pre-asymptotic.
+The a priori margin condition of \cref{thm:compose} would need far finer trees, but its a
+posteriori form can be checked: in every forest with at least $64$ leaves per tree, every
+approximate input stayed inside its margin at every level, so these runs satisfy the
+theorem's hypothesis, and the forest exponents are fitted on them.
+
+\paragraph{Learning.}
+A learned tree's count-weighted leaf mixture equals the Nadaraya--Watson
+estimate to within $3\times10^{-7}$, float precision, and its interior error falls at $-0.41$,
+$-0.33$, $-0.31$ for $d=1,2,3$ against the predicted $-0.40$, $-0.33$, $-0.29$.  For learned
+forests \cref{thm:learn-rate} predicts the rate of one tree with $k=2$ inputs,
+$N^{-2/(k+4)}=N^{-1/3}$, in every dimension; the forests follow it ($-0.36$ for $n=4$, $-0.38$
+for $n=8$).  One tree
+over all inputs converges at least as fast as its exponent $-2/(n+4)$ for $n=4$ ($-0.32$) and
+is still pre-asymptotic for $n=8$ ($-0.12$).  In eight dimensions at $N=16{,}000$ the forest's
+normalised error is $0.25$ and the single tree's $0.74$ (\cref{fig:learn}).
+
+\paragraph{What trees predict.}
+Each kind of outcome behaves as \cref{prop:tasks} says.  On $x_1x_2$ the funnel forest's
+normalised error is $1.00$ at every $N$, the predicted floor: its trees' activations are
+constant.  The label forest, with a small smoothing $\alpha=10^{-4}$ in its output tree, falls from
+$0.24$ to $0.13$ to $0.083$ as $N$ grows from $10^3$ to $1.6\times10^4$, and the validated label
+depth grows with $N$ ($3$, $3$, $4$): its cells refine, the behaviour \cref{thm:labelcons}
+requires.  These are finite-$N$ illustrations of the theorem, whose conditions are
+asymptotic.  With the default smoothing $\alpha=0.1$, for which $\alpha M_N$ does not vanish,
+the forest stalls near $0.6$.  On the
+view-specific Gaussian target the cross-view forest approaches its predicted floor
+$\sqrt{\Delta/\Var f}=0.696$ from above ($0.81$, $0.78$, $0.72$).
+
+%=====================================================================
+\section{Case studies}\label{sec:cases}
+%=====================================================================
+
+The theorems are constructive.  This section runs the constructions on concrete targets with
+real Cobweb trees, so that every step of a proof becomes a measurement.
+
+\subsection{The universality proof, executed}
+
+\Cref{thm:univ-forest} approximates $f$ by a polynomial and then replaces each operation of
+the polynomial by a Cobweb tree.  We run it with the Bernstein polynomials
+$B_mf(x,y)=\sum_{i,j\le m}f(\tfrac im,\tfrac jm)\,b_{m,i}(x)\,b_{m,j}(y)$, the classical constructive
+proof of the Weierstrass theorem, for $f(x,y)=\exp(\sin\pi x+y^2)$ on $[0,1]^2$.  One-input trees
+compute the basis functions $b_{m,i}$, two-input trees compute the products
+$f(\tfrac im,\tfrac jm)\,ab$ and a balanced binary tree of two-input trees adds them; every tree is
+built as in \cref{thm:univ-tree}, from $G$ leaves on the box of its inputs.  The proof makes
+two predictions: the forest converges to $B_mf$ as its trees refine (\cref{lem:stable}), with
+a tolerance that tightens as the forest grows; and $B_mf$ converges to $f$, at the rate $1/m$
+for smooth $f$.  \Cref{fig:bernstein} shows both.  With $64^2$ leaves per tree the forest is
+within $0.010$ of $B_2f$ (23 trees) and within $0.050$ of $B_{12}f$ (363 trees), and larger
+forests need finer trees, as the lemma says.  Its error to $f$ follows the Bernstein error
+down, from $2.22$ at $m=2$ to $0.59$ at $m=12$ (local slope $-0.73$, approaching $-1$).  The
+forest never does better than the polynomial it implements: the proof's two errors add, and
+the measurements separate them.
+
+\IfFileExists{figs/bernstein.pdf}{%
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figs/bernstein.pdf}
+\caption{The proof of \cref{thm:univ-forest}, executed with Bernstein polynomials.  Left: sup
+distance between the Cobweb forest and the polynomial $B_mf$ it implements, against the leaves
+per tree.  Right: the forest's error to $f$ (with $64^2$ leaves per tree) and the Bernstein
+error $\sup|B_mf-f|$, against the degree $m$; dashed, slope $-1$.}
+\label{fig:bernstein}
+\end{figure}}{}
+
+\subsection{Physics formulas}
+
+\Cref{thm:compose} says that a target which is a composition of few-input maps should be
+represented by a forest that mirrors the composition.  Physics formulas are such targets.  We
+compile nine formulas of the Feynman benchmark \citep{liu2024kan}, with two to nine inputs, into
+forests: every operation of the formula's expression graph becomes one constructed Cobweb tree
+with at most two inputs, built on the box of its inputs with the Lipschitz extension of
+\cref{thm:compose}.  We compare each forest with one constructed tree over all inputs
+(\cref{tab:feynman-cases}).
+
+Three observations match the theory.  First, every forest converges as its trees refine, as
+\cref{thm:compose} guarantees.  Second, where the formula has more inputs than any one of its operations reads,
+the forest is more accurate at a comparable number of leaves: $0.0035$ against $0.038$ on
+$I.50.26$ ($n=4$), $0.039$ against $0.32$ on $II.6.15a$ ($n=6$), and $0.0030$ against
+$0.0063$ on $I.6.20b$.  On the nine-input formula $I.9.18$ the forest has overtaken the single
+tree ($0.15$ against $0.17$) and is still falling fast ($1.18$, $0.59$, $0.15$ over its last
+three refinements).  Third, the theorem's constant predicts where forests struggle.  $\kappa$ is
+computed from the formula alone, before any tree is built.  It has rank correlation $0.80$
+with the forest's error across the nine formulas.  The two formulas with by far the largest
+constant---$I.29.16$, a square root of a near-cancelling sum, and $I.13.12$, products of large
+values with differences of reciprocals---are the two on which the forest loses.  The forest
+also loses on $I.6.20$, which has only two inputs, so there is no dimension to beat.  The
+lesson for building forests (\cref{sec:recipe}) is to choose graphs whose operations have small
+Lipschitz constants.
+
+\IfFileExists{tables/feynman_cases.tex}{%
+\begin{table}[t]
+\centering\small
+\resizebox{\linewidth}{!}{\input{tables/feynman_cases}}
+\caption{Feynman formulas compiled into Cobweb forests (one constructed tree per operation of
+the expression graph, fan-in at most two) and one constructed tree over all $n$ inputs.
+Errors are RMSE$/\mathrm{sd}(f)$ on 500 uniform points of the formula's input box.  $\kappa$:
+the constant of \cref{thm:compose} for this graph, $\sum_vL_vw_vA_v/\mathrm{sd}(f)$, with $L_v$
+the Lipschitz constant of operation $v$, $w_v$ the width of its input box and $A_v$ the
+largest product of Lipschitz constants from $v$ to the output.}
+\label{tab:feynman-cases}
+\end{table}}{}
+
+\subsection{No forgetting, and reading a forest}
+
+Two consequences of the theory are visible directly.  Because no stored example is deleted
+(\cref{thm:learn-tree}), a tree trained on the five-peak task of \citet[Fig.~3.4]{liu2024kan}, one
+region at a time, keeps its error on everything seen so far between $0.037$ and $0.048$ through
+all five phases (\cref{fig:continual}).  And because every tree of a funnel forest learns a
+conditional expectation, its trees can be plotted and read: on $\exp(\sin\pi x_1+x_2^2)$ the
+two input trees learn $e^{\sin\pi x_1}$ and $e^{x_2^2}$ up to constants (\cref{fig:interpret}),
+the inner functions of the target up to the monotone maps of \cref{prop:suffclass}.
+
+%=====================================================================
+\section{Related work}\label{sec:related}
+%=====================================================================
+
+\paragraph{Universal approximation.}  One-hidden-layer networks approximate every
+continuous function on a compact set \citep{cybenko1989,hornik1989}; the
+Kolmogorov--Arnold theorem \citep{kolmogorov1957,arnold1957,lorentz1966,sprecher1965}
+represents every continuous function through one-variable functions and addition, and
+KANs \citep{liu2024kan} make that representation learnable.  Deep networks avoid the curse of
+dimensionality on compositional targets \citep{poggio2017}.  Our theorems are the
+counterparts for a learner without gradients, and our proof of universality follows the
+Stone--Weierstrass route \citep{stone1948}.
+
+\paragraph{Kernel smoothing.}  A learned Cobweb tree's leaf mixture is a Nadaraya--Watson
+estimate (\cref{thm:learn-tree}), so its consistency and rates come from that literature
+\citep{devroye1989,gyorfi2002,wand1995}.  What Cobweb adds is incremental structure---the
+hierarchy, its labels, its search---and what the forest adds is composition.
+
+\paragraph{Concept formation.}  Cobweb \citep{fisher1987} and its information-theoretic
+category utility \citep{corter1992,maclellan2026rational} learn concept hierarchies
+incrementally.  Systems that let one tree read another's concepts
+\citep{maclellan2021conv,singaravadivelan2026trellis} motivated the forests studied here; we
+use none of their results.
+
+%=====================================================================
 \section{Conclusion}\label{sec:conclusion}
 %=====================================================================
 
@@ -496,8 +692,8 @@ statements predicts a number that the implementation reproduces.
 \paragraph{Limitations.}
 The convergence theorems assume the count-weighted leaf mixture, exact matching and, for
 forests, the split protocol; \cref{thm:ideal} assumes a uniform law for kernel smoothers up
-to the boundary ((A5) of \cref{ass:regular}).  The single-tree rates are upper bounds, and
-the learned-forest rates of \cref{fig:learn} are measured, not proved.  The label conditions
+to the boundary ((A5) of \cref{ass:regular}).  The single-tree rates are upper bounds, and \cref{thm:learn-rate} assumes the single-tree
+rate on the learned inputs (its hypothesis (iii)).  The label conditions
 of \cref{thm:labelcons} are not derived from category utility, and the recipe is greedy.
 
 \paragraph{A cognitive note.}
@@ -782,12 +978,12 @@ in both trees.
 \subsection{Composition: the Cobweb--Kolmogorov--Arnold theorem}
 
 \begin{lemma}[Approximating a DAG of continuous maps]\label{lem:dag}
-Let $D$ be a finite DAG of continuous maps $g_v:\R^{k_v}\to\R$ whose inputs are raw
-coordinates of $x\in[0,1]^n$ or outputs of other vertices, and let $F$ be the map it
-computes; let $K_v$ be the (compact) set of input vectors of $v$ as $x$ ranges over
-$[0,1]^n$.  For every $\varepsilon>0$ there are $\rho_v,\eta_v>0$ such that any maps
+Let $D$ be a finite DAG of maps $g_v$ of $k_v$ variables whose inputs are raw
+coordinates of $x$ in a compact $K\subset\R^n$ or outputs of other vertices, and let $F$ be
+the map it computes; let $K_v$ be the (compact) set of input vectors of $v$ as $x$ ranges
+over $K$, and let each $g_v$ be continuous on an open set containing $K_v+\bar B_1$.  For every $\varepsilon>0$ there are $\rho_v,\eta_v>0$ such that any maps
 $\hat g_v$ with $\sup_{K_v+\bar B_{\rho_v}}|\hat g_v-g_v|\le\eta_v$ define a network
-$\hat F$ with $\sup_x|\hat F(x)-F(x)|\le\varepsilon$.
+$\hat F$ with $\sup_{x\in K}|\hat F(x)-F(x)|\le\varepsilon$.
 \end{lemma}
 \begin{proof}
 Choose the tolerances in reverse topological order.  At the output vertex put
@@ -1827,6 +2023,7 @@ calibration & 8/8 planted errors found; extra findings (label consistency with a
 3 & no statement false under its hypotheses; prior/posterior weightings on hierarchies (verified by check C19), branch-and-bound repair, minor gaps; fixed\\
 4 & no statement invalid; four minor gaps (an unsatisfiable form of a hypothesis of \cref{thm:labelcons}, an unused density hypothesis, a cited uniform law, an ambiguous phrase) and five text items; fixed\\
 5 (v7, simplified main text) & no statement invalid; every appendix statement valid; main-text summaries had dropped hypotheses (one major: forest convergence needs activation messages and the split protocol), the uniform kernel law became an explicit assumption, a martingale step was added to the prequential remark; fixed\\
+6 (v8, universality theorems) & one statement false (``$\Delta>0$ otherwise'' for cross-view forests; now restricted to $\Delta=0$); \cref{thm:compose} restated with max-norm neighbourhoods, a Lipschitz extension and an a-posteriori margin condition (measured to hold); dropped hypotheses restored in \cref{thm:learn-tree,prop:tasks,prop:rate,lem:stable,prop:local}; fixed\\
 \bottomrule
 \end{tabular}
 \end{center}
