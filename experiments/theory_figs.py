@@ -150,6 +150,18 @@ def tab_equiv():
                 f"{name}, $n={n}$: forest / one tree, rate in $G$",
                 (f"$\\le{-0.5:.3f}$ / $\\le{-1 / int(n):.3f}$" if key == "r2" else f"${-0.5:.3f}$ / ${-1 / int(n):.3f}$"),
                 f"${v['measured_slope_forest']:.3f}$ / ${v['measured_slope_single']:.3f}$")
+    SP = one_path("results/cases/separation.json")
+    if SP:
+        dev = max(abs(r["single_err"] - r["predicted_single_err"]) for n in ("2", "4", "8") for r in SP[n])
+        row(r"\cref{thm:separation}", "one tree, worst case over $\\mathcal B_n$: error $-\\rho$", "$0$", f"${dev:.1e}$")
+        last = SP["8"][-1]["forest"]
+        row("", "forest on the same target, $n=8$: rate in leaves", "$-0.500$",
+            f"${slope([r['leaves'] for r in last], [r['sup_err'] for r in last]):.3f}$")
+    RC = load("results/recipe/*.json")
+    if RC:
+        big = [r for r in RC if r["N"] >= 2000]
+        row(r"\cref{proc:recipe}", "recipe: exact structure recovered ($N\\ge2000$)", "$\\to1$",
+            f"{sum(r['groups_correct'] and r['pruned_correct'] for r in big)}/{len(big)}")
     c = V.get("check_tree_is_nw")
     if c:
         row(r"\cref{thm:learn-tree}", "learned tree $=$ Nadaraya--Watson: identity", "$0$",
@@ -248,10 +260,70 @@ def one_path(p):
     return json.load(open(p, encoding="utf-8")) if os.path.exists(p) else None
 
 
+def fig_recipe():
+    R = load("results/recipe/*.json")
+    if not R:
+        return
+    by = collections.defaultdict(list)
+    for r in R:
+        by[(r["n"], r["N"])].append(r)
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.6))
+    for n, col in ((8, COL["act"]), (12, COL["label"])):
+        Ns = sorted(N for (m, N) in by if m == n)
+        if not Ns:
+            continue
+        rec = [np.mean([r["groups_correct"] and r["pruned_correct"] for r in by[(n, N)]]) for N in Ns]
+        axes[0].semilogx(Ns, rec, "o-", color=col, ms=3.5, label=f"$n={n}$")
+        for key, ls, mk, lab in (("single-all", ":", "o", "one tree, all inputs"),
+                                 ("recipe-forest", "-", "s", "recipe forest")):
+            e = [np.mean([r["candidates"][key]["test_rmse"] for r in by[(n, N)] if key in r["candidates"]] or [np.nan]) for N in Ns]
+            axes[1].loglog(Ns, e, ls=ls, marker=mk, color=col, ms=3.5, label=f"$n={n}$, {lab}")
+    axes[0].set_xlabel("$N$"); axes[0].set_ylabel("exact recovery rate"); axes[0].set_ylim(-0.05, 1.05)
+    axes[0].set_title("structure recovered", color=INK); axes[0].legend(fontsize=7)
+    axes[1].set_xlabel("$N$"); axes[1].set_ylabel("RMSE / sd$(f)$"); axes[1].legend(fontsize=6)
+    axes[1].set_title("accuracy", color=INK)
+    fig.tight_layout()
+    fig.savefig(f"{FIG}/recipe.pdf"); fig.savefig(f"{FIG}/recipe.png", dpi=160)
+    plt.close(fig)
+    lines = [r"\begin{tabular}{@{}rrrrrrr@{}}\toprule",
+             r"$n$ & $N$ & recovered & pruned & one tree & one tree, kept & recipe forest\\\midrule"]
+    for (n, N) in sorted(by):
+        rs = by[(n, N)]
+        g = lambda k: np.mean([r["candidates"][k]["test_rmse"] for r in rs if k in r["candidates"]] or [np.nan])
+        lines.append(f"{n} & {N} & {sum(r['groups_correct'] and r['pruned_correct'] for r in rs)}/{len(rs)} & "
+                     f"{sum(r['pruned_correct'] for r in rs)}/{len(rs)} & {g('single-all'):.3f} & {g('single-kept'):.3f} & {g('recipe-forest'):.3f}\\\\")
+    lines.append(r"\bottomrule\end{tabular}")
+    open(f"{TAB}/recipe.tex", "w", encoding="utf-8").write("\n".join(lines))
+    print("\n".join(lines))
+
+
+def fig_separation():
+    S = one_path("results/cases/separation.json")
+    if not S:
+        return
+    fig, axes = plt.subplots(1, 3, figsize=(7.0, 2.4), sharey=True)
+    for ax, n in zip(axes, ("2", "4", "8")):
+        rows = S[n]
+        ax.loglog([r["G_single"] for r in rows], [r["single_err"] for r in rows], "o-", color=COL["single"], ms=3.5,
+                  label="one tree (worst case)")
+        ax.loglog([r["G_single"] for r in rows], [r["predicted_single_err"] for r in rows], "--", color=COL["single"], lw=0.9,
+                  label=r"predicted $\rho$")
+        last = rows[-1]["forest"]
+        ax.loglog([r["leaves"] for r in last], [r["sup_err"] for r in last], "s-", color=COL["act"], ms=3.5,
+                  label="forest, same target")
+        ax.set_title(f"$n={n}$", color=INK); ax.set_xlabel("total leaves")
+    axes[0].set_ylabel("sup error"); axes[0].legend(fontsize=6)
+    fig.tight_layout()
+    fig.savefig(f"{FIG}/separation.pdf"); fig.savefig(f"{FIG}/separation.png", dpi=160)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     fig_compose()
     fig_learn()
     fig_continual()
     fig_bernstein()
+    fig_recipe()
+    fig_separation()
     tab_feynman_cases()
     tab_equiv()

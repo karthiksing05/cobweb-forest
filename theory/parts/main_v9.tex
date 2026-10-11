@@ -15,7 +15,7 @@ trees are the inputs of others.  (1)~One Cobweb tree is a universal approximator
 one input per tree is not enough.  (3)~Forests exploit composition: if the target is a
 composition of $k$-input maps, a forest whose trees have $G$ leaves each approximates it
 with error of order $G^{-1/k}$, an exponent independent of the number $n$ of inputs,
-while the bound for one tree is $G^{-1/n}$.  (4)~Cobweb never deletes what it stores, so the tree it learns is a
+while no single tree can do better than $G^{-1/n}$ on such targets.  (4)~Cobweb never deletes what it stores, so the tree it learns is a
 consistent regressor whatever hierarchy category utility builds, and a learned forest
 converges to the forest of conditional expectations its trees are asked to predict; we
 characterise which of these assignments recover the target.  Every theorem predicts a
@@ -82,7 +82,9 @@ the right-hand column.}
   second construction with exactly $4n^2+4n$ trees.
 \item Composition beats dimension (\cref{thm:compose}): for targets composed of $k$-input
   maps a forest attains error $O(G^{-1/k})$ with $G$ leaves per tree, against the single-tree
-  bound $O(G^{-1/n})$.  This is the sense in which tree--tree interactions are worth having.
+  bound $O(G^{-1/n})$, and no single tree can do better on such targets
+  (\cref{thm:separation}).  This is the sense in which tree--tree interactions are worth
+  having.
 \item Cobweb's learning is consistent (\cref{thm:learn-tree}), and a learned forest
   converges to an explicit limit (\cref{thm:learn-forest}), at a rate set by its fan-in when
   each tree's outcome is sufficient (\cref{thm:learn-rate}).  Whether the limit is the target
@@ -274,8 +276,45 @@ By induction on $d(v)$, $e_v\le\eta\sum_{j<d(v)}L^j$, which is at most $r$ by hy
 output, $d(v)=D$.
 \end{proof}
 
-The bound for one tree is only an upper bound, so the theorem does not prove that a single
-tree \emph{must} do worse; the measurements of \cref{sec:measure} show that it does.  The same dichotomy between compositional and generic targets is
+The single-tree bound is only an upper bound.  The next theorem shows that it cannot be
+improved on compositional targets: a single tree that stores examples of the target, as every
+Cobweb tree does, is defeated by a composition of two-input maps that a forest handles easily.
+
+\begin{theorem}[Separation]\label{thm:separation}
+Let $n\ge2$ and let $\mathcal B_n$ be the class of functions on $[0,1]^n$ computed by fan-in-two
+compositions of depth $\lceil\log_2n\rceil+2$ whose maps are $1$-Lipschitz in the max-norm.
+\begin{enumerate}[label=(\alph*),leftmargin=*,noitemsep]
+\item Let $\T$ be any Cobweb tree with $G$ leaves that hold examples $(\gamma_s,f(\gamma_s))$ of the
+  target, predicting with any rule of the implementation (any weighting, budget or
+  restriction to leaves).  Then some $f\in\mathcal B_n$ has $\sup_{[0,1]^n}|\hy_\T-f|\ge
+  \tfrac14G^{-1/n}$.
+\item Every $f\in\mathcal B_n$ is approximated by a forest of $2n$ trees with at most two inputs
+  and $G$ leaves each, with $\sup_{[0,1]^n}|\hat F-f|\le C(\lceil\log_2n\rceil+2)\,G^{-1/2}$ once
+  the right side is below the margin $r$ of \cref{thm:compose}.
+\end{enumerate}
+At an equal total number of leaves $T$, the worst case over $\mathcal B_n$ is therefore at least
+$\tfrac14T^{-1/n}$ for one tree and $O(\sqrt n\,\log n\;T^{-1/2})$ for a forest.
+\end{theorem}
+
+\begin{proof}
+(a) Let $m=\lfloor G^{1/n}\rfloor+1$, so $m^n>G$.  Of the $m^n$ half-open cubes of side $1/m$ that
+partition $[0,1)^n$, at least one, $Q^*$, contains no $\gamma_s$.  Let $c$ be its centre,
+$\rho=1/(2m)$, and $f(x)=(\rho-\|x-c\|_\infty)_+$.  Every $\gamma_s$ lies outside $Q^*$, so
+$\|\gamma_s-c\|_\infty\ge\rho$ and $f(\gamma_s)=0$.  Every concept's mean of $y$ is an average of
+stored values, hence $0$, and every prediction rule of the implementation outputs a convex
+combination of concept means (\cref{def:predict}); so $\hy_\T\equiv0$, and
+$|\hy_\T(c)-f(c)|=\rho=\frac1{2m}\ge\frac1{2(G^{1/n}+1)}\ge\frac14G^{-1/n}$.  The map $f$ is in
+$\mathcal B_n$: the one-input maps $x_i\mapsto|x_i-c_i|$, a balanced binary tree of
+$(a,b)\mapsto\max(a,b)$ and the ramp $t\mapsto(\rho-t)_+$ are $1$-Lipschitz in the max-norm, and
+the depth is $1+\lceil\log_2n\rceil+1$.
+(b) Apply \cref{thm:compose} with $L=1$, so $\sum_{l<D}L^l=D$: every input box has side at most
+$1+2r$, the $n$ one-input trees and the $n-1$ max-trees and the ramp tree make $2n$ trees, and
+the bound is $C\,D\,(1+2r)\,G^{-1/2}$.  The last claim follows with $G=T/(2n)$.
+\end{proof}
+
+Part (a) uses only that a Cobweb tree's predictions are averages of what it stores, so it
+covers learned trees as well as constructed ones.  The theorem is a worst case over a class;
+\cref{sec:measure,sec:cases} show the same gap on fixed targets.  The same dichotomy between compositional and generic targets is
 known for deep and shallow networks \citep{poggio2017}.
 
 %=====================================================================
@@ -445,11 +484,39 @@ above.
 
 The recipe is greedy and its threshold is a choice.  Pairwise deficits miss interactions of
 higher order---for the parity of three signs every pair is independent of the target
-(\cref{cor:parity})---which is why step~4 always keeps the merged tree.  On the Feynman formulas and the four-dimensional block target
-(\cref{tab:induce}) steps 1--4 recover the groups of interacting variables---$\{B,v,\theta\}$ in
-$q(E_f+Bv\sin\theta)$, the two angles of $I.29.16$, the two blocks of the 4-D target---and the
-selected forest is within one percent of the best candidate in every case but one; where no
-pair interacts, the recipe returns the single tree.
+(\cref{cor:parity})---which is why step~4 always keeps the merged tree.  
+
+\paragraph{The recipe recovers the structure the theory prescribes.}
+We test the recipe on targets for which the theory fixes the right forest exactly:
+$Y=\sum_pc_px_{a_p}x_{b_p}+\sum_uh_u(x_u)+0.1\,\xi$ with independent uniform inputs on $[-1,1]$, two or
+three product pairs, as many monotone one-input terms, and as many irrelevant inputs ($n=8$
+and $12$, the roles of the inputs drawn at random per seed).  For each product pair the
+one-input activations are the constant $0$ (\cref{prop:tasks}(b)), so its synergy deficit is
+$c_p^2\Var(x_ax_b)>0$ and the pair must be merged; every other pair has deficit $0$ because the
+target is additive and the remaining activations are injective; and the irrelevant inputs
+must be pruned.  The recipe sees only data, with the fixed threshold $\tau=0.02$, and every tree
+uses the setting of the theorems (\cref{app:measure}).  \Cref{tab:recipe} shows that it prunes the
+irrelevant inputs correctly in all $60$ runs and recovers the exact structure on every seed
+from $N=1000$ ($n=8$) and $N=2000$ ($n=12$).  The forest it builds beats one tree over all
+inputs at every $N$ ($0.16$ against $0.25$ at $n=8$, $0.24$ against $0.43$ at $n=12$, $N=16{,}000$).
+Against one tree over the kept inputs it wins from $N=4000$ when twelve inputs leave nine
+relevant ($0.24$ against $0.31$), and is still behind when eight leave six ($0.16$ against $0.14$),
+as the comparison of exponents in \cref{thm:learn-rate,thm:learn-tree} predicts: the forest's
+advantage grows with the number of relevant inputs.  On physics formulas, where the right
+structure is not known in closed form, the same steps group the variables the formula
+couples---$\{B,v,\theta\}$ in $q(E_f+Bv\sin\theta)$, the two angles of $I.29.16$
+(\cref{tab:induce}).
+
+\begin{table}[t]
+\centering\small
+\IfFileExists{tables/recipe.tex}{\input{tables/recipe}}{}
+\caption{The recipe on targets with a known right structure (five seeds per row).
+``recovered'': runs in which the merged groups and the pruned inputs are exactly the
+prescribed ones; ``pruned'': runs with exactly the irrelevant inputs pruned.  Test
+RMSE$/\mathrm{sd}(f)$ of one tree over all inputs, one tree over the kept inputs, and the
+recipe's forest.}
+\label{tab:recipe}
+\end{table}
 
 %=====================================================================
 \section{Theory meets measurement}\label{sec:measure}
@@ -607,6 +674,27 @@ the Lipschitz constant of operation $v$, $w_v$ the width of its input box and $A
 largest product of Lipschitz constants from $v$ to the output.}
 \label{tab:feynman-cases}
 \end{table}}{}
+
+\subsection{The separation, measured}
+
+\Cref{thm:separation}(a) is constructive: for a tree with an $m^n$ grid of leaves the hard
+target is the bump of radius $\rho=1/(2m)$ centred at a cell corner, where no leaf lies.  On every
+such tree, in $n=2,4,8$ dimensions, the measured worst-case error equals the predicted $\rho$ to
+four digits, from $0.0625$ ($n=2$, $64$ leaves) to $0.10$ ($n=8$, $390{,}625$ leaves): the tree
+predicts $0$ everywhere, as the proof says.  A forest of $2n$ two-input trees approximates the
+same bump at the rate of \cref{thm:compose} (\cref{fig:separation}): in eight dimensions its error
+falls from $0.083$ to $0.0076$ as its leaves grow from $1024$ to $65{,}536$, where the single tree
+with $390{,}625$ leaves still has $0.10$.
+
+\IfFileExists{figs/separation.pdf}{%
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figs/separation.pdf}
+\caption{\Cref{thm:separation}, measured.  Blue: the worst-case error of one grid tree, against
+its number of leaves, with the predicted $\rho=1/(2m)$ dashed.  Orange: a forest of $2n$
+two-input trees on the hardest of these targets, against its total number of leaves.}
+\label{fig:separation}
+\end{figure}}{}
 
 \subsection{No forgetting, and reading a forest}
 

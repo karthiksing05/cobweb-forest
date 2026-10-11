@@ -285,9 +285,63 @@ def run_constants(a):
     save("constants", out)
 
 
+def bump_nodes(n, c, rho):
+    """f(x) = (rho - max_i |x_i - c_i|)_+ as a fan-in-2 composition of 1-Lipschitz maps:
+    one-input trees |x_i - c_i|, a balanced binary tree of max, and the ramp (rho - t)_+."""
+    nodes, order = {}, []
+
+    def add(key, fn, kids):
+        nodes[key] = Node(fn, kids); order.append(key)
+        return ("n", key)
+    level = [add(f"a{i}", lambda t, ci=float(c[i]): abs(t - ci), [("x", i)]) for i in range(n)]
+    k = 0
+    while len(level) > 1:
+        nxt = [add(f"m{k + j}", lambda u, v: max(u, v), [level[2 * j], level[2 * j + 1]]) for j in range(len(level) // 2)]
+        k += len(level) // 2
+        if len(level) % 2:
+            nxt.append(level[-1])
+        level = nxt
+    add("out", lambda t, r=float(rho): max(r - t, 0.0), [level[0]])
+    return nodes, order
+
+
+def run_separation(a):
+    """thm:separation: for every single tree with G leaves there is a fan-in-2, 1-Lipschitz
+    composition (a bump in an empty cell) on which its error is at least ~G^(-1/n)/4; a forest
+    of two-input trees approximates the same bump at rate G^(-1/2) per tree."""
+    rng = np.random.default_rng(a.seed)
+    out = {}
+    for n in (2, 4, 8):
+        rows = []
+        sides = {2: (8, 16, 32, 64), 4: (4, 6, 8, 10), 8: (2, 3, 4, 5)}[n]
+        for s in sides:
+            c = np.full(n, (s // 2) / s)                  # a cell corner: every leaf (cell centre) is >= 0.5/s away
+            rho = 0.5 / s
+            nodes, order = bump_nodes(n, c, rho)
+            f = lambda x: exact(nodes, order, x)[order[-1]]
+            Q = np.concatenate([c[None], c + rng.uniform(-rho, rho, (200, n)), rng.uniform(0, 1, (100, n))])
+            t, G = grid_tree(lambda p: f(p), np.zeros(n), np.ones(n), s)
+            e_single = max(abs(tree_predict(t, x) - f(x)) for x in Q)
+            # boxes must cover each vertex's input set over all of [0,1]^n (thm:compose): include the
+            # centre (where every |x_i - c_i| and every max is 0) and corners (where they are largest)
+            corners = rng.integers(0, 2, (200, n)).astype(float)
+            S = np.concatenate([rng.uniform(0, 1, (3000, n)), c + rng.uniform(-rho, rho, (1000, n)),
+                                c[None], corners])
+            frs = []
+            for fs in (8, 16, 32, 64):
+                L = build_forest(nodes, order, S, fs, clamp=True)
+                e = max(abs(run_forest(nodes, order, x) - f(x)) for x in Q)
+                frs.append(dict(side=fs, leaves=L, sup_err=e))
+            rows.append(dict(side=s, G_single=G, rho=rho, single_err=e_single, predicted_single_err=rho, forest=frs))
+            print("separation", n, G, "single", round(e_single, 4), "rho", round(rho, 4),
+                  "forest", [(r["leaves"], round(r["sup_err"], 4)) for r in frs], flush=True)
+        out[n] = rows
+    save("separation", out)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("which", choices=["bernstein", "feynman", "graph", "constants"])
+    ap.add_argument("which", choices=["bernstein", "feynman", "graph", "constants", "separation"])
     ap.add_argument("--m", type=int, default=4)
     ap.add_argument("--eq", default="I.12.11")
     ap.add_argument("--seed", type=int, default=0)
@@ -298,7 +352,7 @@ def main():
             print(eq, len(names.split()), "inputs,", len(order), "trees, fan-in",
                   max(len(nd.kids) for nd in nodes.values()))
         return
-    {"bernstein": run_bernstein, "feynman": run_feynman, "constants": run_constants}[a.which](a)
+    {"bernstein": run_bernstein, "feynman": run_feynman, "constants": run_constants, "separation": run_separation}[a.which](a)
 
 
 if __name__ == "__main__":

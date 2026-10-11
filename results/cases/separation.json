@@ -1,0 +1,368 @@
+{
+ "2": [
+  {
+   "side": 8,
+   "G_single": 64,
+   "rho": 0.0625,
+   "single_err": 0.0625,
+   "predicted_single_err": 0.0625,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 256,
+     "sup_err": 0.03281206265091896
+    },
+    {
+     "side": 16,
+     "leaves": 1024,
+     "sup_err": 0.011178642511367798
+    },
+    {
+     "side": 32,
+     "leaves": 4096,
+     "sup_err": 0.006190452724695206
+    },
+    {
+     "side": 64,
+     "leaves": 16384,
+     "sup_err": 0.002529650926589966
+    }
+   ]
+  },
+  {
+   "side": 16,
+   "G_single": 256,
+   "rho": 0.03125,
+   "single_err": 0.03125,
+   "predicted_single_err": 0.03125,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 256,
+     "sup_err": 0.030039743171073496
+    },
+    {
+     "side": 16,
+     "leaves": 1024,
+     "sup_err": 0.011178644374012947
+    },
+    {
+     "side": 32,
+     "leaves": 4096,
+     "sup_err": 0.006190458312630653
+    },
+    {
+     "side": 64,
+     "leaves": 16384,
+     "sup_err": 0.0025296472012996674
+    }
+   ]
+  },
+  {
+   "side": 32,
+   "G_single": 1024,
+   "rho": 0.015625,
+   "single_err": 0.015625,
+   "predicted_single_err": 0.015625,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 256,
+     "sup_err": 0.015624940657904318
+    },
+    {
+     "side": 16,
+     "leaves": 1024,
+     "sup_err": 0.011178634595125914
+    },
+    {
+     "side": 32,
+     "leaves": 4096,
+     "sup_err": 0.006190456449985504
+    },
+    {
+     "side": 64,
+     "leaves": 16384,
+     "sup_err": 0.0025296490639448166
+    }
+   ]
+  },
+  {
+   "side": 64,
+   "G_single": 4096,
+   "rho": 0.0078125,
+   "single_err": 0.0078125,
+   "predicted_single_err": 0.0078125,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 256,
+     "sup_err": 0.007812499999119822
+    },
+    {
+     "side": 16,
+     "leaves": 1024,
+     "sup_err": 0.007810494305203974
+    },
+    {
+     "side": 32,
+     "leaves": 4096,
+     "sup_err": 0.006190456449985504
+    },
+    {
+     "side": 64,
+     "leaves": 16384,
+     "sup_err": 0.0025296490639448166
+    }
+   ]
+  }
+ ],
+ "4": [
+  {
+   "side": 4,
+   "G_single": 256,
+   "rho": 0.125,
+   "single_err": 0.125,
+   "predicted_single_err": 0.125,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 512,
+     "sup_err": 0.05575934797525406
+    },
+    {
+     "side": 16,
+     "leaves": 2048,
+     "sup_err": 0.018297307193279266
+    },
+    {
+     "side": 32,
+     "leaves": 8192,
+     "sup_err": 0.011991694569587708
+    },
+    {
+     "side": 64,
+     "leaves": 32768,
+     "sup_err": 0.004301160573959351
+    }
+   ]
+  },
+  {
+   "side": 6,
+   "G_single": 1296,
+   "rho": 0.08333333333333333,
+   "single_err": 0.08333333333333333,
+   "predicted_single_err": 0.08333333333333333,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 512,
+     "sup_err": 0.055759352942307785
+    },
+    {
+     "side": 16,
+     "leaves": 2048,
+     "sup_err": 0.018297312160332993
+    },
+    {
+     "side": 32,
+     "leaves": 8192,
+     "sup_err": 0.011991699536641434
+    },
+    {
+     "side": 64,
+     "leaves": 32768,
+     "sup_err": 0.00430115809043248
+    }
+   ]
+  },
+  {
+   "side": 8,
+   "G_single": 4096,
+   "rho": 0.0625,
+   "single_err": 0.0625,
+   "predicted_single_err": 0.0625,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 512,
+     "sup_err": 0.055587601382285357
+    },
+    {
+     "side": 16,
+     "leaves": 2048,
+     "sup_err": 0.01829732209444046
+    },
+    {
+     "side": 32,
+     "leaves": 8192,
+     "sup_err": 0.011991690844297409
+    },
+    {
+     "side": 64,
+     "leaves": 32768,
+     "sup_err": 0.0043011680245399475
+    }
+   ]
+  },
+  {
+   "side": 10,
+   "G_single": 10000,
+   "rho": 0.05,
+   "single_err": 0.05,
+   "predicted_single_err": 0.05,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 512,
+     "sup_err": 0.04958776851417497
+    },
+    {
+     "side": 16,
+     "leaves": 2048,
+     "sup_err": 0.018297321349382403
+    },
+    {
+     "side": 32,
+     "leaves": 8192,
+     "sup_err": 0.01199169382452965
+    },
+    {
+     "side": 64,
+     "leaves": 32768,
+     "sup_err": 0.004301167279481891
+    }
+   ]
+  }
+ ],
+ "8": [
+  {
+   "side": 2,
+   "G_single": 256,
+   "rho": 0.25,
+   "single_err": 0.25,
+   "predicted_single_err": 0.25,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 1024,
+     "sup_err": 0.07151719927787781
+    },
+    {
+     "side": 16,
+     "leaves": 4096,
+     "sup_err": 0.0266425758600235
+    },
+    {
+     "side": 32,
+     "leaves": 16384,
+     "sup_err": 0.016570329666137695
+    },
+    {
+     "side": 64,
+     "leaves": 65536,
+     "sup_err": 0.006339922547340393
+    }
+   ]
+  },
+  {
+   "side": 3,
+   "G_single": 6561,
+   "rho": 0.16666666666666666,
+   "single_err": 0.16666666666666666,
+   "predicted_single_err": 0.16666666666666666,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 1024,
+     "sup_err": 0.09294314930836359
+    },
+    {
+     "side": 16,
+     "leaves": 4096,
+     "sup_err": 0.03417650858561197
+    },
+    {
+     "side": 32,
+     "leaves": 16384,
+     "sup_err": 0.021928454438845307
+    },
+    {
+     "side": 64,
+     "leaves": 65536,
+     "sup_err": 0.008421013752619416
+    }
+   ]
+  },
+  {
+   "side": 4,
+   "G_single": 65536,
+   "rho": 0.125,
+   "single_err": 0.125,
+   "predicted_single_err": 0.125,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 1024,
+     "sup_err": 0.0715172179043293
+    },
+    {
+     "side": 16,
+     "leaves": 4096,
+     "sup_err": 0.0266425758600235
+    },
+    {
+     "side": 32,
+     "leaves": 16384,
+     "sup_err": 0.0165703222155571
+    },
+    {
+     "side": 64,
+     "leaves": 65536,
+     "sup_err": 0.006339915096759796
+    }
+   ]
+  },
+  {
+   "side": 5,
+   "G_single": 390625,
+   "rho": 0.1,
+   "single_err": 0.1,
+   "predicted_single_err": 0.1,
+   "forest": [
+    {
+     "side": 8,
+     "leaves": 1024,
+     "sup_err": 0.08258801549673081
+    },
+    {
+     "side": 16,
+     "leaves": 4096,
+     "sup_err": 0.031124061346054083
+    },
+    {
+     "side": 32,
+     "leaves": 16384,
+     "sup_err": 0.019708035886287695
+    },
+    {
+     "side": 64,
+     "leaves": 65536,
+     "sup_err": 0.007563082873821264
+    }
+   ]
+  }
+ ],
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "296dd96809ff",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/construct.py": "fe769eb7e085",
+  "cobweb_forest/cues.py": "3ce152125459",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "5f1e17c3f8a4",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "1d46ccc",
+  "host": "neo.cc.gatech.edu"
+ }
+}

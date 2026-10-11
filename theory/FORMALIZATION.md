@@ -167,6 +167,37 @@ Here `û ∈ B_v^r` because each coordinate moved by at most `e ≤ r` (max-norm
 **Note.** Only the exponent is free of `n`. The constant `∑ L^l` grows with the depth, which
 is at least `log_k n`.
 
+### 1.8 `thm:separation` **[core]**: no single tree beats `G^{-1/n}` on compositions
+
+**Statement (a).**
+
+    ∀ finite set Γ ⊆ [0,1]^n with |Γ| = G,
+      ∃ c, ρ = 1/(2m) with m = ⌊G^{1/n}⌋ + 1,
+        (∀ γ ∈ Γ, ‖γ - c‖_∞ ≥ ρ)  ∧  f(x) := max(ρ - ‖x - c‖_∞, 0) vanishes on Γ
+
+Consequently, any predictor whose output is a convex combination of stored values `f(γ)`,
+`γ ∈ Γ`, is `≡ 0`, and its error at `c` is `ρ ≥ G^{-1/n}/4`.
+
+**Proof (a).**
+1. **Counting.** Map each `γ` to the index in `Fin n → Fin m` of its cube. The image has card
+   `≤ G < m^n = card (Fin n → Fin m)`, so some index `i*` is not in the image (compare cards of
+   the image and `univ`; e.g. `Finset.exists_mem_not_mem_of_card_lt_card`). Its cube `Q*`
+   contains no point of `Γ`.
+2. `c` is the centre of `Q*`. A point outside the open cube has `‖γ - c‖_∞ ≥ ρ`.
+3. **Inequality.** `1/(2(⌊G^{1/n}⌋+1)) ≥ G^{-1/n}/4`, because `⌊G^{1/n}⌋ + 1 ≤ 2 G^{1/n}`
+   for `G ≥ 1`.
+
+**Membership in `𝓑_n`.** `f = ramp ∘ (binary max tree) ∘ (|x_i - c_i|)_i`. All maps are
+1-Lipschitz in the max-norm, and the depth is `⌈log₂ n⌉ + 2`. Formalize with the inductive
+forest syntax.
+
+**Statement (b).** Corollary of 1.7 with `L = 1`.
+
+**Model fact used.** Every prediction rule outputs a convex combination of concept means, and
+concept means are averages of stored values. In Lean this is a hypothesis about the predictor:
+
+    ∃ weights ≥ 0 summing to 1, ŷ x = ∑ w · (stored values)
+
 ---
 
 ## 2. Learning
