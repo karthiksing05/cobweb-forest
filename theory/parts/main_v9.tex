@@ -64,7 +64,7 @@ theorem & universal approximation \citep{cybenko1989,hornik1989} & Kolmogorov--A
 unit & neuron: fixed activation of a weighted sum & learnable spline on an edge & Cobweb tree: a concept hierarchy over its inputs\\
 composition & layers of sums & sums of one-variable functions & trees reading trees, at most two inputs each\\
 learning & gradient descent & gradient descent & Cobweb's own operators; no gradient (\cref{thm:learn-tree,thm:learn-forest,thm:learn-rate})\\
-$k$-compositions & dimension-free rates for deep nets \citep{poggio2017} & dimension-free rate, smooth case \citep{liu2024kan} & $G^{-1/k}$ (\cref{thm:compose}), learned: $N^{-2/(k+4)}$ (\cref{thm:learn-rate})\\
+$k$-compositions & dimension-free rates for deep nets \citep{poggio2017} & dimension-free rate, smooth case \citep{liu2024kan} & $G^{-1/k}$ (\cref{thm:compose}), learned: the rate of one $k$-input tree (\cref{thm:learn-rate})\\
 \bottomrule
 \end{tabular}
 \caption{Three universal approximators and the theorems behind them.  This paper supplies
@@ -288,12 +288,13 @@ compositions of depth $\lceil\log_2n\rceil+2$ whose maps are $1$-Lipschitz in th
   target, predicting with any rule of the implementation (any weighting, budget or
   restriction to leaves).  Then some $f\in\mathcal B_n$ has $\sup_{[0,1]^n}|\hy_\T-f|\ge
   \tfrac14G^{-1/n}$.
-\item Every $f\in\mathcal B_n$ is approximated by a forest of $2n$ trees with at most two inputs
-  and $G$ leaves each, with $\sup_{[0,1]^n}|\hat F-f|\le C(\lceil\log_2n\rceil+2)\,G^{-1/2}$ once
-  the right side is below the margin $r$ of \cref{thm:compose}.
+\item Every $f\in\mathcal B_n$ is approximated by a forest of at most $2^D-1\le8n-1$ trees
+  ($D=\lceil\log_2n\rceil+2$) with at most two inputs and $G$ leaves each, with
+  $\sup_{[0,1]^n}|\hat F-f|\le C\,D\,(1+2r)\,G^{-1/2}$ once the right side is below the margin $r$
+  of \cref{thm:compose}.
 \end{enumerate}
 At an equal total number of leaves $T$, the worst case over $\mathcal B_n$ is therefore at least
-$\tfrac14T^{-1/n}$ for one tree and $O(\sqrt n\,\log n\;T^{-1/2})$ for a forest.
+$\tfrac14T^{-1/n}$ for one tree and $O(\sqrt n\,\log n\;T^{-1/2})$ for a forest (take $G=T/(8n)$).
 \end{theorem}
 
 \begin{proof}
@@ -302,14 +303,16 @@ partition $[0,1)^n$, at least one, $Q^*$, contains no $\gamma_s$.  Let $c$ be it
 $\rho=1/(2m)$, and $f(x)=(\rho-\|x-c\|_\infty)_+$.  Every $\gamma_s$ lies outside $Q^*$, so
 $\|\gamma_s-c\|_\infty\ge\rho$ and $f(\gamma_s)=0$.  Every concept's mean of $y$ is an average of
 stored values, hence $0$, and every prediction rule of the implementation outputs a convex
-combination of concept means (\cref{def:predict}); so $\hy_\T\equiv0$, and
+combination of concept means (\cref{def:predict})---or, when a leaves-only mixture is empty,
+$0$ or the root's mean---so $\hy_\T\equiv0$, and
 $|\hy_\T(c)-f(c)|=\rho=\frac1{2m}\ge\frac1{2(G^{1/n}+1)}\ge\frac14G^{-1/n}$.  The map $f$ is in
 $\mathcal B_n$: the one-input maps $x_i\mapsto|x_i-c_i|$, a balanced binary tree of
 $(a,b)\mapsto\max(a,b)$ and the ramp $t\mapsto(\rho-t)_+$ are $1$-Lipschitz in the max-norm, and
 the depth is $1+\lceil\log_2n\rceil+1$.
 (b) Apply \cref{thm:compose} with $L=1$, so $\sum_{l<D}L^l=D$: every input box has side at most
-$1+2r$, the $n$ one-input trees and the $n-1$ max-trees and the ramp tree make $2n$ trees, and
-the bound is $C\,D\,(1+2r)\,G^{-1/2}$.  The last claim follows with $G=T/(2n)$.
+$1+2r$, a fan-in-two DAG of depth $D$ has at most $2^D-1\le8n-1$ non-source vertices (the
+bump of (a) uses $2n$), and the bound is $C\,D\,(1+2r)\,G^{-1/2}$.  The last claim follows with
+$G=T/(8n)$.
 \end{proof}
 
 Part (a) uses only that a Cobweb tree's predictions are averages of what it stores, so it
@@ -378,10 +381,11 @@ Then, with probability tending to one,
 \[
   e_{\text{out}}\;\le\;r_N\sum_{l=0}^{D}(2L)^l .
 \]
-In particular the output inherits the rate $r_N$ of one tree with $k$ inputs---$N^{-2/(k+4)}$
-under the conditions of \cref{thm:learn-tree}---whatever the number $n$ of raw inputs.
-Funnel forests on the targets of \cref{prop:tasks}(a) satisfy (i), and (ii) when the
-monotone maps of \cref{prop:suffclass} have derivatives bounded away from zero.
+In particular the output inherits the uniform rate $r_N$ of one tree with $k$ inputs, whatever
+the number $n$ of raw inputs.
+Funnel forests on the targets of \cref{prop:tasks}(a) satisfy (i), and (ii) when $\Phi$ and
+the $g_j$ are Lipschitz and the monotone maps $H_S$ of \cref{prop:suffclass} are bi-Lipschitz,
+extended beyond their ranges.
 \end{theorem}
 
 \begin{proof}
@@ -402,9 +406,13 @@ events of (iii) hold together with probability tending to one.  For (i) on the t
 $\E[Y\mid X_{R(\tau)}]=H_S(s_S)$, a function of the tree's ideal inputs.
 \end{proof}
 
-Hypothesis (iii) is the single-tree rate of \cref{thm:learn-tree} applied to the learned
-inputs, whose law must satisfy that theorem's regularity conditions; we assume it rather than
-derive it.  The factor $(2L)^l$ is the price of depth: errors compound through levels, which
+Hypothesis (iii) asks for a \emph{uniform} rate on all of $\hat U_\tau(Q)$, for a design whose
+law changes with $N$; we assume it rather than derive it.  For Nadaraya--Watson estimates such
+rates depend only on the number $k$ of inputs, but they are slower than the interior
+root-mean-squared rate of \cref{thm:learn-tree}: of order $(\log N/N)^{2/(k+4)}$ in the interior
+for smooth targets, and slower up to the boundary of the design, where the bias is $O(h)$
+\citep{gyorfi2002}.  What the theorem guarantees is therefore an exponent that depends on $k$
+and not on $n$.  The factor $(2L)^l$ is the price of depth: errors compound through levels, which
 is why forests should be shallow (\cref{sec:recipe}).
 
 A KAN or a neural network learns inner functions from the error of their composition; a
@@ -492,8 +500,10 @@ $Y=\sum_pc_px_{a_p}x_{b_p}+\sum_uh_u(x_u)+0.1\,\xi$ with independent uniform inp
 three product pairs, as many monotone one-input terms, and as many irrelevant inputs ($n=8$
 and $12$, the roles of the inputs drawn at random per seed).  For each product pair the
 one-input activations are the constant $0$ (\cref{prop:tasks}(b)), so its synergy deficit is
-$c_p^2\Var(x_ax_b)>0$ and the pair must be merged; every other pair has deficit $0$ because the
-target is additive and the remaining activations are injective; and the irrelevant inputs
+$c_p^2\Var(x_ax_b)>0$ and the pair must be merged; every other pair has deficit $0$, because
+$\E[Y\mid x_i,x_j]=\E[Y\mid a_i,a_j]$ for the activations $a_i,a_j$: a univariate activation is
+injective, and an activation of a product-pair input is constant and carries nothing jointly
+with an input outside its pair; and the irrelevant inputs
 must be pruned.  The recipe sees only data, with the fixed threshold $\tau=0.02$, and every tree
 uses the setting of the theorems (\cref{app:measure}).  \Cref{tab:recipe} shows that it prunes the
 irrelevant inputs correctly in all $60$ runs and recovers the exact structure on every seed
@@ -571,20 +581,21 @@ $-0.47$, $-0.55$ for $n=2,4,8$, against the predicted $-0.5$), while the single 
 predicted ($-0.54$ and $-0.23$ against $-0.5$ and $-0.25$; at $n=8$ its grids, with at most five
 points per axis, are still pre-asymptotic: $-0.06$ against $-0.125$).  The difference in size
 is large: in eight dimensions a forest with $28{,}672$ leaves in all has sup error $0.020$, a
-single tree with $390{,}625$ leaves $0.22$.  With smooth maps the forest converges faster than the Lipschitz bound ($-0.74$ to
+single tree with $390{,}625$ leaves $0.22$.  With smooth maps the forest converges faster than the Lipschitz bound ($-0.75$ to
 $-0.92$), as an upper bound allows; the single tree at $n=8$ is again pre-asymptotic.
 The a priori margin condition of \cref{thm:compose} would need far finer trees, but its a
 posteriori form can be checked: in every forest with at least $64$ leaves per tree, every
-approximate input stayed inside its margin at every level, so these runs satisfy the
+approximate input stayed inside its margin at every level, at all 300 query points, so these runs satisfy the
 theorem's hypothesis, and the forest exponents are fitted on them.
 
 \paragraph{Learning.}
 A learned tree's count-weighted leaf mixture equals the Nadaraya--Watson
 estimate to within $3\times10^{-7}$, float precision, and its interior error falls at $-0.41$,
 $-0.33$, $-0.31$ for $d=1,2,3$ against the predicted $-0.40$, $-0.33$, $-0.29$.  For learned
-forests \cref{thm:learn-rate} predicts the rate of one tree with $k=2$ inputs,
-$N^{-2/(k+4)}=N^{-1/3}$, in every dimension; the forests follow it ($-0.36$ for $n=4$, $-0.38$
-for $n=8$).  One tree
+forests \cref{thm:learn-rate} predicts that the exponent is that of one tree with $k=2$ inputs,
+whatever $n$.  The theorem bounds a uniform error; we measure the interior error, whose
+single-tree exponent for $k=2$ is $-2/(k+4)=-1/3$, and the forests follow it ($-0.36$ for
+$n=4$, $-0.38$ for $n=8$).  One tree
 over all inputs converges at least as fast as its exponent $-2/(n+4)$ for $n=4$ ($-0.32$) and
 is still pre-asymptotic for $n=8$ ($-0.12$).  In eight dimensions at $N=16{,}000$ the forest's
 normalised error is $0.25$ and the single tree's $0.74$ (\cref{fig:learn}).
@@ -619,12 +630,13 @@ $f(\tfrac im,\tfrac jm)\,ab$ and a balanced binary tree of two-input trees adds 
 built as in \cref{thm:univ-tree}, from $G$ leaves on the box of its inputs.  The proof makes
 two predictions: the forest converges to $B_mf$ as its trees refine (\cref{lem:stable}), with
 a tolerance that tightens as the forest grows; and $B_mf$ converges to $f$, at the rate $1/m$
-for smooth $f$.  \Cref{fig:bernstein} shows both.  With $64^2$ leaves per tree the forest is
-within $0.010$ of $B_2f$ (23 trees) and within $0.050$ of $B_{12}f$ (363 trees), and larger
-forests need finer trees, as the lemma says.  Its error to $f$ follows the Bernstein error
-down, from $2.22$ at $m=2$ to $0.59$ at $m=12$ (local slope $-0.73$, approaching $-1$).  The
-forest never does better than the polynomial it implements: the proof's two errors add, and
-the measurements separate them.
+for smooth $f$.  \Cref{fig:bernstein} shows both.  Errors are maxima over 300 random points.  With $64^2$ leaves per tree
+the forest is within $0.010$ of $B_2f$ (23 trees) and within $0.050$ of $B_{12}f$ (363 trees), and
+larger forests need finer trees, as the lemma says.  Its error to $f$ follows the Bernstein
+error down, from $2.22$ at $m=2$ to $0.59$ at $m=12$ (slope $-0.73$ over $m=2,\dots,12$ and $-0.84$
+between $10$ and $12$, approaching $-1$).  By the triangle inequality the forest's error to $f$
+is within its distance to $B_mf$ of the Bernstein error, and the measurements separate the
+two.
 
 \IfFileExists{figs/bernstein.pdf}{%
 \begin{figure}[t]
@@ -648,8 +660,9 @@ with at most two inputs, built on the box of its inputs with the Lipschitz exten
 (\cref{tab:feynman-cases}).
 
 Three observations match the theory.  First, every forest converges as its trees refine, as
-\cref{thm:compose} guarantees.  Second, where the formula has more inputs than any one of its operations reads,
-the forest is more accurate at a comparable number of leaves: $0.0035$ against $0.038$ on
+\cref{lem:stable} guarantees (\cref{thm:compose} needs Lipschitz operations, which the square root of
+$I.29.16$ is not where its argument vanishes).  Second, on five of the seven formulas with more
+than two inputs the forest is more accurate at a comparable number of leaves: $0.0035$ against $0.038$ on
 $I.50.26$ ($n=4$), $0.039$ against $0.32$ on $II.6.15a$ ($n=6$), and $0.0030$ against
 $0.0063$ on $I.6.20b$.  On the nine-input formula $I.9.18$ the forest has overtaken the single
 tree ($0.15$ against $0.17$) and is still falling fast ($1.18$, $0.59$, $0.15$ over its last
@@ -671,7 +684,8 @@ the expression graph, fan-in at most two) and one constructed tree over all $n$ 
 Errors are RMSE$/\mathrm{sd}(f)$ on 500 uniform points of the formula's input box.  $\kappa$:
 the constant of \cref{thm:compose} for this graph, $\sum_vL_vw_vA_v/\mathrm{sd}(f)$, with $L_v$
 the Lipschitz constant of operation $v$, $w_v$ the width of its input box and $A_v$ the
-largest product of Lipschitz constants from $v$ to the output.}
+largest product of the Lipschitz constants of the operations downstream of $v$ (excluding $v$),
+so that $\sum_v\eta_vA_v$ bounds the output error.}
 \label{tab:feynman-cases}
 \end{table}}{}
 

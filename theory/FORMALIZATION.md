@@ -191,10 +191,12 @@ Consequently, any predictor whose output is a convex combination of stored value
 1-Lipschitz in the max-norm, and the depth is `⌈log₂ n⌉ + 2`. Formalize with the inductive
 forest syntax.
 
-**Statement (b).** Corollary of 1.7 with `L = 1`.
+**Statement (b).** Corollary of 1.7 with `L = 1`. A fan-in-2 DAG of depth `D` has at most
+`2^D - 1 ≤ 8n - 1` non-source vertices. The bound is `C·D·(1+2r)·G^{-1/2}`; take `G = T/(8n)`.
 
-**Model fact used.** Every prediction rule outputs a convex combination of concept means, and
-concept means are averages of stored values. In Lean this is a hypothesis about the predictor:
+**Model fact used.** Every prediction rule outputs a convex combination of concept means, or
+`0` / the root mean when a leaves-only mixture is empty. Concept means are averages of stored
+values. In Lean this is a hypothesis about the predictor:
 
     ∃ weights ≥ 0 summing to 1, ŷ x = ∑ w · (stored values)
 
@@ -231,6 +233,11 @@ probabilistic parts are the cited laws.
   - (iii) on an event `Ω_N`, every tree satisfies
     `sup_{û ∈ Û_τ(Q)} |ψ̂_τ(û) - φ_τ(û)| ≤ r_N`, where `φ_τ(û) = E[V_τ | Û_τ = û]`.
 - Conclusion: on `Ω_N`, `e_out ≤ r_N ∑_{l=0}^{D} (2L)^l`.
+- Note (review round 7): `r_N` is a **uniform** rate on `Û_τ(Q)`, for a design law that moves
+  with `N`. Do not identify it with the interior RMSE rate of 2.1(c); it carries log factors
+  and `O(h)` boundary bias.
+- For prop:tasks(a), (ii) needs `Φ` and the `g_j` Lipschitz and the `H_S` bi-Lipschitz
+  (extended beyond their ranges).
 
 **Proof.**
 1. **Tower property:** `φ_τ(û) = E[ψ_τ(U_τ) | Û_τ = û]`. Mathlib: `MeasureTheory.condexp_condexp_of_le`;

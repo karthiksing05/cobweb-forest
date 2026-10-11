@@ -682,7 +682,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 103--103
 []\TU/lmr/m/n/10 dimension-free rate,
  []
 
-[3] [4] [5] [6] [7] [8] [9] (tables/recipe) (tables/equivariance
+[3] [4] [5] [6] [7] [8] [9] (tables/recipe) [10] (tables/equivariance
 Underfull \hbox (badness 10000) in paragraph at lines 6--6
 []$\OMS/cmsy/m/n/10 ^^@\OT1/cmr/m/n/10 0\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 500$ 
 \TU/lmr/m/n/10 /
@@ -723,7 +723,7 @@ Underfull \hbox (badness 5245) in paragraph at lines 27--28
  []
 
 )
-Overfull \hbox (44.568pt too wide) in paragraph at lines 1--579
+Overfull \hbox (44.568pt too wide) in paragraph at lines 1--589
  [][] 
  []
 
@@ -731,8 +731,8 @@ File: figs/compose.pdf Graphic file (type pdf)
 <use figs/compose.pdf>
 File: figs/learn.pdf Graphic file (type pdf)
 <use figs/learn.pdf>
-[10] [11]
-Overfull \hbox (3.9818pt too wide) in paragraph at lines 649--664
+[11]
+Overfull \hbox (3.9818pt too wide) in paragraph at lines 660--676
 \TU/lmr/m/n/10.95 Cobweb tree. We run it with the Bernstein polynomials $\OML/c
 mm/m/it/10.95 B[]f\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x; y\OT1/cmr/m/n/10.9
 5 ) = [][] \OML/cmm/m/it/10.95 f\OT1/cmr/m/n/10.95 ([]\OML/cmm/m/it/10.95 ; []\
@@ -741,36 +741,37 @@ OT1/cmr/m/n/10.95 ) \OML/cmm/m/it/10.95 b[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10
 /it/10.95 y\OT1/cmr/m/n/10.95 )$\TU/lmr/m/n/10.95 ,
  []
 
+[12]
 File: figs/bernstein.pdf Graphic file (type pdf)
 <use figs/bernstein.pdf>
-[12] (tables/feynman_cases)
+ (tables/feynman_cases) [13]
 File: figs/separation.pdf Graphic file (type pdf)
 <use figs/separation.pdf>
- [13] [14] [15]
-LaTeX Font Info:    Trying to load font information for U+euf on input line 902
+ [14] [15]
+LaTeX Font Info:    Trying to load font information for U+euf on input line 916
 .
  (ueuf.fd
 File: ueuf.fd 2013/01/14 v3.01 Euler Fraktur
 ) [16]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 972.
+(Font)              using `TU/lmr/m/scsl' instead on input line 986.
 
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 972.
+(Font)              using `TU/lmr/m/scsl' instead on input line 986.
 
 [17]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 1030.
+(Font)              using `TU/lmr/m/scsl' instead on input line 1044.
 
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 1038.
+(Font)              using `TU/lmr/m/scsl' instead on input line 1052.
 
 
-Overfull \hbox (1.54419pt too wide) in paragraph at lines 1042--1051
+Overfull \hbox (1.54419pt too wide) in paragraph at lines 1056--1065
 []\TU/lmr/m/n/10.95 Leaf $\OML/cmm/m/it/10.95 ^^M$ \TU/lmr/m/n/10.95 has prior 
 $\OT1/cmr/m/n/10.95 1\OML/cmm/m/it/10.95 =G$\TU/lmr/m/n/10.95 , so the leaves’ 
 mass is $\OML/cmm/m/it/10.95 ^^R[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 x\OT1
@@ -779,35 +780,34 @@ mm/m/it/10.95 ^^L[]\OT1/cmr/m/n/10.95 (2\OML/cmm/m/it/10.95 ^^Y\OT1/cmr/m/n/10.
 95 )[] [][] \OML/cmm/m/it/10.95 e[]$
  []
 
-[18]
+[18] [19]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 1143.
-
-[19]
-
-LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 1184.
+(Font)              using `TU/lmr/m/scsl' instead on input line 1157.
 
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 1184.
+(Font)              using `TU/lmr/m/scsl' instead on input line 1198.
 
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 1189.
-
-
-LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 1190.
+(Font)              using `TU/lmr/m/scsl' instead on input line 1198.
 
 [20]
 
 LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
-(Font)              using `TU/lmr/m/scsl' instead on input line 1247.
+(Font)              using `TU/lmr/m/scsl' instead on input line 1203.
+
+
+LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
+(Font)              using `TU/lmr/m/scsl' instead on input line 1204.
+
+
+LaTeX Font Warning: Font shape `TU/lmr/m/scit' undefined
+(Font)              using `TU/lmr/m/scsl' instead on input line 1261.
 
 [21] [22] [23] [24] [25] [26] [27] [28] [29]
-Overfull \hbox (19.58711pt too wide) in paragraph at lines 1829--1832
+Overfull \hbox (19.58711pt too wide) in paragraph at lines 1843--1846
  []\TU/lmr/bx/n/10.95 R1: one constructed tree (Proposition [][]2[][]).[] \TU/l
 mr/m/n/10.95 Targets on $\OT1/cmr/m/n/10.95 [0\OML/cmm/m/it/10.95 ; \OT1/cmr/m/
 n/10.95 1][]$\TU/lmr/m/n/10.95 : $[] \OT1/cmr/m/n/10.95 2\OML/cmm/m/it/10.95 ^^
@@ -816,93 +816,94 @@ m/n/10.95 ), $[]\OT1/cmr/m/n/10.95 (2\OML/cmm/m/it/10.95 ^^Yx[]\OT1/cmr/m/n/10.
 95 ) [](\OML/cmm/m/it/10.95 ^^Yx[]\OT1/cmr/m/n/10.95 )$
  []
 
-
-Overfull \hbox (41.75632pt too wide) in paragraph at lines 1849--1853
+[30]
+Overfull \hbox (41.75632pt too wide) in paragraph at lines 1863--1867
  []\TU/lmr/bx/n/10.95 L2: learned forest and one tree (Proposition [][]12[][](a
 ), Remark [][]D.13[][]).[] $\OML/cmm/m/it/10.95 Y \OT1/cmr/m/n/10.95 = [][][] [
 ][] [] \OML/cmm/m/it/10.95 ^^Y\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 X[] \OT1/
 cmr/m/n/10.95 +
  []
 
-[30]
 File: figs/weighting_sin.pdf Graphic file (type pdf)
 <use figs/weighting_sin.pdf>
 File: figs/weighting_j0.pdf Graphic file (type pdf)
 <use figs/weighting_j0.pdf>
- (tables/weighting) (tables/diag100) (tables/locality) [31]
-(tables/selection)
+(tables/weighting) (tables/diag100) [31] (tables/locality) (tables/selection)
 File: figs/synergy.pdf Graphic file (type pdf)
 <use figs/synergy.pdf>
- (tables/induce)
+
+(tables/induce) [32]
 File: figs/interpret.pdf Graphic file (type pdf)
 <use figs/interpret.pdf>
 File: figs/label_cells.pdf Graphic file (type pdf)
 <use figs/label_cells.pdf>
+ [33]
 File: figs/continual_cobweb.pdf Graphic file (type pdf)
 <use figs/continual_cobweb.pdf>
- [32] (tables/verification) [33]
-Overfull \vbox (224.76735pt too high) has occurred while \output is active []
-
-
-[34]
-Underfull \hbox (badness 10000) in paragraph at lines 2083--2083
+ [34] (tables/verification) [35]
+Underfull \hbox (badness 10000) in paragraph at lines 2097--2097
 []\TU/lmr/m/n/10 Proposition [][]D.8[][],
  []
 
 
-Underfull \hbox (badness 2334) in paragraph at lines 2083--2083
+Underfull \hbox (badness 2334) in paragraph at lines 2097--2097
 \TU/lmr/m/n/10 Corollary [][]E.3[][] (con-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 2083--2083
+Underfull \hbox (badness 10000) in paragraph at lines 2097--2097
 []\TU/lmtt/m/n/10 validity_nonneg\TU/lmr/m/n/10 ,
  []
 
 
-Overfull \hbox (3.8553pt too wide) in paragraph at lines 2083--2083
+Overfull \hbox (3.8553pt too wide) in paragraph at lines 2097--2097
 \TU/lmtt/m/n/10 condExp_const_of_validity_zero| 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 2084--2084
+Underfull \hbox (badness 10000) in paragraph at lines 2098--2098
 []\TU/lmtt/m/n/10 sign_worlds_local_law\TU/lmr/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 2084--2084
+Underfull \hbox (badness 10000) in paragraph at lines 2098--2098
 \TU/lmtt/m/n/10 local_rule_same\TU/lmr/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 2086--2086
+Underfull \hbox (badness 10000) in paragraph at lines 2100--2100
 []\TU/lmtt/m/n/10 leaf_sum_eq\TU/lmr/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 2452) in paragraph at lines 2086--2087
+Underfull \hbox (badness 2452) in paragraph at lines 2100--2101
 \TU/lmr/m/n/10 hence the leaf mixture is Nadaraya–
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 2087--2087
+Underfull \hbox (badness 10000) in paragraph at lines 2101--2101
 []\TU/lmtt/m/n/10 merged_prediction\TU/lmr/m/n/10 ,
  []
 
-
-Overfull \hbox (9.59581pt too wide) in paragraph at lines 2097--2105
+[36]
+Overfull \hbox (9.59581pt too wide) in paragraph at lines 2111--2119
  []\TU/lmr/bx/n/10.95 Adversarial review.[] \TU/lmr/m/n/10.95 Each statement is
  also checked by an independent reviewer—a fresh language-
  []
 
-[35]
-Overfull \hbox (0.9329pt too wide) in paragraph at lines 2119--2122
+
+Overfull \hbox (127.35168pt too wide) in paragraph at lines 2121--2132
+ [] 
+ []
+
+[37]
+Overfull \hbox (0.9329pt too wide) in paragraph at lines 2134--2137
 \TU/lmr/m/n/10.95 The reports, the drafts they reviewed and the reviewers’ own 
 scripts are in \TU/lmtt/m/n/10.95 verification/reviews/\TU/lmr/m/n/10.95 ;
  []
 
-(main.bbl [36] [37]) [38] [39] [40] [41] [42] (main.aux)
+(main.bbl [38] [39]) [40] [41] [42] [43] [44] (main.aux)
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: FB8F5300DE086A388ED7BCE209BB61AB;6640.
  )
-Output written on main.xdv (42 pages, 1218840 bytes).
+Output written on main.xdv (44 pages, 1233236 bytes).
