@@ -38,7 +38,7 @@ release `lean-4.35.0-rc4-linux.tar.zst` unpacked into
 |---|---|---|
 | Thm. univ-tree (one tree is universal; any counts in `[nmin, nmax]`) | `univ_tree`, `univ_tree_counts` | UnivTree.lean |
 | Prop. rate (grid rate, `C(d,β) = 2d e^{1/2β²}/(1-e^{-1/2β²})²`) | `grid_rate` | Rate.lean |
-| Lem. stable (stability of composition) | `Net.stable` | Forest.lean |
+| Lem. stable (stability of composition; one radius per vertex, or a common one) | `Net.stable_of_margins`, `Net.stable` | Forest.lean |
 | Thm. univ-forest (fan-in 2 forests are universal) | `Net.univ_forest` | Forest.lean |
 | Thm. compose (core induction; full form with grid trees and McShane extensions) | `Net.compose`, `Net.compose_grid` | Compose.lean, ComposeGrid.lean |
 | Thm. separation (a) (no single tree beats `G^{-1/n}/4`; the bump is in `𝓑_n`) | `separation_a`, `bump_mem_B` | Separation.lean |
@@ -48,7 +48,8 @@ release `lean-4.35.0-rc4-linux.tar.zst` unpacked into
 | Thm. ideal, Step 2 (perturbed design: kernel ratios, far points, averages) | `gauss_ratio`, `gauss_far_perturbed`, `wavg_perturb`, `step2_bound` | Perturb.lean |
 | Thm. learn-rate (deterministic form: `e_out ≤ r ∑_{l≤D} (2L)^l`) | `learn_rate`, `condExp_tower` | LearnRate.lean |
 | Prop. tasks (b) = Prop. xy (funnel tasks can fail: `F ≡ 0`, `Δ = Var Y`) | `funnel_xy` | Tasks.lean |
-| sufficiency criterion (last step of Prop. multiview, Prop. suffclass) | `condExp_eq_of_factor` | Tasks.lean |
+| Prop. tasks (a) = Prop. suffclass (independent blocks, `Y = Φ(∑ g_j) + ξ`, `Φ` strictly increasing) | `suffclass`, `suffclass_alg` | Suffclass.lean |
+| sufficiency criterion (last step of Prop. multiview) | `condExp_eq_of_factor` | Tasks.lean |
 | Prop. xy, Cor. parity (uninformative input gives a constant message) | `validity_nonneg`, `condExp_const_of_validity_zero` | Cues.lean |
 | (tool only, not in paper) blocking | `condExp_blocked`, `conditional_validity_blocked` | Cues.lean |
 | Thm. locality (i)-(ii), sign skeleton | `sign_worlds_local_law`, `local_rule_same`, `sign_worlds_differ` | Locality.lean |
@@ -59,7 +60,8 @@ release `lean-4.35.0-rc4-linux.tar.zst` unpacked into
 | Thm. CKA tree count | `ka_tree_count` | Structure.lean |
 
 Not formalised: the Kolmogorov–Arnold theorem itself, the probabilistic laws cited above,
-the Gaussian computation of Prop. multiview (its last step is `condExp_eq_of_factor`), the
-independence computation of Prop. suffclass, and Thm. labelcons (cited partitioning estimate).
+the Gaussian computation of Prop. multiview (its last step is `condExp_eq_of_factor`), and
+Thm. labelcons (cited partitioning estimate). Prop. suffclass is proved for blocks with
+finitely many values (the finite probability spaces of `Cues.lean`).
 
 `cobweb_forest/cues.py` is a design tool outside the paper; `check_cues` tests it.

@@ -215,6 +215,44 @@ theorem stable {K : Set (Fin n → ℝ)} (hK : IsCompact K) {r : ℝ} (hr : 0 < 
     ∃ η > 0, ∀ t' : Net n, Close K r η t' t → ∀ x ∈ K, |eval t' x - eval t x| < ε :=
   stable_aux hK hr t ht ε hε
 
+/-- Every vertex map is continuous on *some* closed neighbourhood of its input set (each vertex
+with its own radius), as in the hypothesis of Lem. stable. -/
+inductive ContNearSome (K : Set (Fin n → ℝ)) : Net n → Prop
+  | raw (i : Fin n) : ContNearSome K (raw i)
+  | node {k : ℕ} {args : Fin k → Net n} {g : (Fin k → ℝ) → ℝ}
+      (hg : ∃ r > 0, ContinuousOn g (cthickening r (inSet K args)))
+      (hargs : ∀ j, ContNearSome K (args j)) : ContNearSome K (node k args g)
+
+theorem ContNear.mono {K : Set (Fin n → ℝ)} {r r' : ℝ} {t : Net n} (ht : ContNear K r t)
+    (hr : r' ≤ r) : ContNear K r' t := by
+  induction ht with
+  | raw i => exact .raw i
+  | node hg _ ih => exact .node (hg.mono (cthickening_mono hr _)) ih
+
+/-- Finitely many vertices: a common radius. -/
+theorem ContNearSome.exists_uniform {K : Set (Fin n → ℝ)} :
+    ∀ t : Net n, ContNearSome K t → ∃ r > 0, ContNear K r t := by
+  intro t
+  induction t with
+  | raw i => exact fun _ => ⟨1, one_pos, .raw i⟩
+  | node k args g ih =>
+    intro ht
+    rcases ht with _ | ⟨⟨rv, hrv, hg⟩, hargs⟩
+    choose rs hrs hcont using fun j => ih j (hargs j)
+    obtain ⟨c, hc, hcr⟩ := exists_pos_le_of_fin rs hrs
+    refine ⟨min rv c, lt_min hrv hc, .node (hg.mono (cthickening_mono (min_le_left _ _) _))
+      fun j => (hcont j).mono ((min_le_right _ _).trans (hcr j))⟩
+
+/-- **Lem. stable, with a radius for each vertex.**  If every vertex map is continuous on some
+closed neighbourhood of its input set, there is a radius `ρ > 0` such that for every `ε > 0`
+some tolerance `η > 0` works: maps within `η` on the closed `ρ`-neighbourhoods of the input
+sets change the output by less than `ε` on `K`. -/
+theorem stable_of_margins {K : Set (Fin n → ℝ)} (hK : IsCompact K) {t : Net n}
+    (ht : ContNearSome K t) : ∃ ρ > 0, ∀ ε > 0,
+      ∃ η > 0, ∀ t' : Net n, Close K ρ η t' t → ∀ x ∈ K, |eval t' x - eval t x| < ε := by
+  obtain ⟨ρ, hρ, hcont⟩ := ht.exists_uniform t
+  exact ⟨ρ, hρ, fun ε hε => stable hK hρ hcont hε⟩
+
 /-! ## Cobweb forests -/
 
 /-- A vertex map is a **Cobweb tree** with `k` inputs and at most `G` leaves: the count-weighted

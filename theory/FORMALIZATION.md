@@ -19,7 +19,8 @@ is in `lean/README.md`.
 | 2.2 `thm:ideal` Step 2 | `gauss_ratio`, `gauss_far_perturbed`, `wavg_perturb`, `step2_bound` | deterministic; kernel-mass laws as hypotheses; bound `B(e^{2η}-1) + 2B(C/c)(1+e^η)e^{-R²/16}` |
 | 2.3 `thm:learn-rate` | `learn_rate` | finite probability spaces; (i)–(iii) are the fields of `Trained` |
 | 2.4 (b) `prop:xy` | `funnel_xy` | finite product spaces, mean-zero inputs; `F ≡ 0` and `Δ = Var Y` |
-| 2.4 (a), (d) last step | `condExp_eq_of_factor` | the sufficiency criterion; the independence computation of `prop:suffclass` and the Gaussian computation of `prop:multiview` are not formalised |
+| 2.4 (a) `prop:suffclass` | `suffclass_alg`, `suffclass` | finite blocks with a product distribution; the algebraic induction over funnel trees, and `E[Y | X_S] = H_S(s_S)` proved by exchanging the unseen blocks of two samples |
+| 2.4 (d) last step | `condExp_eq_of_factor` | the sufficiency criterion; the Gaussian computation of `prop:multiview` is not formalised |
 
 ---
 

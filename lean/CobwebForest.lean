@@ -14,3 +14,4 @@ import CobwebForest.LearnRate
 import CobwebForest.LearnTree
 import CobwebForest.Perturb
 import CobwebForest.Tasks
+import CobwebForest.Suffclass

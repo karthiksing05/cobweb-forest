@@ -759,13 +759,14 @@ LEAN_THEOREMS = [
     "local_rule_same", "sign_worlds_differ", "parity_fibre_balanced", "merged_prediction",
     "merged_weights", "leaf_sum_eq", "leaf_mixture_eq_nw",
     # representation
-    "univ_tree", "univ_tree_counts", "grid_rate", "Net.stable", "Net.univ_forest",
+    "univ_tree", "univ_tree_counts", "grid_rate", "Net.stable", "Net.stable_of_margins",
+    "Net.univ_forest",
     "Net.compose", "Net.compose_grid", "separation_a", "bump_mem_B", "separation_b",
     "Net.numTrees_le", "cobweb_ka", "Net.numTrees_kaNet",
     # learning
     "learned_tree_eq_nw", "learned_trees_inherit", "gauss_ratio", "gauss_far_perturbed",
     "wavg_perturb", "step2_bound", "condExp_tower", "learn_rate", "condExp_eq_of_factor",
-    "funnel_xy",
+    "funnel_xy", "suffclass_alg", "suffclass",
 ]
 
 

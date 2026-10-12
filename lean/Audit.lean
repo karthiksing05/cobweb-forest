@@ -21,6 +21,7 @@ import CobwebForest
 #print axioms CobwebForest.univ_tree_counts
 #print axioms CobwebForest.grid_rate
 #print axioms CobwebForest.Net.stable
+#print axioms CobwebForest.Net.stable_of_margins
 #print axioms CobwebForest.Net.univ_forest
 #print axioms CobwebForest.Net.compose
 #print axioms CobwebForest.Net.compose_grid
@@ -41,3 +42,5 @@ import CobwebForest
 #print axioms CobwebForest.learn_rate
 #print axioms CobwebForest.condExp_eq_of_factor
 #print axioms CobwebForest.funnel_xy
+#print axioms CobwebForest.suffclass_alg
+#print axioms CobwebForest.suffclass
