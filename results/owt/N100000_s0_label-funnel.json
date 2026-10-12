@@ -1,0 +1,30 @@
+{
+ "N": 100000,
+ "seed": 0,
+ "V": 2002,
+ "code": {
+  "cobweb_forest/__init__.py": "16ec82854a45",
+  "cobweb_forest/_core.cpython-312-x86_64-linux-gnu.so": "477d41551a7c",
+  "cobweb_forest/baselines.py": "deaeb941c753",
+  "cobweb_forest/designs.py": "0d9a94dff886",
+  "cobweb_forest/forest.py": "706e4e2eb91e",
+  "cobweb_forest/provenance.py": "16cf21396b12",
+  "git": "9fdf5d7",
+  "host": "claptrap.cc.gatech.edu"
+ },
+ "results": {
+  "label-funnel": {
+   "hp": {
+    "depth": 4,
+    "alpha": 0.1,
+    "weighting": "prior"
+   },
+   "val_nll": 4.7419401633791605,
+   "val_acc": 0.26966666666666667,
+   "test_acc": 0.2089,
+   "test_nll": 5.022698437545663,
+   "concepts": 389542,
+   "seconds": 39768.66375589371
+  }
+ }
+}
