@@ -285,7 +285,7 @@ theorem step2_bound {I : Type*} (S : Finset I) (U Δ : I → E) (V : I → ℝ) 
   -- the far masses
   have hFa : ∑ i ∈ S with ¬near i, a i ≤ C * N * Real.exp (-(R ^ 2) / 16) := by
     refine le_trans (Finset.sum_le_sum fun i _ => ?_) hfar
-    show gauss h ‖u - U i‖ ≤ _
+    change gauss h ‖u - U i‖ ≤ _
     unfold gauss
     apply Real.exp_le_exp.mpr
     rw [div_le_div_iff₀ (by positivity) (by positivity)]
@@ -316,7 +316,8 @@ theorem step2_bound {I : Type*} (S : Finset I) (U Δ : I → E) (V : I → ℝ) 
   have hratB : (∑ i ∈ S with ¬near i, b i) / (∑ i ∈ S with near i, b i) ≤
       C * N * Real.exp (-(R ^ 2) / 16) / (Real.exp (-η) * (c * N)) :=
     div_le_div₀ hEe hFb (mul_pos (Real.exp_pos _) hc) hBN
-  have hsimpA : C * N * Real.exp (-(R ^ 2) / 16) / (c * N) = (C / c) * Real.exp (-(R ^ 2) / 16) := by
+  have hsimpA : C * N * Real.exp (-(R ^ 2) / 16) / (c * N) =
+      (C / c) * Real.exp (-(R ^ 2) / 16) := by
     have hcN : c * N ≠ 0 := hc.ne'
     have hc0 : c ≠ 0 := left_ne_zero_of_mul hcN
     have hN0 : N ≠ 0 := right_ne_zero_of_mul hcN

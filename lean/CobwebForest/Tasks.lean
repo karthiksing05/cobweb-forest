@@ -41,6 +41,48 @@ theorem condExp_const_cue {α : Type*} [DecidableEq α] (V : Ω → ℝ) (a : α
   unfold condExp fibreMass expect
   simp [P.sum_one]
 
+open Filter Topology in
+/-- **Cor. iff, first half.**  If the learned outputs `F̂_N` converge to the ideal output `F`,
+their mean squared error for `f` converges to the deficit `Δ = E (F - f)²`. -/
+theorem tendsto_mse (Fhat : ℕ → Ω → ℝ) (F f : Ω → ℝ)
+    (hconv : ∀ ω, Tendsto (fun N => Fhat N ω) atTop (𝓝 (F ω))) :
+    Tendsto (fun N => expect P fun ω => (Fhat N ω - f ω) ^ 2) atTop
+      (𝓝 (expect P fun ω => (F ω - f ω) ^ 2)) := by
+  unfold expect
+  refine tendsto_finsetSum _ fun ω _ => ?_
+  exact (((hconv ω).sub_const (f ω)).pow 2).const_mul (P.p ω)
+
+open Filter Topology in
+/-- **Cor. iff (consistency if and only if sufficiency).**  If the learned outputs converge to
+the ideal output `F = E[Y | U_o]`, the forest is consistent for `f = E[Y | X]` (mean squared
+error tending to `0`) if and only if `F = f` on the support, i.e. its task assignment is
+sufficient (`Δ = 0`). -/
+theorem consistent_iff_sufficient (Fhat : ℕ → Ω → ℝ) (F f : Ω → ℝ)
+    (hconv : ∀ ω, Tendsto (fun N => Fhat N ω) atTop (𝓝 (F ω))) :
+    Tendsto (fun N => expect P fun ω => (Fhat N ω - f ω) ^ 2) atTop (𝓝 0) ↔
+      ∀ ω, 0 < P.p ω → F ω = f ω := by
+  constructor
+  · intro h0 ω hω
+    have hΔ : (expect P fun ω => (F ω - f ω) ^ 2) = 0 :=
+      tendsto_nhds_unique (tendsto_mse P Fhat F f hconv) h0
+    unfold expect at hΔ
+    have hterm := (Finset.sum_eq_zero_iff_of_nonneg fun ω _ =>
+      mul_nonneg (P.nonneg ω) (sq_nonneg (F ω - f ω))).mp hΔ ω (Finset.mem_univ ω)
+    rcases mul_eq_zero.mp hterm with h | h
+    · exact absurd h hω.ne'
+    · exact sub_eq_zero.mp (pow_eq_zero_iff two_ne_zero |>.mp h)
+  · intro hsuff
+    have hΔ : (expect P fun ω => (F ω - f ω) ^ 2) = 0 := by
+      unfold expect
+      refine Finset.sum_eq_zero fun ω _ => ?_
+      rcases (P.nonneg ω).lt_or_eq with h | h
+      · beta_reduce
+        rw [hsuff ω h, sub_self]
+        ring
+      · rw [← h, zero_mul]
+    rw [← hΔ]
+    exact tendsto_mse P Fhat F f hconv
+
 /-- **Sufficiency criterion.**  If `E[Y | X]` is a function `φ ∘ G` of a cue `G ∘ X` computed
 from `X`, then `E[Y | G ∘ X] = E[Y | X]` at points of positive probability. -/
 theorem condExp_eq_of_factor {α β : Type*} [DecidableEq α] [DecidableEq β] (Y : Ω → ℝ)

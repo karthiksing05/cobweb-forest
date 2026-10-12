@@ -53,7 +53,7 @@ theorem condExp_tower_of_const {α β : Type*} [DecidableEq α] [DecidableEq β]
     condExp P (condExp P V A) B ω = condExp P V B ω := by
   have h := sum_mul_condExp_of_saturated P V A {ω' ∈ (univ : Finset Ω) | B ω' = B ω}
     (fun ω₁ ω₂ h12 => by simp [hB ω₁ ω₂ h12])
-  show (∑ ω' ∈ {ω' ∈ (univ : Finset Ω) | B ω' = B ω}, P.p ω' * condExp P V A ω') /
+  change (∑ ω' ∈ {ω' ∈ (univ : Finset Ω) | B ω' = B ω}, P.p ω' * condExp P V A ω') /
       fibreMass P B ω = (∑ ω' ∈ {ω' ∈ (univ : Finset Ω) | B ω' = B ω}, P.p ω' * V ω') /
       fibreMass P B ω
   rw [h]
@@ -343,7 +343,7 @@ theorem condExp_pi (q : Fin m → Dist β) (Φ : ℝ → ℝ) (g : Fin m → β 
   have hmass : 0 < ∑ x' ∈ fib, (Dist.pi q).p x' :=
     hx.trans_le (Finset.single_le_sum (fun x' _ => (Dist.pi q).nonneg x')
       ((hmem x).mpr fun _ _ => rfl))
-  show (∑ x' ∈ fib, (Dist.pi q).p x' * Φ (∑ j, g j (x' j))) / (∑ x' ∈ fib, (Dist.pi q).p x') = _
+  change (∑ x' ∈ fib, (Dist.pi q).p x' * Φ (∑ j, g j (x' j))) / (∑ x' ∈ fib, (Dist.pi q).p x') = _
   rw [hnum, sum_fib_indep q S x F hFdep, mul_div_cancel_left₀ _ hmass.ne']
   rfl
 

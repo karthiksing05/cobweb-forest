@@ -47,6 +47,7 @@ release `lean-4.35.0-rc4-linux.tar.zst` unpacked into
 | Thm. learn-tree (a) (learned tree = Nadaraya–Watson, eq. (1)); (b), (c) cited | `learned_tree_eq_nw`, `learned_trees_inherit` | LearnTree.lean |
 | Thm. ideal, Step 2 (perturbed design: kernel ratios, far points, averages) | `gauss_ratio`, `gauss_far_perturbed`, `wavg_perturb`, `step2_bound` | Perturb.lean |
 | Thm. learn-rate (deterministic form: `e_out ≤ r ∑_{l≤D} (2L)^l`) | `learn_rate`, `condExp_tower` | LearnRate.lean |
+| Cor. iff (consistent if and only if sufficient; MSE tends to `Δ`) | `consistent_iff_sufficient`, `tendsto_mse` | Tasks.lean |
 | Prop. tasks (b) = Prop. xy (funnel tasks can fail: `F ≡ 0`, `Δ = Var Y`) | `funnel_xy` | Tasks.lean |
 | Prop. tasks (a) = Prop. suffclass (independent blocks, `Y = Φ(∑ g_j) + ξ`, `Φ` strictly increasing) | `suffclass`, `suffclass_alg` | Suffclass.lean |
 | sufficiency criterion (last step of Prop. multiview) | `condExp_eq_of_factor` | Tasks.lean |

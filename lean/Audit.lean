@@ -42,5 +42,7 @@ import CobwebForest
 #print axioms CobwebForest.learn_rate
 #print axioms CobwebForest.condExp_eq_of_factor
 #print axioms CobwebForest.funnel_xy
+#print axioms CobwebForest.tendsto_mse
+#print axioms CobwebForest.consistent_iff_sufficient
 #print axioms CobwebForest.suffclass_alg
 #print axioms CobwebForest.suffclass

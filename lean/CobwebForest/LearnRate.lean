@@ -76,7 +76,7 @@ theorem condExp_tower {α β : Type*} [DecidableEq α] [DecidableEq β] (V : Ω 
     condExp P (condExp P V A) B ω = condExp P V B ω := by
   have h := sum_mul_condExp_of_saturated P V A {ω' ∈ (univ : Finset Ω) | B ω' = B ω}
     (fun ω₁ ω₂ h12 => by simp [hB, h12])
-  show (∑ ω' ∈ {ω' ∈ (univ : Finset Ω) | B ω' = B ω}, P.p ω' * condExp P V A ω') /
+  change (∑ ω' ∈ {ω' ∈ (univ : Finset Ω) | B ω' = B ω}, P.p ω' * condExp P V A ω') /
       fibreMass P B ω = (∑ ω' ∈ {ω' ∈ (univ : Finset Ω) | B ω' = B ω}, P.p ω' * V ω') /
       fibreMass P B ω
   rw [h]
@@ -212,7 +212,7 @@ theorem learn_rate_aux {L : NNReal} {r : ℝ} :
         (fun ω' => inVec args' (X ω')) (inVec args') hfac, condExp_congr P suff _ ω]
       refine abs_condExp_sub_le P _ _ hω _ _ fun ω' hω'eq hω' => ?_
       have hÛ : inVec args' (X ω') = inVec args' (X ω) := hω'eq
-      show |ψ (inVec args (X ω')) - ψ (inVec args' (X ω))| ≤ L * e
+      change |ψ (inVec args (X ω')) - ψ (inVec args' (X ω))| ≤ L * e
       rw [← hÛ]
       have hl := lip.dist_le_mul (inVec args (X ω')) ⟨ω', hω', Or.inl rfl⟩
         (inVec args' (X ω')) ⟨ω', hω', Or.inr rfl⟩

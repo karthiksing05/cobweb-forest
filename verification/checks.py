@@ -766,7 +766,7 @@ LEAN_THEOREMS = [
     # learning
     "learned_tree_eq_nw", "learned_trees_inherit", "gauss_ratio", "gauss_far_perturbed",
     "wavg_perturb", "step2_bound", "condExp_tower", "learn_rate", "condExp_eq_of_factor",
-    "funnel_xy", "suffclass_alg", "suffclass",
+    "funnel_xy", "suffclass_alg", "suffclass", "tendsto_mse", "consistent_iff_sufficient",
 ]
 
 

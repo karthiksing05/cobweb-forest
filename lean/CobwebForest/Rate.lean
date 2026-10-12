@@ -170,7 +170,8 @@ theorem w1_mul_le {β δ a x : ℝ} (hβ : 0 < β) (hδ : 0 < δ) {j₀ : ℕ}
     rw [← Real.exp_nat_mul, ← Real.exp_add]
     unfold w1
     apply Real.exp_le_exp.mpr
-    have hlhs : -(x - ctr a δ j) ^ 2 / (2 * (β * δ) ^ 2) = -(1 / (2 * β ^ 2)) * (D ^ 2 / δ ^ 2) := by
+    have hlhs : -(x - ctr a δ j) ^ 2 / (2 * (β * δ) ^ 2) =
+        -(1 / (2 * β ^ 2)) * (D ^ 2 / δ ^ 2) := by
       rw [hD, sq_abs]
       field_simp
     have hrhs : 3 / (8 * β ^ 2) + J * (-1 / (2 * β ^ 2)) = -(1 / (2 * β ^ 2)) * (J - 3 / 4) := by
