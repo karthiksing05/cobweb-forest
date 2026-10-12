@@ -2085,15 +2085,31 @@ definitions, with the code's scores and mixtures.
 \IfFileExists{tables/verification.tex}{\begin{center}\small\input{tables/verification}\end{center}}{}
 
 \paragraph{Formal proofs.}
-The discrete cores of the statements below are proved in Lean~4 with Mathlib
+The statements below are proved in Lean~4 with Mathlib
 \citep{moura2021lean4,mathlib2020} (\texttt{lean/}, built by \texttt{lake build}).  The
 check \texttt{check\_lean} rebuilds the project, prints the axioms of every listed theorem and
 fails if any depends on \texttt{sorryAx} or if a source file contains \texttt{sorry},
 \texttt{admit} or a new \texttt{axiom}; every theorem uses only Lean's standard axioms
-(\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}).
+(\texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}).  Forests are syntax trees
+(a DAG is its unfolding), neighbourhoods are in the max-norm, the learning statements are
+proved on finite probability spaces, and cited theorems (Kolmogorov--Arnold, the
+Nadaraya--Watson laws, the uniform kernel-mass laws) enter as hypotheses.
 \begin{center}\small
 \begin{tabular}{@{}p{3.3cm}p{5.4cm}p{6.4cm}@{}}\toprule
 statement & Lean theorem & scope\\\midrule
+\cref{thm:univ-tree} & \texttt{univ\_tree}, \texttt{univ\_tree\_counts} & any compact set of a metric space; one $S$ and $h$ for all counts in $[n_{\min},n_{\max}]$\\
+\cref{prop:rate} & \texttt{grid\_rate} & $C_{d,\beta}=2d\,e^{1/2\beta^2}/(1-e^{-1/2\beta^2})^2$, $g$ Lipschitz on the cube\\
+\cref{lem:stable,thm:univ-forest} & \texttt{Net.stable\_of\_margins}, \texttt{Net.univ\_forest} & every compact $K\subset\R^n$; Cobweb trees with at most two inputs\\
+\cref{thm:compose} & \texttt{Net.compose}, \texttt{Net.compose\_grid} & grid trees for the McShane extensions, $\eta=C\,L\,w/m$\\
+\cref{thm:separation} & \texttt{separation\_a}, \texttt{bump\_mem\_B}, \texttt{separation\_b}, \texttt{Net.numTrees\_le} & (a) every predictor that outputs weighted sums of stored values; (b) at most $2^D-1\le8n-1$ trees\\
+\cref{thm:cka} & \texttt{cobweb\_ka}, \texttt{Net.numTrees\_kaNet} & the Kolmogorov--Arnold theorem as hypothesis; exactly $4n^2+4n$ trees\\
+\cref{thm:learn-tree} & \texttt{learned\_tree\_eq\_nw}, \texttt{learned\_trees\_inherit} & the identity with \eqref{eq:tree}; consistency and rate inherited from the cited laws\\
+\cref{thm:ideal}, Step~2 & \texttt{gauss\_ratio}, \texttt{gauss\_far\_perturbed}, \texttt{wavg\_perturb}, \texttt{step2\_bound} & deterministic; kernel-mass laws as hypotheses\\
+\cref{thm:learn-rate} & \texttt{learn\_rate}, \texttt{condExp\_tower} & deterministic form, finite probability spaces\\
+\cref{cor:iff} & \texttt{consistent\_iff\_sufficient}, \texttt{tendsto\_mse} & learned outputs converging to the ideal output, finite probability spaces\\
+\cref{prop:xy} & \texttt{funnel\_xy} & independent mean-zero inputs on finite spaces: $F\equiv0$, $\Delta=\Var Y$\\
+\cref{prop:suffclass} & \texttt{suffclass\_alg}, \texttt{suffclass} & independent blocks with finitely many values\\
+\cref{prop:multiview} (last step) & \texttt{condExp\_eq\_of\_factor} & if $f$ is a function of the output tree's input, the assignment is sufficient\\
 \cref{prop:xy}, \cref{cor:parity} (constant messages) & \texttt{validity\_nonneg}, \texttt{condExp\_const\_of\_validity\_zero} & a tree whose input carries no information about its outcome emits a constant message (any finite distribution)\\
 \cref{thm:locality}(i)--(ii) & \texttt{sign\_worlds\_local\_law}, \texttt{local\_rule\_same}, \texttt{sign\_worlds\_differ} & the sign skeleton on $\{\pm1\}^3$\\
 \cref{cor:parity} & \texttt{parity\_fibre\_balanced} & parity of all $n$ bits ($J=[n]$, signs as bits), every $S$ missing a bit\\
@@ -2104,8 +2120,9 @@ statement & Lean theorem & scope\\\midrule
 \bottomrule
 \end{tabular}
 \end{center}
-Analytic statements (rates, consistency) are not formalised; for them the executable
-checks and the review below carry the verification.
+Not formalised: the cited theorems themselves, the Gaussian computation of
+\cref{prop:multiview} and \cref{thm:labelcons}; for them the executable checks and the
+review below carry the verification.
 
 \paragraph{Adversarial review.}
 Each statement is also checked by an independent reviewer---a fresh language-model agent

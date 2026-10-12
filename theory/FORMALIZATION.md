@@ -1,5 +1,30 @@
 # Formalization handoff: Cobweb forests are universal approximators
 
+## Status (autoformalization session, 2026-10-12)
+
+Every item of the suggested order (Sec. 3) is proved in `lean/`, with no `sorry` and only the
+standard axioms (`Audit.lean`, `check_lean`). The map from paper statements to Lean theorems
+is in `lean/README.md`.
+
+| item | Lean | notes |
+|---|---|---|
+| 1.1 `thm:univ-tree` | `univ_tree`, `univ_tree_counts` | any pseudo-metric space; one `S` and `h` work for all counts in `[nmin, nmax]` |
+| 1.2 `prop:rate` | `grid_rate` | explicit `C(d,β) = 2d e^{1/2β²}/(1-e^{-1/2β²})²`; `g` Lipschitz for the ℓ¹ distance on the cube (covers Euclidean and max norm); proof by factorising the Gaussian over coordinates, not by annuli |
+| 1.3 `lem:stable` | `Net.stable` | syntax trees (`Net`, DAGs unfolded); one radius `ρ_v = r` (the continuity margin) and one tolerance `η_v = η` for all vertices |
+| 1.4 `thm:univ-forest` | `Net.univ_forest` | Stone–Weierstrass on the subalgebra of functions computed by `+`/`×`/const/raw forests; no `a ↦ a²` vertex is needed because shared vertices are unfolded |
+| 1.7 `thm:compose` | `Net.compose`, `Net.compose_grid` | the full form builds the grid trees of 1.2 for the McShane extensions and concludes with `η = C(k,β) L w / m` |
+| 1.8 `thm:separation` | `separation_a`, `bump_mem_B`, `separation_b`, `Net.numTrees_le` | (a) for any predictor whose output is a weighted sum of stored values, weights arbitrary; (b) with `≤ 2^D - 1 ≤ 8n - 1` trees |
+| 1.6 `rem:ka-main` / `thm:cka` | `cobweb_ka`, `Net.numTrees_kaNet` | the KA theorem is a hypothesis; exactly `4N² + 4N` trees |
+| 2.1 `thm:learn-tree` | `learned_tree_eq_nw`, `learned_trees_inherit` | (a) in the form of eq. (1); (b), (c) cited, as a hypothesis on the Nadaraya–Watson sequence |
+| 2.2 `thm:ideal` Step 2 | `gauss_ratio`, `gauss_far_perturbed`, `wavg_perturb`, `step2_bound` | deterministic; kernel-mass laws as hypotheses; bound `B(e^{2η}-1) + 2B(C/c)(1+e^η)e^{-R²/16}` |
+| 2.3 `thm:learn-rate` | `learn_rate` | finite probability spaces; (i)–(iii) are the fields of `Trained` |
+| 2.2 `cor:iff` | `tendsto_mse`, `consistent_iff_sufficient` | finite form: learned outputs converging to the ideal output |
+| 2.4 (b) `prop:xy` | `funnel_xy` | finite product spaces, mean-zero inputs; `F ≡ 0` and `Δ = Var Y` |
+| 2.4 (a) `prop:suffclass` | `suffclass_alg`, `suffclass` | finite blocks with a product distribution; the algebraic induction over funnel trees, and `E[Y | X_S] = H_S(s_S)` proved by exchanging the unseen blocks of two samples |
+| 2.4 (d) last step | `condExp_eq_of_factor` | the sufficiency criterion; the Gaussian computation of `prop:multiview` is not formalised |
+
+---
+
 This document is for an autoformalization session (Lean 4 + Mathlib). It lists the objects,
 the exact statements, the proof steps, and the Mathlib facts each step needs, in dependency
 order. Paper labels are those of `theory/main.tex`. Statements marked **[core]** are the
